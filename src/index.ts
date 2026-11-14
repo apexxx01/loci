@@ -7,7 +7,7 @@ import { HubSystem } from './xr/hub-system.js';
 import { PalaceSystem } from './xr/palace-system.js';
 import { RecallSystem } from './xr/recall-system.js';
 import { RoomSystem } from './xr/room-system.js';
-import { mountLanding } from './landing.js';
+import { mountLanding } from './landing/landing.js';
 
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
   (world) => {
@@ -20,10 +20,11 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(HubSystem);
     const landing = mountLanding({
       launchXR: () => world.launchXR(),
-      onPreview: () => undefined,
       onDeckReady: (deck) => (app.pendingDeck = deck),
-      getPalaceDeck: () => app.palace?.deck ?? null,
-      onPreviewDeck: (deck) => bus.emit({ type: 'start-deck', deck }),
+      onPreviewDeck: (deck) => {
+        if (deck) bus.emit({ type: 'start-deck', deck });
+      },
+      getPalace: () => app.palace,
     });
     bus.on((e) => {
       if (e.type !== 'own-notes') return;
