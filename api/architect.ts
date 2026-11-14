@@ -16,9 +16,18 @@ import {
 } from '../src/core/architect.js';
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+/**
+ * Fallback chain: a single overloaded model (503/429) or a slow response must
+ * not break the experience. Each hop gets its own short timeout so the whole
+ * chain fits inside the function's 30 s budget.
+ */
+const MODELS = [MODEL, ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.5-flash-lite,gemini-3.6-flash').split(',')]
+  .map((m) => m.trim())
+  .filter((m, i, a) => m && a.indexOf(m) === i);
+const RETRYABLE = new Set([429, 500, 503, 504]);
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-const TIMEOUT_MS = 24_000;
+const TIMEOUT_MS = 12_000;
 /** Mnemonics need creativity, not deep reasoning: keep thinking short for latency. */
 const THINKING_LEVEL = process.env.GEMINI_THINKING || 'low';
 const MAX_BODY = 12_000;
@@ -43,13 +52,32 @@ function json(status: number, body: unknown): Response {
   });
 }
 
+let lastModel = MODEL;
+
 async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT_MS): Promise<unknown> {
+  const errors: string[] = [];
+  for (const model of MODELS) {
+    try {
+      const out = await callModel(model, prompt, schema, timeoutMs);
+      lastModel = model;
+      return out;
+    } catch (e) {
+      const err = e as Error & { status?: number; upstream?: number };
+      const retryable = err.name === 'AbortError' || (err.upstream !== undefined && RETRYABLE.has(err.upstream)) || err instanceof SyntaxError;
+      errors.push(`${model}: ${err.name === 'AbortError' ? 'timeout' : err.message.slice(0, 80)}`);
+      if (!retryable) throw err;
+    }
+  }
+  throw Object.assign(new Error(`All models unavailable (${errors.join('; ')})`), { status: 503 });
+}
+
+async function callModel(model: string, prompt: string, schema: object | null, timeoutMs: number): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Object.assign(new Error('GEMINI_API_KEY is not set on the server'), { status: 503 });
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(ENDPOINT(MODEL), {
+    const res = await fetch(ENDPOINT(model), {
       method: 'POST',
       signal: ctrl.signal,
       headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
@@ -63,7 +91,7 @@ async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT
     });
     if (!res.ok) {
       const detail = (await res.text()).slice(0, 300);
-      throw Object.assign(new Error(`Gemini returned ${res.status}: ${detail}`), { status: 502 });
+      throw Object.assign(new Error(`Gemini returned ${res.status}: ${detail}`), { status: 502, upstream: res.status });
     }
     const data = (await res.json()) as {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
@@ -101,7 +129,7 @@ export async function POST(request: Request): Promise<Response> {
       if (!items.length) return json(400, { error: 'No items to bind.' });
       const out = await gemini(bindPrompt(items), BIND_RESPONSE_SCHEMA);
       const vetted = vetBoundScenes(out, items, items.map((i) => `${i.cue} ${i.scene}`).join(' '));
-      return json(200, { ...vetted, model: MODEL, ms: Date.now() - started });
+      return json(200, { ...vetted, model: lastModel, ms: Date.now() - started });
     }
 
     const notes = typeof body.notes === 'string' ? body.notes : '';
@@ -113,7 +141,7 @@ export async function POST(request: Request): Promise<Response> {
       vetted = vetArchitectOutput(await gemini(architectPrompt(notes), ARCHITECT_RESPONSE_SCHEMA), notes, id);
     }
     if (!vetted) return json(502, { error: 'The Architect returned something unusable. Try again or shorten your notes.' });
-    return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: MODEL, ms: Date.now() - started });
+    return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: lastModel, ms: Date.now() - started });
   } catch (e) {
     const err = e as Error & { status?: number };
     const status = err.name === 'AbortError' ? 504 : err.status ?? 500;
@@ -122,15 +150,15 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const base = { ok: true, model: MODEL, thinking: THINKING_LEVEL, configured: Boolean(process.env.GEMINI_API_KEY) };
+  const base = { ok: true, model: MODEL, fallbacks: MODELS.slice(1), thinking: THINKING_LEVEL, configured: Boolean(process.env.GEMINI_API_KEY) };
   if (!new URL(request.url).searchParams.has('probe')) return json(200, base);
   // Health probe: one tiny call, reports latency or the exact upstream error.
   const ip = (request.headers.get('x-forwarded-for') ?? 'local').split(',')[0].trim();
   if (rateLimited(ip)) return json(429, { error: 'Too many requests.' });
   const t0 = Date.now();
   try {
-    const text = await gemini('Reply with the single word OK.', null, 15_000);
-    return json(200, { ...base, probe: 'ok', reply: String(text).slice(0, 40), ms: Date.now() - t0 });
+    const text = await gemini('Reply with the single word OK.', null, 8_000);
+    return json(200, { ...base, probe: 'ok', served_by: lastModel, reply: String(text).slice(0, 40), ms: Date.now() - t0 });
   } catch (e) {
     const err = e as Error;
     return json(200, { ...base, probe: 'failed', error: err.name === 'AbortError' ? 'timeout after 15s' : err.message, ms: Date.now() - t0 });
