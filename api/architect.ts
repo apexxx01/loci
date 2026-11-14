@@ -18,7 +18,9 @@ import {
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-const TIMEOUT_MS = 20_000;
+const TIMEOUT_MS = 24_000;
+/** Mnemonics need creativity, not deep reasoning: keep thinking short for latency. */
+const THINKING_LEVEL = process.env.GEMINI_THINKING || 'low';
 const MAX_BODY = 12_000;
 
 // Best-effort abuse guard: 20 requests / 10 minutes per IP per warm instance.
@@ -41,11 +43,11 @@ function json(status: number, body: unknown): Response {
   });
 }
 
-async function gemini(prompt: string, schema: object): Promise<unknown> {
+async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT_MS): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Object.assign(new Error('GEMINI_API_KEY is not set on the server'), { status: 503 });
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(ENDPOINT(MODEL), {
       method: 'POST',
@@ -53,7 +55,10 @@ async function gemini(prompt: string, schema: object): Promise<unknown> {
       headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: 'application/json', responseSchema: schema },
+        generationConfig: {
+          ...(schema ? { responseMimeType: 'application/json', responseSchema: schema } : {}),
+          thinkingConfig: { thinkingLevel: THINKING_LEVEL },
+        },
       }),
     });
     if (!res.ok) {
@@ -64,7 +69,7 @@ async function gemini(prompt: string, schema: object): Promise<unknown> {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
     };
     const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-    return JSON.parse(text);
+    return schema ? JSON.parse(text) : text;
   } finally {
     clearTimeout(timer);
   }
@@ -116,6 +121,18 @@ export async function POST(request: Request): Promise<Response> {
   }
 }
 
-export function GET(): Response {
-  return json(200, { ok: true, model: MODEL, configured: Boolean(process.env.GEMINI_API_KEY) });
+export async function GET(request: Request): Promise<Response> {
+  const base = { ok: true, model: MODEL, thinking: THINKING_LEVEL, configured: Boolean(process.env.GEMINI_API_KEY) };
+  if (!new URL(request.url).searchParams.has('probe')) return json(200, base);
+  // Health probe: one tiny call, reports latency or the exact upstream error.
+  const ip = (request.headers.get('x-forwarded-for') ?? 'local').split(',')[0].trim();
+  if (rateLimited(ip)) return json(429, { error: 'Too many requests.' });
+  const t0 = Date.now();
+  try {
+    const text = await gemini('Reply with the single word OK.', null, 15_000);
+    return json(200, { ...base, probe: 'ok', reply: String(text).slice(0, 40), ms: Date.now() - t0 });
+  } catch (e) {
+    const err = e as Error;
+    return json(200, { ...base, probe: 'failed', error: err.name === 'AbortError' ? 'timeout after 15s' : err.message, ms: Date.now() - t0 });
+  }
 }
