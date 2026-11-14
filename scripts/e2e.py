@@ -57,9 +57,11 @@ def targets():
 
 
 def aim_select(pos, duration=0.15):
-    xr('look-at', {'device': 'controller-right', 'target': pos})
+    # Use the hand on the same side, like a person would (the hub docks left).
+    dev = 'controller-left' if pos['x'] < -0.05 else 'controller-right'
+    xr('look-at', {'device': dev, 'target': pos})
     time.sleep(0.8)  # let the pointer register a hover before pressing
-    xr('select', {'device': 'controller-right', 'duration': duration})
+    xr('select', {'device': dev, 'duration': duration})
 
 
 def ensure_xr():
