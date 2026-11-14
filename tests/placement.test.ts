@@ -192,3 +192,19 @@ describe('label diversity', () => {
     expect(labels).toEqual(['couch', 'lamp', 'table']);
   });
 });
+
+describe('semanticAgreement', () => {
+  it('confirms a palace that is still on its furniture', async () => {
+    const { semanticAgreement } = await import('../src/core/placement.js');
+    const plan = planPlacement(PLANETS.items, [table, couch, wallFront], seated);
+    const placed = plan.assignments.map((a) => ({ label: a.slot.label, position: a.slot.position }));
+    expect(semanticAgreement(placed, [table, couch, wallFront]).ratio).toBe(1);
+  });
+  it('flags a palace restored into a different room', async () => {
+    const { semanticAgreement } = await import('../src/core/placement.js');
+    const plan = planPlacement(PLANETS.items, [table, couch, wallFront], seated);
+    const placed = plan.assignments.map((a) => ({ label: a.slot.label, position: a.slot.position }));
+    const otherRoom: Surface[] = [{ ...table, id: 'bed', label: 'bed', center: [3, 0.5, 2] }];
+    expect(semanticAgreement(placed, otherRoom).ratio).toBe(0);
+  });
+});

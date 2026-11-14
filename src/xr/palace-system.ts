@@ -13,7 +13,7 @@ import {
   XRAnchor,
   type Entity,
 } from '@iwsdk/core';
-import { PLACEMENT, planPlacement, tileScale } from '../core/placement.js';
+import { PLACEMENT, planPlacement, semanticAgreement, tileScale } from '../core/placement.js';
 import { createPalace, loadPalace, savePalace, withPlacements } from '../core/palace.js';
 import { dueIds, nextDue } from '../core/scheduler.js';
 import type { Deck, MemoryItem, Palace, Placement, Slot } from '../core/types.js';
@@ -60,6 +60,8 @@ export class PalaceSystem extends createSystem({
   /** Bind generation guards against stale responses after a re-fit. */
   private bindGen = 0;
   private needsBind = false;
+  /** Seconds left to verify a restored palace against the scanned room. */
+  private verifyFor = 0;
   private lastSurfaceVersion = -1;
   private stableFor = 0;
   private dueTimer = 0;
@@ -339,6 +341,8 @@ export class PalaceSystem extends createSystem({
       }
     }
 
+    if (this.verifyFor > 0) this.verifyRestore(delta);
+
     this.dueTimer += delta;
     if (this.dueTimer > 15) {
       this.dueTimer = 0;
@@ -366,6 +370,7 @@ export class PalaceSystem extends createSystem({
         r.pendingLocal = undefined;
       }
       this.phase = 'ready';
+      this.verifyFor = 5;
       setStatus(this.welcomeBackText());
       bus.emit({ type: 'palace-changed' });
       return;
@@ -416,6 +421,29 @@ export class PalaceSystem extends createSystem({
         ? `Every picture now lives on its object (${secs} s). Pinch a memory to see it.`
         : 'Pictures pinned to their objects (offline). Pinch a memory to see it.',
     );
+  }
+
+  /**
+   * Anchors can come back in the wrong place (a different room, furniture
+   * moved). Once scene data is in, check that memories still sit near objects
+   * with their labels; if most don't, re-fit instead of floating in mid-air.
+   */
+  private verifyRestore(delta: number): void {
+    this.verifyFor -= delta;
+    if (!app.surfaces.length && this.verifyFor > 0) return; // wait for scene data
+    const settled = this.verifyFor <= 3.5 || this.verifyFor <= 0;
+    if (!settled) return;
+    this.verifyFor = 0;
+    if (!app.surfaces.length) return; // no Space Setup: nothing to compare against
+    const placed = [...this.records.values()].map((r) => {
+      r.tile.root.getWorldPosition(this.tmpV);
+      return { label: r.label, position: [this.tmpV.x, this.tmpV.y, this.tmpV.z] as [number, number, number] };
+    });
+    const { checked, matched, ratio } = semanticAgreement(placed, app.surfaces);
+    app.lastVerify = { checked, matched };
+    if (checked >= 3 && ratio < 0.4) {
+      this.refit(`Only ${matched} of ${checked} memories found their furniture here, so I re-fit your palace to this room.`);
+    }
   }
 
   /* ---------------------------------------------------------------- helpers */

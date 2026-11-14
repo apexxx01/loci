@@ -328,3 +328,27 @@ export function planPlacement(
     surfacesUsed: realSurfaces,
   };
 }
+
+/**
+ * Semantic sanity check after restoring a palace: what share of labelled
+ * memories still have an object with the same label nearby? Low agreement
+ * means the anchor came back in a different room (or the furniture moved).
+ */
+export function semanticAgreement(
+  placements: { label: string; position: Vec3 }[],
+  surfaces: Surface[],
+  radius = 0.75,
+): { checked: number; matched: number; ratio: number } {
+  const labelled = placements.filter((p) => p.label);
+  let matched = 0;
+  for (const p of labelled) {
+    const ok = surfaces.some(
+      (s) =>
+        s.label === p.label &&
+        Math.hypot(s.center[0] - p.position[0], s.center[2] - p.position[2]) <=
+          radius + Math.max(s.extent[0], s.extent[1]) / 2,
+    );
+    if (ok) matched++;
+  }
+  return { checked: labelled.length, matched, ratio: labelled.length ? matched / labelled.length : 1 };
+}

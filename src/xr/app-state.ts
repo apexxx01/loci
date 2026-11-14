@@ -39,6 +39,8 @@ export const app = {
   storageOk: true,
   /** How placements are stored: relative to the persistent anchor or to the session origin. */
   frame: 'reference' as 'anchor' | 'reference',
+  /** Result of the last restore check (memories that still found their object). */
+  lastVerify: null as null | { checked: number; matched: number },
   /** Latest hub status line. */
   status: 'Ready.',
   /** Last grab release, for tuning and tests. */
