@@ -1,0 +1,58 @@
+{
+  "version": "iwsdk.scene.v1",
+  "units": "meters",
+  "components": {
+    "com.iwsdk.components.IBLGradient": {
+      "sky": [
+        0.96,
+        0.95,
+        1,
+        1
+      ],
+      "equator": [
+        0.82,
+        0.8,
+        0.9,
+        1
+      ],
+      "ground": [
+        0.45,
+        0.43,
+        0.5,
+        1
+      ],
+      "intensity": 0.6
+    }
+  },
+  "environment": {
+    "toneMapping": "aces",
+    "exposure": 1,
+    "shadows": false
+  },
+  "resources": {},
+  "nodes": [
+    {
+      "id": "hub",
+      "name": "Loci Hub",
+      "content": {
+        "type": "asset",
+        "asset": "hub-panel"
+      },
+      "transform": {
+        "position": [
+          0,
+          1.25,
+          -0.75
+        ],
+        "scale": 0.1
+      },
+      "components": {
+        "PokeInteractable": {},
+        "RayInteractable": {}
+      }
+    }
+  ],
+  "authoring": {
+    "views": []
+  }
+}
