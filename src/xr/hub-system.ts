@@ -77,7 +77,7 @@ export class HubSystem extends createSystem({}) {
         if (deck) bus.emit({ type: 'start-deck', deck });
       });
     }
-    bind('deck-phone', () => setStatus('Phone hand-off is coming in the next build.'));
+    bind('deck-phone', () => bus.emit({ type: 'own-notes' }));
     bind('btn-refit', () => bus.emit({ type: 'refit' }));
     bind('btn-new', () => bus.emit({ type: 'new-palace' }));
 

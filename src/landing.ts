@@ -3,8 +3,20 @@
  * mixed reality. One job: explain Loci in a glance and get them into the room.
  */
 import './landing.css';
+import { buildDeck } from './net/architect-client.js';
+import type { Deck } from './core/types.js';
 
 type LaunchXR = () => void;
+
+const EXAMPLE = `1. Mitochondria - makes energy for the cell
+2. Ribosome - builds proteins
+3. Nucleus - stores the DNA
+4. Golgi body - packages and ships proteins
+5. Cell membrane - controls what enters and leaves`;
+
+function esc(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+}
 
 /** Memory markers on the plan: [x, y, glyph] in route order (left -> right sweep). */
 const MARKERS: [number, number, string][] = [
@@ -82,9 +94,15 @@ function planSvg(): string {
   </svg>`;
 }
 
-export function mountLanding(opts: { launchXR: LaunchXR; onPreview: () => void }): {
+export function mountLanding(opts: {
+  launchXR: LaunchXR;
+  onPreview: () => void;
+  /** Called with a deck the learner built and approved; entering XR builds it. */
+  onDeckReady: (deck: Deck) => void;
+}): {
   hide(): void;
   show(): void;
+  focusNotes(): void;
 } {
   const root = document.createElement('main');
   root.className = 'landing is-animating';
@@ -110,6 +128,27 @@ export function mountLanding(opts: { launchXR: LaunchXR; onPreview: () => void }
           Without it, memories float in an arc around you instead of sitting on your furniture.</p>
         </div>
         <div class="hero__plan">${planSvg()}</div>
+      </section>
+
+      <section class="own" aria-labelledby="own-title">
+        <div class="own__intro">
+          <h2 id="own-title">Bring your own notes</h2>
+          <p>Paste or dictate anything you need to remember: vocabulary, a process, a speech outline.
+          One item per line works best, like <em>term - meaning</em>. Up to 12.</p>
+        </div>
+        <div class="own__work">
+          <label class="sr-only" for="notes">Your notes</label>
+          <textarea id="notes" rows="7" spellcheck="true" placeholder="${esc(EXAMPLE)}" data-notes></textarea>
+          <div class="own__actions">
+            <button class="btn-secondary" type="button" data-build>Build my palace</button>
+            <button class="link-quiet" type="button" data-example>Use the example</button>
+            <span class="own__status" role="status" aria-live="polite" data-build-status></span>
+          </div>
+          <ol class="preview" data-preview-list hidden></ol>
+          <div class="own__enter" data-enter-own-wrap hidden>
+            <button class="cta" type="button" data-enter-own>Enter with these memories</button>
+          </div>
+        </div>
       </section>
 
       <ol class="steps">
@@ -142,6 +181,54 @@ export function mountLanding(opts: { launchXR: LaunchXR; onPreview: () => void }
   document.body.appendChild(root);
 
   const enter = root.querySelector<HTMLButtonElement>('[data-enter]')!;
+  const notes = root.querySelector<HTMLTextAreaElement>('[data-notes]')!;
+  const buildBtn = root.querySelector<HTMLButtonElement>('[data-build]')!;
+  const buildStatus = root.querySelector<HTMLElement>('[data-build-status]')!;
+  const previewList = root.querySelector<HTMLOListElement>('[data-preview-list]')!;
+  const enterOwnWrap = root.querySelector<HTMLElement>('[data-enter-own-wrap]')!;
+  const enterOwn = root.querySelector<HTMLButtonElement>('[data-enter-own]')!;
+  let built: Deck | null = null;
+
+  root.querySelector('[data-example]')!.addEventListener('click', () => {
+    notes.value = EXAMPLE;
+    notes.focus();
+  });
+
+  buildBtn.addEventListener('click', async () => {
+    buildBtn.disabled = true;
+    buildStatus.textContent = 'The Palace Architect is turning your notes into pictures...';
+    previewList.hidden = true;
+    enterOwnWrap.hidden = true;
+    const result = await buildDeck(notes.value);
+    buildBtn.disabled = false;
+    if (!result.ok) {
+      buildStatus.textContent = result.error;
+      notes.focus();
+      return;
+    }
+    built = result.deck;
+    buildStatus.textContent =
+      result.via === 'architect'
+        ? `Built ${built.items.length} memories in ${(result.ms / 1000).toFixed(1)} s.${result.repaired ? ` ${result.repaired} picture${result.repaired > 1 ? 's were' : ' was'} replaced by the safety check.` : ''} Check them, then enter.`
+        : `Built ${built.items.length} memories from your lines (Architect unavailable: ${result.reason}). Check them, then enter.`;
+    previewList.innerHTML = built.items
+      .map(
+        (it) => `<li>
+          <span class="preview__glyphs" aria-hidden="true">${esc(it.glyphs.join(''))}</span>
+          <span class="preview__text"><strong>${esc(it.cue)}</strong> <span class="preview__answer">${esc(it.answer)}</span>
+          <span class="preview__scene">${esc(it.scene)}</span></span>
+        </li>`,
+      )
+      .join('');
+    previewList.hidden = false;
+    enterOwnWrap.hidden = enter.disabled; // no headset: preview only
+    enterOwn.textContent = `Enter with these ${built.items.length} memories`;
+  });
+
+  enterOwn.addEventListener('click', () => {
+    if (built) opts.onDeckReady(built);
+    opts.launchXR();
+  });
   const note = root.querySelector<HTMLElement>('[data-note]')!;
   const setup = root.querySelector<HTMLElement>('[data-setup]')!;
 
@@ -170,6 +257,11 @@ export function mountLanding(opts: { launchXR: LaunchXR; onPreview: () => void }
     show: () => {
       root.hidden = false;
       root.scrollTop = 0;
+    },
+    focusNotes: () => {
+      root.hidden = false;
+      notes.scrollIntoView({ block: 'center' });
+      notes.focus();
     },
   };
 }

@@ -22,6 +22,7 @@ import { MemoryTile, TileFace } from './components.js';
 import { viewerPose } from './room-system.js';
 import { playBuild, playLand } from './sound.js';
 import { createTile, type TileHandle } from './tile.js';
+import { bindScenes } from '../net/architect-client.js';
 import type { FaceKind } from './tile-art.js';
 
 const ANCHOR_KEY = 'iwsdk_scene_anchor_uuid';
@@ -55,6 +56,9 @@ export class PalaceSystem extends createSystem({
   private phase: Phase = 'idle';
   private phaseTime = 0;
   private pendingDeck: Deck | null = null;
+  /** Bind generation guards against stale responses after a re-fit. */
+  private bindGen = 0;
+  private needsBind = false;
   private lastSurfaceVersion = -1;
   private stableFor = 0;
   private dueTimer = 0;
@@ -93,7 +97,12 @@ export class PalaceSystem extends createSystem({
       this.anchorsEnabled = features.includes('anchors');
       this.anchorUuidAtStart = getStorage()?.getItem(ANCHOR_KEY) ?? null;
       this.disposeTiles();
-      if (app.palace) this.beginRestore();
+      if (app.pendingDeck) {
+        // The learner built and approved a deck on the 2D page: build it now.
+        const deck = app.pendingDeck;
+        app.pendingDeck = null;
+        this.beginBuild(deck);
+      } else if (app.palace) this.beginRestore();
     };
     const onEnd = () => {
       this.persist();
@@ -153,6 +162,7 @@ export class PalaceSystem extends createSystem({
 
     this.phase = 'building';
     this.phaseTime = 0;
+    this.needsBind = this.sessionActive;
     if (animate) playBuild();
 
     const realCount = plan.assignments.filter((a) => a.slot.surfaceId !== 'arc').length;
@@ -321,6 +331,10 @@ export class PalaceSystem extends createSystem({
         if (this.sessionActive) this.persist();
         this.refreshDue();
         bus.emit({ type: 'palace-changed' });
+        if (this.needsBind) {
+          this.needsBind = false;
+          void this.weaveRoom();
+        }
       }
     }
 
@@ -358,6 +372,49 @@ export class PalaceSystem extends createSystem({
     if (this.phaseTime > ATTACH_TIMEOUT_SECONDS) {
       this.refit('Could not lock onto last session\'s anchor, so I re-fit your palace to this room.');
     }
+  }
+
+  /**
+   * Ask the Palace Architect to rewrite each picture so it interacts with the
+   * object it landed on ("...bursts out of your lamp shade"). The locus and
+   * the image become one memory, which is the heart of the technique.
+   */
+  private async weaveRoom(): Promise<void> {
+    const palace = app.palace;
+    if (!palace) return;
+    const gen = ++this.bindGen;
+    const byId = new Map(palace.deck.items.map((it) => [it.id, it]));
+    const inputs = [...this.records.values()]
+      .filter((r) => r.label)
+      .map((r) => {
+        const it = byId.get(r.item.id)!;
+        return { id: it.id, cue: it.cue, scene: it.baseScene ?? it.scene, label: r.label };
+      });
+    if (!inputs.length) return;
+    setStatus('The Palace Architect is weaving your room into each picture...');
+    const t0 = performance.now();
+    const res = await bindScenes(inputs.map(({ cue, scene, label }) => ({ cue, scene, label })));
+    if (gen !== this.bindGen || app.palace?.id !== palace.id) return; // superseded
+    const scenes = new Map(inputs.map((inp, i) => [inp.id, res.scenes[i]]));
+    const items = app.palace.deck.items.map((it) =>
+      scenes.has(it.id) ? { ...it, baseScene: it.baseScene ?? it.scene, scene: scenes.get(it.id)! } : it,
+    );
+    app.palace = { ...app.palace, deck: { ...app.palace.deck, items } };
+    for (const rec of this.records.values()) {
+      const updated = items.find((it) => it.id === rec.item.id);
+      if (updated) {
+        rec.item = updated;
+        rec.tile.setItem(updated);
+      }
+      this.renderTile(rec);
+    }
+    this.persist();
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    setStatus(
+      res.via === 'architect'
+        ? `Every picture now lives on its object (${secs} s). Pinch a memory to see it.`
+        : 'Pictures pinned to their objects (offline). Pinch a memory to see it.',
+    );
   }
 
   /* ---------------------------------------------------------------- helpers */

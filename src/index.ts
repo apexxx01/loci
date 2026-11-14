@@ -17,6 +17,12 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
     const landing = mountLanding({
       launchXR: () => world.launchXR(),
       onPreview: () => undefined,
+      onDeckReady: (deck) => (app.pendingDeck = deck),
+    });
+    bus.on((e) => {
+      if (e.type !== 'own-notes') return;
+      world.exitXR();
+      landing.focusNotes();
     });
     world.visibilityState.subscribe((v) => {
       if (v === VisibilityState.NonImmersive) landing.show();

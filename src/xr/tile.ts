@@ -57,6 +57,8 @@ export interface TileHandle {
   tether: Line;
   /** Redraw the face; cheap enough to call on every state change. */
   render(face: FaceKind, style: FaceStyle): void;
+  /** Swap the memory content (e.g. after the scene is bound to its object). */
+  setItem(item: MemoryItem): void;
   /** Point the tether/foot down to a surface `drop` metres below the card. */
   setDrop(drop: number): void;
   setHaloStrength(s: number): void;
@@ -65,7 +67,8 @@ export interface TileHandle {
   dispose(): void;
 }
 
-export function createTile(item: MemoryItem): TileHandle {
+export function createTile(initial: MemoryItem): TileHandle {
+  let item = initial;
   const canvas = document.createElement('canvas');
   canvas.width = TILE_PX.w;
   canvas.height = TILE_PX.h;
@@ -125,6 +128,9 @@ export function createTile(item: MemoryItem): TileHandle {
     render(face, style) {
       drawTile(ctx, item, face, style);
       texture.needsUpdate = true;
+    },
+    setItem(next) {
+      item = next;
     },
     setDrop(drop) {
       const show = drop > 0.02;

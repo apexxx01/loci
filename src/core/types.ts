@@ -13,8 +13,10 @@ export interface MemoryItem {
   cue: string;
   /** What the learner must recall, e.g. "1st planet, closest to the Sun". */
   answer: string;
-  /** Vivid image sentence tying cue to answer. */
+  /** Vivid image sentence tying cue to answer (bound to its room object once placed). */
   scene: string;
+  /** The room-independent scene, kept so a re-fit can bind to new objects. */
+  baseScene?: string;
   /** Emoji glyphs (1–3) composed on the tile. */
   glyphs: string[];
   /** Position in an ordered list (0-based). */

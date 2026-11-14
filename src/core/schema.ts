@@ -13,6 +13,7 @@ export const MemoryItemSchema = z.object({
   cue: z.string().min(1).max(80),
   answer: z.string().min(1).max(200),
   scene: z.string().max(240),
+  baseScene: z.string().max(240).optional(),
   glyphs: z.array(z.string().min(1).max(16)).min(1).max(3),
   order: z.number().int().min(0).max(999),
 });

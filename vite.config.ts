@@ -6,10 +6,55 @@
  */
 
 import { iwsdkDev } from '@iwsdk/vite-plugin-dev';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+/**
+ * Serves the Vercel functions in api/ during `vite dev`, so the headset and the
+ * emulator talk to the same Palace Architect code locally as in production.
+ */
+function localApi(): Plugin {
+  return {
+    name: 'loci-local-api',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url ?? '';
+        if (!url.startsWith('/api/')) return next();
+        const name = url.slice(5).split('?')[0].replace(/[^a-z-]/g, '');
+        try {
+          const mod = await server.ssrLoadModule(`/api/${name}.ts`);
+          const handler = mod[req.method ?? 'GET'];
+          if (typeof handler !== 'function') {
+            res.statusCode = 405;
+            return res.end();
+          }
+          const chunks: Buffer[] = [];
+          for await (const c of req) chunks.push(c as Buffer);
+          const headers = new Headers();
+          for (const [k, v] of Object.entries(req.headers)) {
+            if (k.startsWith(':')) continue; // HTTP/2 pseudo-headers
+            if (typeof v === 'string') headers.set(k, v);
+            else if (Array.isArray(v)) headers.set(k, v.join(', '));
+          }
+          const request = new Request(`http://localhost${url}`, {
+            method: req.method,
+            headers,
+            body: req.method === 'GET' || req.method === 'HEAD' ? undefined : Buffer.concat(chunks),
+          });
+          const response: Response = await handler(request);
+          res.statusCode = response.status;
+          response.headers.forEach((v, k) => res.setHeader(k, v));
+          res.end(Buffer.from(await response.arrayBuffer()));
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: (e as Error).message }));
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig({
-  plugins: [iwsdkDev()],
+  plugins: [iwsdkDev(), localApi()],
   server: { host: '0.0.0.0', port: 8081, open: false },
   build: {
     outDir: 'dist',

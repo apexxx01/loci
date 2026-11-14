@@ -10,7 +10,8 @@ export type AppEvent =
   | { type: 'refit' }
   | { type: 'new-palace' }
   | { type: 'palace-changed' }
-  | { type: 'status'; text: string };
+  | { type: 'status'; text: string }
+  | { type: 'own-notes' };
 
 type Listener = (e: AppEvent) => void;
 
@@ -29,6 +30,8 @@ export const bus = new Bus();
 
 export const app = {
   palace: null as Palace | null,
+  /** Deck chosen on the 2D page; built as soon as mixed reality starts. */
+  pendingDeck: null as Deck | null,
   surfaces: [] as Surface[],
   /** Monotonic counter bumped whenever the surface set meaningfully changes. */
   surfacesVersion: 0,

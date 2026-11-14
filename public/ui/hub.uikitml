@@ -49,8 +49,8 @@
       <ButtonLabel>Spanish Survival Phrases</ButtonLabel>
     </Button>
     <Button id="deck-phone" class="btn">
-      <ButtonIcon><Smartphone></Smartphone></ButtonIcon>
-      <ButtonLabel id="deck-phone-label">Send my own notes from a phone</ButtonLabel>
+      <ButtonIcon><NotebookPen></NotebookPen></ButtonIcon>
+      <ButtonLabel id="deck-phone-label">Use my own notes (opens the page)</ButtonLabel>
     </Button>
   </div>
 
