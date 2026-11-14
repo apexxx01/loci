@@ -102,6 +102,8 @@ export function mountLanding(opts: {
   onDeckReady: (deck: Deck) => void;
   /** Current saved palace deck, for sharing. */
   getPalaceDeck: () => Deck | null;
+  /** Show a deck in the flat 3D preview (no headset). */
+  onPreviewDeck: (deck: Deck) => void;
 }): {
   hide(): void;
   show(): void;
@@ -155,6 +157,9 @@ export function mountLanding(opts: {
           <ol class="preview" data-preview-list hidden></ol>
           <div class="own__enter" data-enter-own-wrap hidden>
             <button class="cta" type="button" data-enter-own>Enter with these memories</button>
+            <button class="btn-secondary" type="button" data-preview-own>Preview them on this screen</button>
+            <button class="link-quiet" type="button" data-link-own>Copy a link to open on your headset</button>
+            <span class="share-status" role="status" aria-live="polite" data-link-status></span>
           </div>
         </div>
       </section>
@@ -162,8 +167,8 @@ export function mountLanding(opts: {
       <ol class="steps">
         <li>
           <h2>Place</h2>
-          <p>Choose a deck or send your own notes from your phone. Loci reads your room and pins each
-          memory to a different object, in an order you can sweep with your eyes.</p>
+          <p>Choose a deck or paste your own notes. Loci reads your room and pins each memory to a
+          different object, in an order you can sweep with your eyes.</p>
         </li>
         <li>
           <h2>Leave</h2>
@@ -187,6 +192,20 @@ export function mountLanding(opts: {
       <footer class="landing__foot">Your palace and progress are saved in this browser on this headset.</footer>
     </div>`;
   document.body.appendChild(root);
+
+  // Way back from the flat 3D preview.
+  const back = document.createElement('button');
+  back.className = 'preview-back';
+  back.type = 'button';
+  back.textContent = 'Back to Loci';
+  back.hidden = true;
+  back.addEventListener('click', () => {
+    root.hidden = false;
+    back.hidden = true;
+  });
+  document.body.appendChild(back);
+  const showBack = () => (back.hidden = !root.hidden);
+  new MutationObserver(showBack).observe(root, { attributes: true, attributeFilter: ['hidden'] });
 
   const enter = root.querySelector<HTMLButtonElement>('[data-enter]')!;
   const notes = root.querySelector<HTMLTextAreaElement>('[data-notes]')!;
@@ -229,13 +248,33 @@ export function mountLanding(opts: {
       )
       .join('');
     previewList.hidden = false;
-    enterOwnWrap.hidden = enter.disabled; // no headset: preview only
+    // With a headset: enter. Without one: preview here or send it to a headset.
+    enterOwnWrap.hidden = false;
+    enterOwn.hidden = enter.disabled;
+    previewOwn.hidden = !enter.disabled;
     enterOwn.textContent = `Enter with these ${built.items.length} memories`;
   });
 
   enterOwn.addEventListener('click', () => {
     if (built) opts.onDeckReady(built);
     opts.launchXR();
+  });
+  const previewOwn = root.querySelector<HTMLButtonElement>('[data-preview-own]')!;
+  previewOwn.addEventListener('click', () => {
+    if (!built) return;
+    root.hidden = true;
+    opts.onPreviewDeck(built);
+  });
+  const linkStatus = root.querySelector<HTMLElement>('[data-link-status]')!;
+  root.querySelector('[data-link-own]')!.addEventListener('click', async () => {
+    if (!built) return;
+    const url = `${location.origin}${location.pathname}#p=${await encodeDeck(built)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      linkStatus.textContent = 'Link copied. Open it in the headset browser and it builds there.';
+    } catch {
+      linkStatus.textContent = url;
+    }
   });
   const note = root.querySelector<HTMLElement>('[data-note]')!;
   const setup = root.querySelector<HTMLElement>('[data-setup]')!;
@@ -301,7 +340,10 @@ export function mountLanding(opts: {
   }
 
   return {
-    hide: () => (root.hidden = true),
+    hide: () => {
+      root.hidden = true;
+      back.hidden = true; // immersive: no DOM chrome
+    },
     show: () => {
       root.hidden = false;
       root.scrollTop = 0;
