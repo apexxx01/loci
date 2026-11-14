@@ -18,6 +18,7 @@ import { classifyToss, rateToss, releaseVelocity, SampleRing } from '../core/tos
 import { app, bus, getStorage, setStatus } from './app-state.js';
 import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
+import { settings } from './settings.js';
 import { playAgain, playFlip, playSuccess, updateListener } from './sound.js';
 
 /** A grab shorter than this (wall-clock), that barely moves, is a tap. */
@@ -107,7 +108,8 @@ export class RecallSystem extends createSystem({
       const arriving = (entity.getValue(MemoryTile, 'arrive') ?? 0) > 0;
       if (arriving) continue;
       const hovered = entity.hasComponent(Hovered);
-      const target = hovered ? 1.08 : 1;
+      const base = settings.large ? 1.35 : 1;
+      const target = base * (hovered ? 1.08 : 1);
       const s = rec.tile.pivot.scale.x + (target - rec.tile.pivot.scale.x) * Math.min(1, delta * 12);
       rec.tile.pivot.scale.setScalar(s);
 
@@ -117,7 +119,9 @@ export class RecallSystem extends createSystem({
         entity.setValue(MemoryTile, 'flash', next);
         const t = 1 - next / FLASH_SECONDS;
         const kind = entity.getValue(MemoryTile, 'flashKind') ?? 0;
-        if (kind > 0) {
+        if (settings.calm) {
+          // Colour feedback only; no hop, spin or shake.
+        } else if (kind > 0) {
           rec.tile.pivot.position.y = Math.sin(Math.PI * Math.min(1, t * 1.6)) * 0.06;
           rec.tile.pivot.rotation.y = t < 0.6 ? t * Math.PI * 2 / 0.6 : 0;
         } else {
@@ -196,7 +200,7 @@ export class RecallSystem extends createSystem({
     this.rate(rec, rating);
   }
 
-  private flip(rec: TileRecord): void {
+  flip(rec: TileRecord): void {
     const e = rec.entity;
     const face = e.getValue(MemoryTile, 'face') ?? TileFace.Cue;
     const next = face === TileFace.Cue ? TileFace.Hint : face === TileFace.Hint ? TileFace.Answer : TileFace.Cue;
@@ -207,7 +211,7 @@ export class RecallSystem extends createSystem({
     playFlip(this.tmp);
   }
 
-  private rate(rec: TileRecord, rating: 'again' | 'hard' | 'good'): void {
+  rate(rec: TileRecord, rating: 'again' | 'hard' | 'good'): void {
     const palace = app.palace;
     if (!palace) return;
     const now = new Date();

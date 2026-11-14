@@ -6,7 +6,16 @@ import { createSystem, Vector3, type UIKitMLAsset } from '@iwsdk/core';
 import { findStarterDeck } from '../core/decks.js';
 import { dueIds, mastery, streak } from '../core/scheduler.js';
 import { app, bus, setStatus } from './app-state.js';
+import { onSettings, settings, toggleSetting, type Settings } from './settings.js';
 import { playClick } from './sound.js';
+
+const ACCESS: { key: keyof Settings; id: string; label: string; on: string; off: string; say: [string, string] }[] = [
+  { key: 'dwell', id: 'acc-dwell', label: 'Look to select', on: 'on', off: 'off', say: ['Look at a memory for a moment to flip it; look at a button to rate it.', 'Look to select is off. Pinch and grab as usual.'] },
+  { key: 'contrast', id: 'acc-contrast', label: 'High contrast', on: 'on', off: 'off', say: ['High contrast on: black cards, white text, yellow edges.', 'High contrast off.'] },
+  { key: 'large', id: 'acc-large', label: 'Larger tiles', on: 'on', off: 'off', say: ['Memories are 35% larger.', 'Memories back to normal size.'] },
+  { key: 'calm', id: 'acc-calm', label: 'Calm motion', on: 'on', off: 'off', say: ['Calm motion: no flights, hops or shakes.', 'Motion effects back on.'] },
+  { key: 'sound', id: 'acc-sound', label: 'Sound', on: 'on', off: 'off', say: ['Sound cues on.', 'Sound cues off. Every cue also shows as colour and text.'] },
+];
 
 type El = {
   addEventListener(type: string, fn: () => void): void;
@@ -79,6 +88,17 @@ export class HubSystem extends createSystem({}) {
     }
     bind('deck-phone', () => bus.emit({ type: 'own-notes' }));
     bind('btn-refit', () => bus.emit({ type: 'refit' }));
+    for (const a of ACCESS) {
+      bind(a.id, () => {
+        const on = toggleSetting(a.key);
+        setStatus(a.say[on ? 0 : 1]);
+      });
+    }
+    const paintAccess = () => {
+      for (const a of ACCESS) this.setText(`${a.id}-label`, `${a.label}: ${settings[a.key] ? a.on : a.off}`);
+    };
+    paintAccess();
+    this.cleanupFuncs.push(onSettings(paintAccess));
     bind('btn-new', () => bus.emit({ type: 'new-palace' }));
 
     this.cleanupFuncs.push(

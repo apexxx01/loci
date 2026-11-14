@@ -16,6 +16,10 @@ export interface FaceStyle {
   restLabel: string;
   /** Short real-world label, e.g. "table". */
   surfaceLabel: string;
+  /** High-contrast rendering (accessibility). */
+  contrast?: boolean;
+  /** Look-to-select mode: tells the learner how to act without pinching. */
+  dwell?: boolean;
 }
 
 const EMOJI_FONT = '"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -116,24 +120,37 @@ export function drawTile(
     ctx.restore();
   }
 
-  // Glass body.
-  const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, style.due ? C.glassTop : C.restTop);
-  g.addColorStop(1, style.due ? C.glassBot : C.restBot);
+  // Glass body (or solid black in high-contrast mode).
   roundRect(ctx, pad, pad, w - pad * 2, h - pad * 2, r);
-  ctx.fillStyle = g;
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = style.due ? C.violetHi : 'rgba(255,255,255,0.18)';
-  ctx.stroke();
+  if (style.contrast) {
+    ctx.fillStyle = '#000000';
+    ctx.fill();
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = style.due ? '#ffd400' : '#ffffff';
+    ctx.stroke();
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, style.due ? C.glassTop : C.restTop);
+    g.addColorStop(1, style.due ? C.glassBot : C.restBot);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = style.due ? C.violetHi : 'rgba(255,255,255,0.18)';
+    ctx.stroke();
+  }
 
   // Top sheen.
+  if (!style.contrast) {
   const sheen = ctx.createLinearGradient(0, pad, 0, h * 0.4);
   sheen.addColorStop(0, 'rgba(255,255,255,0.10)');
   sheen.addColorStop(1, 'rgba(255,255,255,0)');
   roundRect(ctx, pad + 3, pad + 3, w - pad * 2 - 6, h * 0.38, r - 4);
   ctx.fillStyle = sheen;
   ctx.fill();
+  }
+  const ink = style.contrast ? '#ffffff' : C.ink;
+  const inkSoft = style.contrast ? '#ffffff' : C.inkSoft;
+  const accent = style.contrast ? '#ffd400' : C.violetHi;
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
@@ -145,7 +162,7 @@ export function drawTile(
     ctx.arc(78, 78, 34, 0, Math.PI * 2);
     ctx.fillStyle = style.due ? C.violet : 'rgba(255,255,255,0.14)';
     ctx.fill();
-    ctx.fillStyle = C.ink;
+    ctx.fillStyle = ink;
     ctx.font = `800 34px ${UI_FONT}`;
     ctx.fillText(String(style.badge), 78, 90);
   }
@@ -158,7 +175,7 @@ export function drawTile(
     roundRect(ctx, w - pad - 24 - tw, 56, tw, 40, 20);
     ctx.fillStyle = 'rgba(255,255,255,0.10)';
     ctx.fill();
-    ctx.fillStyle = C.inkSoft;
+    ctx.fillStyle = inkSoft;
     ctx.fillText(label, w - pad - 24 - tw / 2, 84);
   }
 
@@ -171,38 +188,38 @@ export function drawTile(
     const startX = cx - ((glyphs.length - 1) * gap) / 2;
     glyphs.forEach((gl, i) => ctx.fillText(gl, startX + i * gap, 300));
 
-    ctx.fillStyle = C.ink;
+    ctx.fillStyle = ink;
     const cue = fitText(ctx, item.cue, w - 90, 2, 58, 34, 800);
     drawLines(ctx, cue.lines, cue.px, cx, 430);
 
-    ctx.fillStyle = style.due ? C.violetHi : C.inkDim;
+    ctx.fillStyle = style.due ? accent : C.inkDim;
     ctx.font = `600 24px ${UI_FONT}`;
-    ctx.fillText(style.due ? 'recall it, then pinch to peek' : `rested · ${style.restLabel}`, cx, h - 58);
+    ctx.fillText(style.due ? (style.dwell ? 'recall it, then look here to peek' : 'recall it, then pinch to peek') : `rested · ${style.restLabel}`, cx, h - 58);
   } else if (face === 'hint') {
     ctx.font = `110px ${EMOJI_FONT}`;
     ctx.fillText(item.glyphs.slice(0, 3).join(''), cx, 230);
-    ctx.fillStyle = C.inkSoft;
+    ctx.fillStyle = inkSoft;
     ctx.font = `700 24px ${UI_FONT}`;
     ctx.fillText('PICTURE THIS', cx, 290);
-    ctx.fillStyle = C.ink;
+    ctx.fillStyle = ink;
     const scene = fitText(ctx, item.scene, w - 90, 6, 34, 24, 500);
     drawLines(ctx, scene.lines, scene.px, cx, 345);
-    ctx.fillStyle = C.violetHi;
+    ctx.fillStyle = accent;
     ctx.font = `600 24px ${UI_FONT}`;
-    ctx.fillText('pinch again for the answer', cx, h - 58);
+    ctx.fillText(style.dwell ? 'keep looking for the answer' : 'pinch again for the answer', cx, h - 58);
   } else {
-    ctx.fillStyle = C.inkSoft;
+    ctx.fillStyle = inkSoft;
     const cue = fitText(ctx, item.cue, w - 120, 1, 36, 24, 700);
     drawLines(ctx, cue.lines, cue.px, cx, 170);
     ctx.fillStyle = C.mint;
     ctx.font = `700 22px ${UI_FONT}`;
     ctx.fillText('ANSWER', cx, 215);
-    ctx.fillStyle = C.ink;
+    ctx.fillStyle = ink;
     const ans = fitText(ctx, item.answer, w - 80, 5, 46, 28, 750);
     const blockH = ans.lines.length * ans.px * 1.22;
     drawLines(ctx, ans.lines, ans.px, cx, 250 + (250 - blockH) / 2 + ans.px);
-    ctx.fillStyle = C.violetHi;
+    ctx.fillStyle = accent;
     ctx.font = `600 23px ${UI_FONT}`;
-    ctx.fillText('grab it: raise UP = knew it · DOWN = again', cx, h - 58);
+    ctx.fillText(style.dwell ? 'look at a button below to rate' : 'grab it: raise UP = knew it · DOWN = again', cx, h - 58);
   }
 }

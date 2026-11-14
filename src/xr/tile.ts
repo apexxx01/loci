@@ -29,6 +29,28 @@ const haloGeometry = new PlaneGeometry(TILE_SIZE.w * 1.9, TILE_SIZE.h * 1.7);
 const footGeometry = new RingGeometry(0.035, 0.05, 40);
 const footDotGeometry = new CircleGeometry(0.012, 20);
 
+const buttonGeometry = new PlaneGeometry(0.092, 0.05);
+
+function buttonTexture(label: string, fill: string): CanvasTexture {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 140;
+  const g = c.getContext('2d')!;
+  g.beginPath();
+  g.roundRect(6, 6, 244, 128, 40);
+  g.fillStyle = fill;
+  g.fill();
+  g.fillStyle = '#0d0b18';
+  g.font = '800 44px "Inter","Segoe UI",Roboto,Arial,sans-serif';
+  g.textAlign = 'center';
+  g.fillText(label, 128, 86);
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  return t;
+}
+
+let sharedButtonMats: { good: MeshBasicMaterial; again: MeshBasicMaterial } | null = null;
+
 function haloTexture(): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
@@ -62,6 +84,9 @@ export interface TileHandle {
   /** Point the tether/foot down to a surface `drop` metres below the card. */
   setDrop(drop: number): void;
   setHaloStrength(s: number): void;
+  /** Look-to-press rating buttons under the card (look-to-select mode). */
+  rateButtons: { good: Mesh; again: Mesh } | null;
+  showRateButtons(show: boolean): void;
   /** Tint multiplier for the halo (white = violet texture as authored). */
   setHaloColor(hex: number): void;
   dispose(): void;
@@ -118,9 +143,37 @@ export function createTile(initial: MemoryItem): TileHandle {
   root.name = `tile:${item.id}`;
   root.add(pivot);
 
+  let rateButtons: TileHandle['rateButtons'] = null;
+
   const handle: TileHandle = {
     root,
     pivot,
+    get rateButtons() {
+      return rateButtons;
+    },
+    showRateButtons(show) {
+      if (show && !rateButtons) {
+        sharedButtonMats ??= {
+          good: new MeshBasicMaterial({ map: buttonTexture('Knew it', '#5ee3b0'), transparent: true, toneMapped: false }),
+          again: new MeshBasicMaterial({ map: buttonTexture('Again', '#ff8fa8'), transparent: true, toneMapped: false }),
+        };
+        const good = new Mesh(buttonGeometry, sharedButtonMats.good);
+        const again = new Mesh(buttonGeometry, sharedButtonMats.again);
+        good.name = 'rate-good';
+        again.name = 'rate-again';
+        good.position.set(-0.052, -TILE_SIZE.h / 2 - 0.04, 0.004);
+        again.position.set(0.052, -TILE_SIZE.h / 2 - 0.04, 0.004);
+        // Head-gaze only: never steal pinch rays from the card.
+        good.raycast = () => {};
+        again.raycast = () => {};
+        pivot.add(good, again);
+        rateButtons = { good, again };
+      }
+      if (rateButtons) {
+        rateButtons.good.visible = show;
+        rateButtons.again.visible = show;
+      }
+    },
     card,
     halo,
     foot,

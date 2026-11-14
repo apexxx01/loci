@@ -83,6 +83,36 @@
     </div>
   </div>
 
+  <div id="section-access" class="section">
+    <div class="label">COMFORT AND ACCESS</div>
+    <div class="row">
+      <Button id="acc-dwell" class="btn" variant="secondary">
+        <ButtonIcon><Eye></Eye></ButtonIcon>
+        <ButtonLabel id="acc-dwell-label">Look to select: off</ButtonLabel>
+      </Button>
+      <Button id="acc-contrast" class="btn" variant="secondary">
+        <ButtonIcon><Contrast></Contrast></ButtonIcon>
+        <ButtonLabel id="acc-contrast-label">High contrast: off</ButtonLabel>
+      </Button>
+    </div>
+    <div class="row">
+      <Button id="acc-large" class="btn" variant="secondary">
+        <ButtonIcon><ZoomIn></ZoomIn></ButtonIcon>
+        <ButtonLabel id="acc-large-label">Larger tiles: off</ButtonLabel>
+      </Button>
+      <Button id="acc-calm" class="btn" variant="secondary">
+        <ButtonIcon><Wind></Wind></ButtonIcon>
+        <ButtonLabel id="acc-calm-label">Calm motion: off</ButtonLabel>
+      </Button>
+    </div>
+    <div class="row">
+      <Button id="acc-sound" class="btn" variant="secondary">
+        <ButtonIcon><Volume2></Volume2></ButtonIcon>
+        <ButtonLabel id="acc-sound-label">Sound: on</ButtonLabel>
+      </Button>
+    </div>
+  </div>
+
   <div class="section">
     <div id="hub-status" class="status">Ready.</div>
   </div>

@@ -23,6 +23,7 @@ import { viewerPose } from './room-system.js';
 import { playBuild, playLand } from './sound.js';
 import { createTile, type TileHandle } from './tile.js';
 import { bindScenes } from '../net/architect-client.js';
+import { settings } from './settings.js';
 import type { FaceKind } from './tile-art.js';
 
 const ANCHOR_KEY = 'iwsdk_scene_anchor_uuid';
@@ -305,7 +306,7 @@ export class PalaceSystem extends createSystem({
     for (const rec of this.records.values()) {
       const remaining = rec.entity.getValue(MemoryTile, 'arrive') ?? 0;
       if (remaining <= 0) continue;
-      const next = Math.max(0, remaining - delta);
+      const next = settings.calm ? 0 : Math.max(0, remaining - delta);
       rec.entity.setValue(MemoryTile, 'arrive', next);
       const t = 1 - Math.min(1, next / ARRIVE_SECONDS);
       const e = easeOutBack(t);
@@ -316,7 +317,7 @@ export class PalaceSystem extends createSystem({
       rec.tile.pivot.scale.setScalar(0.2 + 0.8 * e);
       if (remaining > 0 && next === 0) {
         rec.tile.pivot.position.set(0, 0, 0);
-        rec.tile.pivot.scale.setScalar(1);
+        rec.tile.pivot.scale.setScalar(settings.large ? 1.35 : 1);
         rec.tile.root.getWorldPosition(this.tmpV);
         playLand(this.tmpV, rec.item.order);
       }
@@ -483,6 +484,8 @@ export class PalaceSystem extends createSystem({
       badge: palace?.deck.ordered ? rec.item.order + 1 : 0,
       restLabel: card ? relativeDue(new Date(card.due)) : '',
       surfaceLabel: rec.label,
+      contrast: settings.contrast,
+      dwell: settings.dwell,
     });
     rec.tile.setHaloStrength(due ? 0.9 : 0.15);
   }
