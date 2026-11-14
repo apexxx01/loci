@@ -237,7 +237,7 @@ export function mountLanding(opts: {
     buildStatus.textContent =
       result.via === 'architect'
         ? `Built ${built.items.length} memories in ${(result.ms / 1000).toFixed(1)} s.${result.repaired ? ` ${result.repaired} picture${result.repaired > 1 ? 's were' : ' was'} replaced by the safety check.` : ''} Check them, then enter.`
-        : `Built ${built.items.length} memories from your lines (Architect unavailable: ${result.reason}). Check them, then enter.`;
+        : `Built ${built.items.length} memories straight from your lines, because the Palace Architect is unavailable right now. Check them, then enter.`;
     previewList.innerHTML = built.items
       .map(
         (it) => `<li>
