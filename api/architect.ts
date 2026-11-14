@@ -24,10 +24,9 @@ const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const MODELS = [MODEL, ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.5-flash-lite,gemini-3.6-flash').split(',')]
   .map((m) => m.trim())
   .filter((m, i, a) => m && a.indexOf(m) === i);
-const RETRYABLE = new Set([429, 500, 503, 504]);
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-const TIMEOUT_MS = 12_000;
+const TIMEOUT_MS = 20_000;
 /** Mnemonics need creativity, not deep reasoning: keep thinking short for latency. */
 const THINKING_LEVEL = process.env.GEMINI_THINKING || 'low';
 const MAX_BODY = 12_000;
@@ -54,28 +53,73 @@ function json(status: number, body: unknown): Response {
 
 let lastModel = MODEL;
 
+/** Start the next model in the chain if the current ones haven't answered by then. */
+const HEDGE_AFTER_MS = 3_500;
+
+/**
+ * Hedged requests: launch the primary model, and every HEDGE_AFTER_MS without
+ * an answer launch the next one in parallel (immediately on a hard failure).
+ * First valid answer wins; the rest are aborted. Cuts tail latency when one
+ * model is overloaded, at the cost of an occasional duplicate call.
+ */
 async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT_MS): Promise<unknown> {
+  const controllers: AbortController[] = [];
   const errors: string[] = [];
-  for (const model of MODELS) {
-    try {
-      const out = await callModel(model, prompt, schema, timeoutMs);
-      lastModel = model;
-      return out;
-    } catch (e) {
-      const err = e as Error & { status?: number; upstream?: number };
-      const retryable = err.name === 'AbortError' || (err.upstream !== undefined && RETRYABLE.has(err.upstream)) || err instanceof SyntaxError;
-      errors.push(`${model}: ${err.name === 'AbortError' ? 'timeout' : err.message.slice(0, 80)}`);
-      if (!retryable) throw err;
-    }
-  }
-  throw Object.assign(new Error(`All models unavailable (${errors.join('; ')})`), { status: 503 });
+  return await new Promise<unknown>((resolve, reject) => {
+    let next = 0;
+    let settled = false;
+    let inFlight = 0;
+    let hedgeTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const finish = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(hedgeTimer);
+      controllers.forEach((c) => c.abort());
+      fn();
+    };
+
+    const launch = () => {
+      if (settled || next >= MODELS.length) return;
+      const model = MODELS[next++];
+      const ctrl = new AbortController();
+      controllers.push(ctrl);
+      inFlight++;
+      clearTimeout(hedgeTimer);
+      hedgeTimer = setTimeout(launch, HEDGE_AFTER_MS);
+      callModel(model, prompt, schema, timeoutMs, ctrl.signal)
+        .then((out) => {
+          lastModel = model;
+          finish(() => resolve(out));
+        })
+        .catch((e: Error & { upstream?: number }) => {
+          inFlight--;
+          if (settled) return;
+          // Any failure (overload, timeout, a model rejecting a parameter,
+          // malformed JSON) just moves on to the next model in the chain.
+          errors.push(`${model}: ${e.name === 'AbortError' ? 'timeout' : e.message.slice(0, 80)}`);
+          if (next < MODELS.length) launch();
+          else if (inFlight === 0) {
+            finish(() => reject(Object.assign(new Error(`All models unavailable (${errors.join('; ')})`), { status: 503 })));
+          }
+        });
+    };
+    launch();
+  });
 }
 
-async function callModel(model: string, prompt: string, schema: object | null, timeoutMs: number): Promise<unknown> {
+async function callModel(
+  model: string,
+  prompt: string,
+  schema: object | null,
+  timeoutMs: number,
+  outer: AbortSignal,
+): Promise<unknown> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Object.assign(new Error('GEMINI_API_KEY is not set on the server'), { status: 503 });
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  outer.addEventListener('abort', () => ctrl.abort(), { once: true });
   try {
     const res = await fetch(ENDPOINT(model), {
       method: 'POST',
