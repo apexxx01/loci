@@ -514,6 +514,7 @@ export class PalaceSystem extends createSystem({
       surfaceLabel: rec.label,
       contrast: settings.contrast,
       dwell: settings.dwell,
+      mastered: Boolean(card && card.state === 2 && card.stability >= 3),
     });
     rec.tile.setHaloStrength(due ? 0.9 : 0.15);
   }

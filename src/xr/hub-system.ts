@@ -107,6 +107,7 @@ export class HubSystem extends createSystem({}) {
         if (e.type === 'palace-changed' || e.type === 'start-deck' || e.type === 'new-palace') this.refresh();
         if (e.type === 'palace-changed' && app.palace && !this.docked) this.dock(true);
         if (e.type === 'new-palace') this.dock(false);
+        this.coach(e);
       }),
     );
 
@@ -133,6 +134,33 @@ export class HubSystem extends createSystem({}) {
     if (this.statsTimer > 2) {
       this.statsTimer = 0;
       this.refresh();
+    }
+  }
+
+  /**
+   * First-run coaching: teaches the whole loop with one instruction at a time,
+   * driven by what the learner actually does. No wall of text.
+   */
+  private coachStep = -1;
+  private coach(e: { type: string; face?: number; rating?: string }): void {
+    const firstTime = (app.palace?.history.length ?? 0) === 0;
+    if (e.type === 'palace-changed' && firstTime && this.coachStep < 0 && app.palace?.placements.length) {
+      this.coachStep = 0;
+      const first = app.palace.placements.find((p) => p.memoryId.endsWith(':0')) ?? app.palace.placements[0];
+      const where = first?.label ? ` on your ${first.label}` : '';
+      setStatus(`Find memory 1${where}: it pulses. Read the cue and try to recall the answer.`);
+      this.setText('palace-howto', 'Step 1 of 3: look at the pulsing memory and try to remember.');
+    } else if (e.type === 'flipped' && this.coachStep === 0) {
+      this.coachStep = 1;
+      this.setText('palace-howto', 'Step 2 of 3: that picture is your hook. Pinch again to check the answer.');
+    } else if (e.type === 'flipped' && this.coachStep === 1 && e.face === 2) {
+      this.coachStep = 2;
+      this.setText('palace-howto', settings.dwell
+        ? 'Step 3 of 3: look at "Knew it" or "Again" under the card.'
+        : 'Step 3 of 3: grab it and raise it if you knew it, lower it if not.');
+    } else if (e.type === 'rated' && this.coachStep >= 0 && this.coachStep < 3) {
+      this.coachStep = 3;
+      this.setText('palace-howto', 'That is the whole loop. Memories glow when they are due; come back tomorrow to keep them.');
     }
   }
 

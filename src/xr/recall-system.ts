@@ -209,6 +209,7 @@ export class RecallSystem extends createSystem({
     this.palaceSys.renderTile(rec);
     rec.tile.root.getWorldPosition(this.tmp);
     playFlip(this.tmp);
+    bus.emit({ type: 'flipped', face: next, label: rec.label });
   }
 
   rate(rec: TileRecord, rating: 'again' | 'hard' | 'good'): void {
@@ -237,6 +238,7 @@ export class RecallSystem extends createSystem({
     const verdict = rating === 'again' ? `"${rec.item.cue}" will come back soon.` : rating === 'hard' ? `"${rec.item.cue}" recalled with a hint.` : `"${rec.item.cue}" locked in.`;
     setStatus(left ? `${verdict} ${left} still glowing.` : `${verdict} All done for now. See you next session.`);
     bus.emit({ type: 'palace-changed' });
+    bus.emit({ type: 'rated', rating });
   }
 
   private recordFor(entity: Entity): TileRecord | undefined {

@@ -20,6 +20,8 @@ export interface FaceStyle {
   contrast?: boolean;
   /** Look-to-select mode: tells the learner how to act without pinching. */
   dwell?: boolean;
+  /** Stable in long-term memory (FSRS stability of several days). */
+  mastered?: boolean;
 }
 
 const EMOJI_FONT = '"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -134,8 +136,8 @@ export function drawTile(
     g.addColorStop(1, style.due ? C.glassBot : C.restBot);
     ctx.fillStyle = g;
     ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = style.due ? C.violetHi : 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = style.mastered && !style.due ? 5 : 3;
+    ctx.strokeStyle = style.due ? C.violetHi : style.mastered ? '#ffd36b' : 'rgba(255,255,255,0.18)';
     ctx.stroke();
   }
 
@@ -194,7 +196,14 @@ export function drawTile(
 
     ctx.fillStyle = style.due ? accent : C.inkDim;
     ctx.font = `600 24px ${UI_FONT}`;
-    ctx.fillText(style.due ? (style.dwell ? 'recall it, then look here to peek' : 'recall it, then pinch to peek') : `rested · ${style.restLabel}`, cx, h - 58);
+    if (!style.due && style.mastered) ctx.fillStyle = '#ffd36b';
+    ctx.fillText(
+      style.due
+        ? style.dwell ? 'recall it, then look here to peek' : 'recall it, then pinch to peek'
+        : `${style.mastered ? '★ mastered' : 'rested'} · back ${style.restLabel}`,
+      cx,
+      h - 58,
+    );
   } else if (face === 'hint') {
     ctx.font = `110px ${EMOJI_FONT}`;
     ctx.fillText(item.glyphs.slice(0, 3).join(''), cx, 230);

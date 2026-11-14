@@ -11,7 +11,9 @@ export type AppEvent =
   | { type: 'new-palace' }
   | { type: 'palace-changed' }
   | { type: 'status'; text: string }
-  | { type: 'own-notes' };
+  | { type: 'own-notes' }
+  | { type: 'flipped'; face: number; label: string }
+  | { type: 'rated'; rating: 'again' | 'hard' | 'good' };
 
 type Listener = (e: AppEvent) => void;
 
