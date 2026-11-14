@@ -249,12 +249,23 @@ export function dedupeSurfaces(surfaces: Surface[], radius = 0.35): Surface[] {
   return kept;
 }
 
-const farEnough = (slot: Slot, taken: Slot[]) =>
-  taken.every(
-    (t) =>
-      len(sub(slot.position, t.position)) >=
-      PLACEMENT.minSeparation * Math.max(tileScale(slot.distance), tileScale(t.distance)),
-  );
+/**
+ * Two tiles conflict if they are physically too close OR if, seen from the
+ * seat, one would hide the other (similar direction, different depth).
+ */
+function farEnough(slot: Slot, taken: Slot[], viewer?: ViewerPose): boolean {
+  return taken.every((t) => {
+    const gap = len(sub(slot.position, t.position));
+    if (gap < PLACEMENT.minSeparation * Math.max(tileScale(slot.distance), tileScale(t.distance))) return false;
+    if (!viewer) return true;
+    const a = norm(sub(slot.position, viewer.position));
+    const b = norm(sub(t.position, viewer.position));
+    const angle = Math.acos(clamp(dot(a, b), -1, 1));
+    // Angular half-widths of both tiles (base card ~0.2 m wide), plus a margin.
+    const half = (s: Slot) => Math.atan((0.11 * tileScale(s.distance)) / Math.max(0.3, len(sub(s.position, viewer.position))));
+    return angle >= (half(slot) + half(t)) * 1.1;
+  });
+}
 
 /**
  * Pick `items.length` slots, spreading memories across as many distinct
@@ -292,7 +303,7 @@ export function planPlacement(
         if (d < 0 || (d === 0 && slotScore(pool[i]) > slotScore(pool[best]))) best = i;
       }
       const [candidate] = pool.splice(best, 1);
-      if (farEnough(candidate, chosen)) {
+      if (farEnough(candidate, chosen, viewer)) {
         chosen.push(candidate);
         labelUses.set(candidate.label, uses(candidate.label) + 1);
       }
@@ -313,7 +324,7 @@ export function planPlacement(
     if (remaining <= 0) break;
     usedFallback = true;
     for (const slot of arcSlots(remaining, viewer, ring.radius, ring.lift)) {
-      if (farEnough(slot, chosen)) chosen.push(slot);
+      if (farEnough(slot, chosen, viewer)) chosen.push(slot);
     }
   }
 

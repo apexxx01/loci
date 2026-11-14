@@ -88,6 +88,12 @@ export class HubSystem extends createSystem({}) {
     }
     bind('deck-phone', () => bus.emit({ type: 'own-notes' }));
     bind('btn-refit', () => bus.emit({ type: 'refit' }));
+    let accessOpen = false;
+    bind('btn-access', () => {
+      accessOpen = !accessOpen;
+      this.setDisplay('section-access', accessOpen);
+      this.setText('btn-access-label', accessOpen ? 'Hide comfort and access' : 'Comfort and access');
+    });
     for (const a of ACCESS) {
       bind(a.id, () => {
         const on = toggleSetting(a.key);

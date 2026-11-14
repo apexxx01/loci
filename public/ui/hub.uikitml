@@ -83,8 +83,13 @@
     </div>
   </div>
 
-  <div id="section-access" class="section">
-    <div class="label">COMFORT AND ACCESS</div>
+  <div class="section">
+    <Button id="btn-access" class="btn" variant="secondary">
+      <ButtonIcon><Accessibility></Accessibility></ButtonIcon>
+      <ButtonLabel id="btn-access-label">Comfort and access</ButtonLabel>
+    </Button>
+  </div>
+  <div id="section-access" class="section" style="display: none">
     <div class="row">
       <Button id="acc-dwell" class="btn" variant="secondary">
         <ButtonIcon><Eye></Eye></ButtonIcon>

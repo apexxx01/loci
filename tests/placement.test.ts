@@ -208,3 +208,22 @@ describe('semanticAgreement', () => {
     expect(semanticAgreement(placed, otherRoom).ratio).toBe(0);
   });
 });
+
+describe('occlusion', () => {
+  it('never lets one memory hide another from the seat', async () => {
+    const { tileScale } = await import('../src/core/placement.js');
+    const shelfBehind: Surface = { ...table, id: 'shelf', label: 'shelf', center: [0, 1.1, -2.2], extent: [1.2, 0.4] };
+    const plan = planPlacement(ELEMENTS.items, [table, shelfBehind, wallFront, couch, wallLeft], seated);
+    const dirs = plan.assignments.map((a) => {
+      const d = [a.slot.position[0] - 0, a.slot.position[1] - 1.2, a.slot.position[2] - 0];
+      const l = Math.hypot(d[0], d[1], d[2]);
+      return { d: d.map((x) => x / l), dist: l, s: tileScale(a.slot.distance) };
+    });
+    for (let i = 0; i < dirs.length; i++)
+      for (let j = i + 1; j < dirs.length; j++) {
+        const ang = Math.acos(Math.min(1, dirs[i].d.reduce((acc, v, k) => acc + v * dirs[j].d[k], 0)));
+        const need = Math.atan((0.11 * dirs[i].s) / dirs[i].dist) + Math.atan((0.11 * dirs[j].s) / dirs[j].dist);
+        expect(ang).toBeGreaterThanOrEqual(need);
+      }
+  });
+});
