@@ -41,6 +41,8 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
   private dwell = 0;
   /** After an activation, wait for the gaze to leave before arming again. */
   private cooldownObj: Object3D | null = null;
+  /** Short pause before a chained dwell (picture -> answer) starts filling. */
+  private pause = 0;
 
   init(): void {
     this.palaceSys = this.world.getSystem(PalaceSystem)!;
@@ -90,6 +92,11 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
       this.clear(false);
       return;
     }
+    if (this.pause > 0) {
+      this.pause -= delta;
+      this.clear(false);
+      return;
+    }
     if (!this.current || this.current.obj !== target.obj) {
       this.current = target;
       this.dwell = 0;
@@ -104,9 +111,17 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
 
     if (p >= 1) {
       const t = this.current;
-      this.cooldownObj = t.obj;
       this.clear(false);
-      if (t.kind === 'card') this.recall.flip(t.rec);
+      if (t.kind === 'card') {
+        this.recall.flip(t.rec);
+        // Keep looking to go on from the picture to the answer; once the
+        // answer shows, the gaze must move to a rating button.
+        if (t.rec.entity.getValue(MemoryTile, 'face') === TileFace.Hint) this.pause = 0.7;
+        else this.cooldownObj = t.obj;
+      } else {
+        this.cooldownObj = t.obj;
+      }
+      if (t.kind === 'card') return;
       else this.recall.rate(t.rec, t.kind === 'good' ? (t.rec.entity.getValue(MemoryTile, 'usedHint') ? 'hard' : 'good') : 'again');
     }
   }
