@@ -4,6 +4,7 @@
  */
 import './landing.css';
 import { buildDeck } from './net/architect-client.js';
+import { decodeDeck, encodeDeck } from './core/share.js';
 import type { Deck } from './core/types.js';
 
 type LaunchXR = () => void;
@@ -99,6 +100,8 @@ export function mountLanding(opts: {
   onPreview: () => void;
   /** Called with a deck the learner built and approved; entering XR builds it. */
   onDeckReady: (deck: Deck) => void;
+  /** Current saved palace deck, for sharing. */
+  getPalaceDeck: () => Deck | null;
 }): {
   hide(): void;
   show(): void;
@@ -124,6 +127,11 @@ export function mountLanding(opts: {
             <button class="cta" type="button" data-enter>Enter your palace</button>
             <span class="cta-note" data-note>Uses your <strong>hands</strong>. No controllers needed.</span>
           </div>
+          <p class="shared-note" data-shared hidden></p>
+          <p class="share-row" data-share-row hidden>
+            <button class="link-quiet" type="button" data-share>Share your palace</button>
+            <span class="share-status" role="status" aria-live="polite" data-share-status></span>
+          </p>
           <p class="setup-note" data-setup>For the best fit, run Space Setup on your Quest first.
           Without it, memories float in an arc around you instead of sitting on your furniture.</p>
         </div>
@@ -232,7 +240,47 @@ export function mountLanding(opts: {
   const note = root.querySelector<HTMLElement>('[data-note]')!;
   const setup = root.querySelector<HTMLElement>('[data-setup]')!;
 
-  enter.addEventListener('click', () => opts.launchXR());
+  let sharedDeck: Deck | null = null;
+  enter.addEventListener('click', () => {
+    if (sharedDeck) opts.onDeckReady(sharedDeck);
+    opts.launchXR();
+  });
+
+  // Arriving from a share link: the deck travels, the room is yours.
+  const sharedNote = root.querySelector<HTMLElement>('[data-shared]')!;
+  const m = /[#&]p=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (m) {
+    void decodeDeck(m[1]).then((r) => {
+      sharedNote.hidden = false;
+      if (!r.ok) {
+        sharedNote.textContent = r.error;
+        return;
+      }
+      sharedDeck = r.deck;
+      sharedNote.innerHTML = `Someone shared <strong>${esc(r.deck.title)}</strong> with you (${r.deck.items.length} memories). Enter and it will be built around your own furniture.`;
+      enter.textContent = `Build "${r.deck.title}" in my room`;
+    });
+  }
+
+  // Share the current palace (content only; it re-fits to the receiver's room).
+  const shareRow = root.querySelector<HTMLElement>('[data-share-row]')!;
+  const shareStatus = root.querySelector<HTMLElement>('[data-share-status]')!;
+  const refreshShare = () => (shareRow.hidden = !opts.getPalaceDeck());
+  refreshShare();
+  root.querySelector('[data-share]')!.addEventListener('click', async () => {
+    const deck = opts.getPalaceDeck();
+    if (!deck) return;
+    const url = `${location.origin}${location.pathname}#p=${await encodeDeck(deck)}`;
+    try {
+      if (navigator.share) await navigator.share({ title: `Loci: ${deck.title}`, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        shareStatus.textContent = 'Link copied. It builds the same memories around their furniture.';
+      }
+    } catch {
+      shareStatus.textContent = url;
+    }
+  });
   root.querySelector('[data-preview]')!.addEventListener('click', () => {
     root.hidden = true;
     opts.onPreview();
@@ -257,6 +305,7 @@ export function mountLanding(opts: {
     show: () => {
       root.hidden = false;
       root.scrollTop = 0;
+      refreshShare();
     },
     focusNotes: () => {
       root.hidden = false;

@@ -22,6 +22,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       launchXR: () => world.launchXR(),
       onPreview: () => undefined,
       onDeckReady: (deck) => (app.pendingDeck = deck),
+      getPalaceDeck: () => app.palace?.deck ?? null,
     });
     bus.on((e) => {
       if (e.type !== 'own-notes') return;
