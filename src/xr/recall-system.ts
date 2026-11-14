@@ -21,7 +21,7 @@ import { PalaceSystem, type TileRecord } from './palace-system.js';
 import { playAgain, playFlip, playSuccess, updateListener } from './sound.js';
 
 /** A grab shorter than this (wall-clock), that barely moves, is a tap. */
-const TAP_SECONDS = 1.2;
+const TAP_SECONDS = 2.5;
 const TAP_TRAVEL = 0.035;
 const FLASH_SECONDS = 0.9;
 /**

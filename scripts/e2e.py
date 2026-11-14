@@ -137,8 +137,10 @@ p2 = t['tile:planets:5']['position']
 before = state()
 grab_and_move(p2, -0.35)
 after = state()
-check('lowering it keeps the memory due', after.get('history') == before.get('history') + 1 and after.get('due') == before.get('due'),
-      f"due {before.get('due')}->{after.get('due')}, {after.get('last')}")
+again = ev("""const p = window.__loci.app.palace; const last = p.history[p.history.length - 1];
+  return { rating: last.rating, mins: (new Date(p.cards[last.memoryId].due) - Date.now()) / 60000 }""")
+check('lowering it brings the memory back within minutes', after.get('history') == before.get('history') + 1
+      and again.get('rating') == 'again' and again.get('mins', 99) <= 10, str(again))
 
 poses_before = ev("return window.__loci.app.palace.placements.map(p => p.pose.p)")
 xr('exit')

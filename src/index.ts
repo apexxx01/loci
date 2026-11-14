@@ -1,6 +1,7 @@
 import { VisibilityState, World } from '@iwsdk/core';
 import projectOptions from 'virtual:iwsdk-project';
 import { app, bus } from './xr/app-state.js';
+import { GuideSystem } from './xr/guide-system.js';
 import { HubSystem } from './xr/hub-system.js';
 import { PalaceSystem } from './xr/palace-system.js';
 import { RecallSystem } from './xr/recall-system.js';
@@ -13,6 +14,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(RoomSystem)
       .registerSystem(PalaceSystem)
       .registerSystem(RecallSystem)
+      .registerSystem(GuideSystem)
       .registerSystem(HubSystem);
     const landing = mountLanding({
       launchXR: () => world.launchXR(),
