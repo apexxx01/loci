@@ -29,7 +29,7 @@ const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 const TIMEOUT_MS = 12_000;
 /** Mnemonics need creativity, not deep reasoning: keep thinking short for latency. */
-const THINKING_LEVEL = process.env.GEMINI_THINKING || 'low';
+const THINKING_LEVEL = process.env.GEMINI_THINKING || 'minimal';
 const MAX_BODY = 12_000;
 
 // Best-effort abuse guard: 20 requests / 10 minutes per IP per warm instance.
