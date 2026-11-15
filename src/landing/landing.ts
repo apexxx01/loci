@@ -394,6 +394,8 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   /* ---------------------------------------------------- the sky */
   const scene = createLandingScene($<HTMLCanvasElement>('.cosmos'));
   void (scene?.ready ?? Promise.resolve()).then(() => root.classList.add('is-ready'));
+  // Never keep the words waiting on a slow graphics card.
+  setTimeout(() => root.classList.add('is-ready'), 2600);
   if (!scene) root.classList.add('is-ready');
 
   const progressBar = $('[data-progress]');

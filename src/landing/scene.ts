@@ -648,9 +648,9 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const py = Math.abs(my) > 1 ? 0 : my;
     group.rotation.y = yaw + px * 0.1 * (1 - wordness * 0.7);
     group.rotation.x = roomness * 0.3 + py * 0.06;
-    group.position.x = wide ? cur.shift * 1.9 : 0;
+    group.position.x = wide ? cur.shift * Math.min(2.2, 1.25 * camera.aspect) : 0;
     group.position.y = (wide ? 0 : 0.4) + wordness * 0.35;
-    const s = (wide ? 1 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25);
+    const s = (wide ? 1 - Math.abs(cur.shift) * 0.12 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25);
     group.scale.setScalar(s);
 
     const vis = Math.pow(1 - cur.dim * 0.97, 1.4);

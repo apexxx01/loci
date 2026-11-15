@@ -145,7 +145,7 @@ p { margin: 0 0 1.1em; text-wrap: pretty; }
 /* ---------------------------------------------------------------- sections */
 .s { position: relative; min-height: 100vh; padding: 16vh var(--pad); display: flex; align-items: center; }
 .s--story { min-height: 120vh; }
-.copy { max-width: 34rem; text-shadow: var(--glow-text); }
+.copy { max-width: min(34rem, 42vw); text-shadow: var(--glow-text); }
 .copy--right { margin-left: auto; }
 .s--open { justify-content: center; min-height: auto; padding: 20vh var(--pad); }
 .open { width: 100%; max-width: 1180px; }
