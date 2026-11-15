@@ -211,7 +211,7 @@ function wordPoints(word: string, n: number, r: () => number): Float32Array | nu
   g.fillStyle = '#fff';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.font = '200 270px "Jost Variable", "Jost", system-ui, sans-serif';
+  g.font = 'italic 500 300px "Cormorant Variable", "Cormorant", Garamond, serif';
   g.fillText(word, W / 2, H / 2 + 10);
   const data = g.getImageData(0, 0, W, H).data;
   const inside: number[] = [];
@@ -392,7 +392,7 @@ function tileTexture(text: string, n: number): CanvasTexture {
   g.stroke();
   drawSigil(g, text, 96, 96, 96);
   g.fillStyle = 'rgba(255,226,189,0.9)';
-  g.font = '400 22px "Jost Variable", system-ui, sans-serif';
+  g.font = '400 22px "Hanken Grotesk Variable", system-ui, sans-serif';
   g.textAlign = 'center';
   g.fillText(String(n), 96, 214);
   const t = new CanvasTexture(c);
@@ -486,7 +486,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   geo.setAttribute('a3', new Float32BufferAttribute(a3, 3));
   const a4Attr = new Float32BufferAttribute(a4, 3);
   geo.setAttribute('a4', a4Attr);
-  void document.fonts?.load('200 270px "Jost Variable"').then(() => {
+  void document.fonts?.load('italic 500 300px "Cormorant Variable"').then(() => {
     const word = wordPoints('loci', COUNT, rng(7));
     if (!word) return;
     a4Attr.copyArray(word);

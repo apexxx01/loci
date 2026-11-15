@@ -4,8 +4,9 @@
  * room, and finally the name), the words sit quietly beside it, and the tools
  * (try a recall, build a palace, recall from any screen) live in the same sky.
  */
-import '@fontsource-variable/jost/wght.css';
-import '@fontsource-variable/jost/wght-italic.css';
+import '@fontsource-variable/cormorant/wght.css';
+import '@fontsource-variable/cormorant/wght-italic.css';
+import '@fontsource-variable/hanken-grotesk/wght.css';
 import 'lenis/dist/lenis.css';
 import Lenis from 'lenis';
 import './landing.css';
@@ -22,6 +23,7 @@ import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './amb
 import { mountDemo, span } from './demo.js';
 import { openReview } from './review.js';
 import { createLandingScene, LOCI } from './scene.js';
+import { AUDIENCES, HEADSET, PIPELINE, RECEIPTS, ROADMAP, WEAVE } from './features.js';
 import { sigilSVG } from './sigil.js';
 import { curveStars, starField } from './starchart.js';
 
@@ -97,10 +99,11 @@ const HTML = `
   <a class="wordmark" href="#top" aria-label="Loci, back to the top"><span class="wordmark__sigil" data-wordmark-sigil></span>loci</a>
   <nav class="bar__nav" aria-label="Sections">
     <a href="#why" data-spy="why">Science</a>
-    <a href="#how" data-spy="how">How it works</a>
+    <a href="#headset" data-spy="headset">In the headset</a>
+    <a href="#architect" data-spy="architect">Architect</a>
     <a href="#try" data-spy="try">Try it</a>
     <a href="#start" data-spy="start">Build</a>
-    <a href="#library" data-spy="library" data-nav-library hidden>Your palaces</a>
+    <a href="#library" data-spy="library" data-nav-library hidden>Palaces</a>
   </nav>
   <div class="bar__tools">
     <button class="sound" type="button" data-ambient aria-pressed="false" aria-label="Sound"><i></i><i></i><i></i><i></i></button>
@@ -190,6 +193,18 @@ const HTML = `
   </div>
 </section>
 
+ <section class="s s--open" id="headset" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.9">
+  <div class="open">
+    <h2 class="open__title">Everything that happens in the headset.</h2>
+    <p class="open__lede">Twelve parts, one loop. Touch a star to read what it does. The ones marked as tested are
+    checked every time by our mixed-reality test suite.</p>
+    <div class="atlas">
+      <div class="atlas__sky" data-atlas role="tablist" aria-label="Headset features"></div>
+      <div class="atlas__card" data-atlas-detail aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
 <section class="s s--open" id="habits" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.92">
   <div class="open">
     <h2 class="open__title">Two habits the research agrees on.</h2>
@@ -211,6 +226,30 @@ const HTML = `
         the longer you want to remember. Loci times each recall for you.</p>
         <p class="cite"><a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda et al., Psychological Bulletin, 2006</a></p>
       </article>
+    </div>
+  </div>
+</section>
+
+<section class="s s--open" id="architect" data-stage="3" data-shift="0" data-dim="0.94">
+  <div class="open">
+    <h2 class="open__title">The Palace Architect.</h2>
+    <p class="open__lede">Inventing a good picture is the hardest part of the method, so the Architect does it
+    for you, and a plain rule-based check reads every line before you see it.</p>
+    <p class="live" data-live><i></i><span>Checking the Architect</span></p>
+    <ol class="pipeline" data-pipeline></ol>
+    <div class="weave">
+      <div class="weave__intro">
+        <h3>One memory, any room.</h3>
+        <p>The same memory for Saturn (${WEAVE.answer}), rewoven around different objects. These are real
+        answers from the Architect. Ask it again to see a fresh one.</p>
+        <div class="weave__objects" role="group" aria-label="Objects" data-weave-objects></div>
+      </div>
+      <figure class="weave__out">
+        <p class="weave__before"><span>Before it is placed</span>${WEAVE.scene}</p>
+        <blockquote class="weave__scene" data-weave-scene></blockquote>
+        <figcaption class="small" data-weave-note></figcaption>
+        <button class="lumen lumen--quiet lumen--small" type="button" data-weave-live>Ask the Architect again</button>
+      </figure>
     </div>
   </div>
 </section>
@@ -273,6 +312,30 @@ const HTML = `
       <label class="textlink" tabindex="0">Restore a palace from a file<input type="file" accept="application/json,.json" data-import hidden /></label>
       <span class="small" role="status" aria-live="polite" data-data-status></span>
     </div>
+  </div>
+</section>
+
+<section class="s s--open" id="everyone" data-stage="3" data-shift="0" data-dim="0.92">
+  <div class="open">
+    <h2 class="open__title">Made for whoever is remembering.</h2>
+    <div class="people" data-people></div>
+  </div>
+</section>
+
+<section class="s s--open" id="receipts" data-stage="3" data-shift="0" data-dim="0.92">
+  <div class="open">
+    <h2 class="open__title">The receipts.</h2>
+    <p class="open__lede">Every number here comes from a real run of the code in the repository.</p>
+    <div class="receipts" data-receipts></div>
+  </div>
+</section>
+
+<section class="s s--open" id="next" data-stage="3" data-shift="0" data-dim="0.92">
+  <div class="open">
+    <h2 class="open__title">What comes next.</h2>
+    <p class="open__lede">What is built today, and what we are building towards. Nothing under Next or Later
+    exists yet.</p>
+    <div class="road" data-road></div>
   </div>
 </section>
 
@@ -596,6 +659,117 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     $('[data-curve]').innerHTML = `${c.svg}<figcaption class="small">${c.caption}</figcaption>`;
   }
   $('[data-wordmark-sigil]').innerHTML = sigilSVG('loci', 22);
+
+  /* ---------------------------------------------------- the headset, as a constellation */
+  {
+    const sky = $('[data-atlas]');
+    const detail = $('[data-atlas-detail]');
+    const lines = HEADSET.slice(1).map((f, i) => `<line x1="${HEADSET[i].at[0]}" y1="${HEADSET[i].at[1]}" x2="${f.at[0]}" y2="${f.at[1]}"/>`).join('');
+    sky.innerHTML = `<svg class="atlas__lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${lines}<line x1="${HEADSET[11].at[0]}" y1="${HEADSET[11].at[1]}" x2="${HEADSET[0].at[0]}" y2="${HEADSET[0].at[1]}"/></svg>`
+      + '<div class="atlas__core" data-atlas-core aria-hidden="true"></div>'
+      + HEADSET.map((f, i) => `<button type="button" role="tab" class="atlas__star${f.verified ? ' atlas__star--tested' : ''}" style="left:${f.at[0]}%;top:${f.at[1]}%" data-feature="${i}" aria-selected="false"><i></i><span>${esc(f.title)}</span></button>`).join('');
+    let auto = 0;
+    const pick = (i: number) => {
+      const f = HEADSET[i];
+      $$('[data-feature]').forEach((b) => b.setAttribute('aria-selected', String(Number(b.dataset.feature) === i)));
+      const core = sky.querySelector<HTMLElement>('[data-atlas-core]')!;
+      core.innerHTML = sigilSVG(f.title, 150);
+      detail.innerHTML = `<p class="atlas__group">${String(i + 1).padStart(2, '0')} of 12, ${esc(f.group.toLowerCase())}</p>
+        <h3>${esc(f.title)}</h3><p>${esc(f.text)}</p>${f.verified ? `<p class="atlas__tested"><i></i>${esc(f.verified)}</p>` : ''}`;
+    };
+    sky.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-feature]');
+      if (!b) return;
+      clearInterval(auto);
+      pick(Number(b.dataset.feature));
+    });
+    sky.addEventListener('pointerover', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-feature]');
+      if (b && matchMedia('(hover: hover)').matches) {
+        clearInterval(auto);
+        pick(Number(b.dataset.feature));
+      }
+    });
+    pick(0);
+    // Until you touch it, the constellation walks itself through the loop, slowly.
+    if (!calm) {
+      let k = 0;
+      const io = new IntersectionObserver((en) => {
+        if (en[0].isIntersecting && !auto) auto = window.setInterval(() => pick((k = (k + 1) % HEADSET.length)), 4200);
+        else if (!en[0].isIntersecting) { clearInterval(auto); auto = 0; }
+      }, { root, threshold: 0.4 });
+      io.observe(sky);
+    }
+  }
+
+  /* ---------------------------------------------------- the Architect */
+  $('[data-pipeline]').innerHTML = PIPELINE.map((p, i) => `<li style="--i:${i}"><i></i><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`).join('');
+  {
+    const live = $('[data-live]');
+    fetch('/api/architect', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((h: { ok?: boolean; configured?: boolean; model?: string; fallbacks?: string[] }) => {
+        if (!h.ok || !h.configured) throw new Error('down');
+        live.classList.add('is-on');
+        live.querySelector('span')!.textContent = `Online now: ${h.model}, with ${(h.fallbacks ?? []).join(' and ')} as backups.`;
+      })
+      .catch(() => {
+        live.classList.add('is-off');
+        live.querySelector('span')!.textContent = 'The Architect is unreachable right now. Loci will build straight from your lines instead.';
+      });
+    const objects = Object.keys(WEAVE.scenes);
+    const objEl = $('[data-weave-objects]');
+    const sceneEl = $('[data-weave-scene]');
+    const noteEl = $('[data-weave-note]');
+    let current = 'lamp';
+    const fresh: Record<string, { text: string; ms: number; model: string }> = {};
+    objEl.innerHTML = objects.map((o) => `<button type="button" data-obj="${o}" aria-pressed="false">your ${o}</button>`).join('');
+    const show = (o: string) => {
+      current = o;
+      $$('[data-obj]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.obj === o)));
+      const f = fresh[o];
+      sceneEl.classList.remove('is-new');
+      void sceneEl.offsetWidth;
+      sceneEl.classList.add('is-new');
+      sceneEl.textContent = f ? f.text : WEAVE.scenes[o];
+      noteEl.textContent = f
+        ? `Just now, from ${f.model}, in ${(f.ms / 1000).toFixed(1)} seconds.`
+        : `Saved from a real run on 15 November, from ${WEAVE.model}.`;
+    };
+    objEl.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-obj]');
+      if (b) show(b.dataset.obj!);
+    });
+    const liveBtn = $<HTMLButtonElement>('[data-weave-live]');
+    liveBtn.addEventListener('click', async () => {
+      liveBtn.disabled = true;
+      liveBtn.textContent = 'Weaving';
+      const started = performance.now();
+      try {
+        const r = await fetch('/api/architect', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ mode: 'bind', items: [{ cue: WEAVE.cue, scene: WEAVE.scene, label: current }] }),
+        });
+        const d = (await r.json()) as { scenes?: string[]; model?: string; error?: string };
+        if (!r.ok || !d.scenes?.[0]) throw new Error(d.error ?? 'No answer');
+        fresh[current] = { text: d.scenes[0], ms: performance.now() - started, model: d.model ?? 'the Architect' };
+        show(current);
+        chime('soft');
+      } catch (err) {
+        noteEl.textContent = `The Architect did not answer (${(err as Error).message}). The saved answer is shown instead.`;
+      } finally {
+        liveBtn.disabled = false;
+        liveBtn.textContent = 'Ask the Architect again';
+      }
+    });
+    show('lamp');
+  }
+
+  /* ---------------------------------------------------- who, receipts, next */
+  $('[data-people]').innerHTML = AUDIENCES.map((a) => `<article>${sigilSVG(a.who, 40, 'sigil people__sigil')}<h3>${esc(a.who)}</h3><p>${esc(a.text)}</p></article>`).join('');
+  $('[data-receipts]').innerHTML = RECEIPTS.map((r) => `<div><p class="numeral numeral--receipt">${esc(r.n)}${r.unit ? `<span class="numeral__unit">${esc(r.unit)}</span>` : ''}</p><p>${esc(r.text)}</p></div>`).join('');
+  $('[data-road]').innerHTML = ROADMAP.map((g) => `<div class="road__col road__col--${g.when.toLowerCase()}"><h3><i></i>${g.when}</h3><ul>${g.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('');
 
   /* ---------------------------------------------------- state */
   let chosen: Deck | null = null;
@@ -1006,6 +1180,15 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   };
   if (!xr) noXR();
   else xr.isSessionSupported('immersive-ar').then((ok) => (ok ? undefined : noXR())).catch(noXR);
+
+  /* ---------------------------------------------------- a small light that follows you */
+  const glow = document.createElement('div');
+  glow.className = 'cursor';
+  glow.setAttribute('aria-hidden', 'true');
+  if (!coarse && !calm) {
+    root.after(glow);
+    root.addEventListener('pointermove', (e) => (glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`), { passive: true });
+  }
 
   /* ---------------------------------------------------- preview back */
   const back = document.createElement('button');
