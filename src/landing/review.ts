@@ -71,10 +71,10 @@ export function openReview(opts: ReviewOptions): () => void {
       </div>
       <div class="recall__actions">
         ${shown
-          ? `<button type="button" class="lumen lumen--rose" data-rate="again">Not yet <kbd>1</kbd></button>
-             <button type="button" class="lumen lumen--quiet" data-rate="hard">It took a moment <kbd>2</kbd></button>
-             <button type="button" class="lumen" data-rate="good">I knew it <kbd>3</kbd></button>`
-          : `<button type="button" class="lumen" data-show>Show me <kbd>Space</kbd></button>`}
+          ? `<button type="button" class="btn btn--ghost btn--rose" data-rate="again">Not yet <kbd>1</kbd></button>
+             <button type="button" class="btn btn--ghost" data-rate="hard">It took a moment <kbd>2</kbd></button>
+             <button type="button" class="btn" data-rate="good">I knew it <kbd>3</kbd></button>`
+          : `<button type="button" class="btn" data-show>Show me <kbd>Space</kbd></button>`}
       </div>
       <p class="recall__hint">${shown ? 'Be honest. The schedule only works if the rating is true.' : `Picture ${place ? 'that spot' : 'the spot'} first. What was resting there?`}</p>`;
     body.querySelector<HTMLButtonElement>(shown ? '[data-rate="good"]' : '[data-show]')?.focus({ preventScroll: true });
@@ -90,7 +90,7 @@ export function openReview(opts: ReviewOptions): () => void {
         left ? `${left} still glowing.` : next ? `Nothing else is due. The next one comes back in ${span(next.getTime() - Date.now())}.` : ''
       }</p>
       <p class="recall__hint">Saved to this palace. Your headset picks up the same schedule.</p>
-      <div class="recall__actions"><button type="button" class="lumen" data-close>Done</button></div>`;
+      <div class="recall__actions"><button type="button" class="btn" data-close>Done</button></div>`;
     body.querySelector<HTMLButtonElement>('[data-close]')?.focus({ preventScroll: true });
   };
 

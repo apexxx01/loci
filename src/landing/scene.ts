@@ -27,6 +27,7 @@ import {
   SRGBColorSpace,
   Vector2,
   Vector3,
+  Vector4,
   WebGLRenderer,
 } from '@iwsdk/core';
 import { drawSigil } from './sigil.js';
@@ -46,6 +47,10 @@ export interface SceneTargets {
   breath: number;
   /** Index of the memory tile to light up, or -1. */
   focus: number;
+  /** 0..1 how much to thin the stars behind the words. */
+  clear: number;
+  /** Where the words sit: -1 left column, 0 centred (the opening), 1 right column. */
+  clearSide: number;
 }
 
 export interface TileScreen {
@@ -96,7 +101,7 @@ function randDir(r: () => number): V3 {
 
 /* ------------------------------------------------------------ shapes */
 function galaxyPoint(r: () => number): V3 {
-  if (r() < 0.2) {
+  if (r() < 0.09) {
     const d = randDir(r);
     const m = 5 + r() * 4.5;
     return [d[0] * m, d[1] * m * 0.7, d[2] * m];
@@ -226,9 +231,8 @@ function wordPoints(text: string, n: number, r: () => number, width = 7.6): Floa
   g.fillStyle = '#fff';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  (g as CanvasRenderingContext2D & { fontStretch?: string }).fontStretch = 'expanded';
   let size = 240;
-  const fam = '"Mona Sans Variable", "Mona Sans", system-ui, sans-serif';
+  const fam = '"Funnel Display Variable", "Funnel Display", system-ui, sans-serif';
   const fit = () => {
     g.font = `800 ${size}px ${fam}`;
     return Math.max(...lines.map((l) => g.measureText(l).width));
@@ -314,7 +318,7 @@ function buildRoom(): [V3, V3][] {
 const VERT = /* glsl */ `
   attribute vec3 a1; attribute vec3 a2; attribute vec3 a3; attribute vec3 a4; attribute vec3 aW;
   attribute vec3 aColor; attribute float aSeed; attribute float aSize; attribute float aNd;
-  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect, uBreath, uFocus, uWord;
+  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect, uBreath, uFocus, uWord, uClearAmt; uniform vec4 uClear;
   uniform vec2 uMouse; uniform vec3 uRipple;
   varying vec3 vColor; varying float vAlpha;
   float st(float t){ t = clamp(t*1.5 - aSeed*0.5, 0., 1.); return t*t*(3.-2.*t); }
@@ -364,10 +368,13 @@ const VERT = /* glsl */ `
     float coc = clamp(abs(-mv.z - uFocus) * .16, 0., 1.);
     // Never let a mote swell into a smear: cap its size, and fade anything that drifts close to the eye.
     // Words need crisp, small stars to stay legible.
-    gl_PointSize = min(aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5 + fire * 1.6 + spark * 2.2) * (1. + coc) * mix(1., .5, wsel) / -mv.z, uPx * .3);
+    gl_PointSize = min(aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5 + fire * 1.6 + spark * 2.2) * (1. + coc) * mix(1., .5, wsel) / -mv.z, uPx * .16);
     float near = smoothstep(2.2, 4.6, -mv.z);
+    // Where words sit on screen, the stars thin out so the words stay easy to read.
+    vec2 cz = (gl_Position.xy / gl_Position.w - uClear.xy) / uClear.zw;
+    float clear = 1. - uClearAmt * (1. - smoothstep(.55, 1.05, length(cz))) * (1. - wsel);
     vColor = mix(mix(aColor, vec3(1., .86, .62), max(ring * .8, fire * .9)), vec3(.9, .94, 1.), spark);
-    vAlpha = intro * tw * near * (1. + ring * 1.4 + uBreath * .25 + fire * 2.2 + spark * 3.) / (1. + coc * coc * .8);
+    vAlpha = clear * intro * tw * near * (1. + ring * 1.4 + uBreath * .25 + fire * 2.2 + spark * 3.) / (1. + coc * coc * .8);
   }`;
 const FRAG = /* glsl */ `
   precision mediump float;
@@ -404,16 +411,21 @@ const SKY_FRAG = /* glsl */ `
   float fbm(vec2 p){ float v = 0., a = .5; for(int i = 0; i < 4; i++){ v += a * n(p); p = p * 2.03 + 11.7; a *= .5; } return v; }
   void main(){
     vec2 p = (vUv - .5) * vec2(uAspect, 1.);
-    float t = uTime * .012;
-    float q = fbm(p * 1.6 + vec2(t, -t));
-    float cloud = fbm(p * 2.4 + q * 1.8 - vec2(t * .7, t * .4));
-    float core = exp(-dot(p, p) * 2.6);
-    // galaxy: violet and dusk rose; neurons: deep blue; brain: lilac; room: candlelight from below.
-    vec3 violet = vec3(.24, .16, .52), rose = vec3(.52, .2, .34), blue = vec3(.08, .16, .42), candle = vec3(.62, .36, .14);
-    float g = clamp(1. - uStage, 0., 1.), ne = clamp(1. - abs(uStage - 1.), 0., 1.), b = clamp(1. - abs(uStage - 2.), 0., 1.), ro = clamp(uStage - 2., 0., 1.);
-    vec3 col = (violet * g + blue * ne + mix(violet, rose, .5) * b + violet * .5 * ro) * cloud * cloud * 1.6;
-    col += rose * g * core * cloud * .35 + candle * ro * exp(-pow(vUv.y + .15, 2.) * 6.) * (.3 + cloud * .3);
-    col *= (.32 + uBreath * .25) * uDim * uIntro;
+    float t = uTime * .02;
+    // An aurora along the bottom of the sky: soft ribbons in lilac, rose, peach and sky blue, always drifting.
+    float wave = fbm(vec2(p.x * 1.3 + t, t * .6)) * .34;
+    float band = vUv.y - .02 - wave;
+    float ribbon = exp(-band * band * 34.) + exp(-pow(band - .09, 2.) * 90.) * .45;
+    float hue = p.x * .55 + t * 1.6 + fbm(p * 2. + t) * .8;
+    vec3 lilac = vec3(.72, .65, 1.), rose = vec3(1., .7, .8), peach = vec3(1., .83, .64), skyb = vec3(.65, .89, 1.);
+    float h4 = fract(hue) * 4.;
+    vec3 tint = h4 < 1. ? mix(lilac, rose, h4) : h4 < 2. ? mix(rose, peach, h4 - 1.) : h4 < 3. ? mix(peach, skyb, h4 - 2.) : mix(skyb, lilac, h4 - 3.);
+    float shimmer = .55 + .45 * fbm(vec2(p.x * 6. - t * 3., vUv.y * 3.));
+    vec3 col = tint * ribbon * shimmer * .9;
+    // A faint glow behind the centre of the story.
+    float core = exp(-dot(p, p) * 3.2);
+    col += lilac * core * .07 * clamp(1. - uStage * .5, 0., 1.);
+    col *= (.85 + uBreath * .6) * uDim * uIntro;
     gl_FragColor = vec4(col, 1.);
   }`;
 
@@ -436,7 +448,7 @@ function tileTexture(text: string, n: number): CanvasTexture {
   g.stroke();
   drawSigil(g, text, 96, 96, 96);
   g.fillStyle = 'rgba(255,226,189,0.9)';
-  g.font = '400 22px "Hanken Grotesk Variable", system-ui, sans-serif';
+  g.font = '400 22px "Inter Variable", system-ui, sans-serif';
   g.textAlign = 'center';
   g.fillText(String(n), 96, 214);
   const t = new CanvasTexture(c);
@@ -452,9 +464,9 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   } catch {
     return null; // no WebGL: the page still works, just without the backdrop
   }
-  const lowPower = /OculusBrowser|Quest|Android|iPhone/i.test(navigator.userAgent);
+  const lowPower = /OculusBrowser|Quest|Android|iPhone/i.test(navigator.userAgent) && !/[?&]full\b/.test(location.search);
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const COUNT = lowPower ? 1800 : 5600;
+  const COUNT = lowPower ? 2200 : 8200;
   const dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1.25 : 2);
   renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
@@ -511,7 +523,8 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   const col = new Float32Array(COUNT * 3), seed = new Float32Array(COUNT), size = new Float32Array(COUNT), nd = new Float32Array(COUNT);
   const aw = new Float32Array(COUNT * 3);
   // Starlight, candle, dusk rose, lilac, and a little cold blue.
-  const palette: V3[] = [[0.96, 0.95, 1], [1, 0.79, 0.54], [1, 0.58, 0.7], [0.72, 0.68, 1], [0.55, 0.78, 1]];
+  // Starlight, peach, rose, lilac and sky blue: the same pastels as the aurora.
+  const palette: V3[] = [[0.97, 0.96, 1], [1, 0.84, 0.66], [1, 0.7, 0.8], [0.74, 0.67, 1], [0.66, 0.89, 1]];
   for (let i = 0; i < COUNT; i++) {
     const room = roomPoint();
     a0.set(galaxyPoint(r), i * 3);
@@ -526,7 +539,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const c = room.warm ? palette[1] : palette[k < 0.34 ? 0 : k < 0.58 ? 1 : k < 0.76 ? 3 : k < 0.9 ? 4 : 2];
     col.set(c, i * 3);
     seed[i] = r();
-    size[i] = (r() < 0.05 ? 3.4 : 0.9 + r() * 1.1) * (room.warm ? 1.3 : 1);
+    size[i] = (r() < 0.04 ? 2.1 : 0.62 + r() * 0.85) * (room.warm ? 1.3 : 1);
   }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(a0, 3));
@@ -538,7 +551,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   const awAttr = new Float32BufferAttribute(aw, 3);
   geo.setAttribute('aW', awAttr);
   geo.setAttribute('aNd', new Float32BufferAttribute(nd, 1));
-  void document.fonts?.load('700 240px "Mona Sans Variable"').then(() => {
+  void document.fonts?.load('800 240px "Funnel Display Variable"').then(() => {
     const word = wordPoints('loci', COUNT, rng(7), 6.4);
     if (!word) return;
     a4Attr.copyArray(word);
@@ -556,7 +569,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     uniforms: {
       uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 },
       uCalm: { value: calm ? 1 : 0 }, uAspect: { value: 1 }, uMouse: { value: new Vector2(9, 9) }, uBreath: { value: 0 },
-      uFocus: { value: 7.4 }, uRipple: { value: new Vector3(0, 0, -99) }, uWord: { value: 0 },
+      uFocus: { value: 7.4 }, uRipple: { value: new Vector3(0, 0, -99) }, uWord: { value: 0 }, uClear: { value: new Vector4(0, -0.26, 0.56, 0.31) }, uClearAmt: { value: 0 },
     },
   });
   const skyMat = new ShaderMaterial({
@@ -680,7 +693,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   });
 
   /* ---------------------------------------------------------- loop */
-  const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0, breath: 0, focus: -1 };
+  const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0, breath: 0, focus: -1, clear: 0, clearSide: 0 };
   let wordTarget = 0;
   const cur = { ...target, word: 0 };
   let mx = 9, my = 9, yaw = 0, active = true, raf = 0, last = performance.now(), time = 0, intro = calm ? 1 : 0;
@@ -714,9 +727,10 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   window.addEventListener('resize', resize);
   resize();
 
-  const frame = (now: number) => {
+  const frame = () => {
     raf = active ? requestAnimationFrame(frame) : 0;
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const now = performance.now();
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
     last = now;
     time += dt;
     const wasIntro = intro < 1;
@@ -751,7 +765,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     group.rotation.x = roomness * 0.3 + py * 0.06;
     group.position.x = wide ? cur.shift * Math.min(2.2, 1.25 * camera.aspect) : 0;
     group.position.y = (wide ? 0 : 0.4) + wordness * 0.35;
-    const s = (wide ? 1 - Math.abs(cur.shift) * 0.12 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25);
+    const s = (wide ? 1 - Math.abs(cur.shift) * 0.12 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25) * (1 - galaxyHold * 0.14);
     group.scale.setScalar(s);
 
     const vis = Math.pow(1 - cur.dim * 0.97, 1.4);
@@ -763,6 +777,14 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     mat.uniforms.uDim.value = vis;
     cur.word += (wordTarget - cur.word) * Math.min(1, dt * (wordTarget > cur.word ? 1.1 : 1.6));
     mat.uniforms.uWord.value = cur.word;
+    cur.clear += (target.clear - cur.clear) * Math.min(1, dt * 2.5);
+    cur.clearSide += (target.clearSide - cur.clearSide) * Math.min(1, dt * 2.5);
+    {
+      // Centred: an oval under the headline. To a side: a tall column where the text is.
+      const side = Math.min(1, Math.abs(cur.clearSide));
+      (mat.uniforms.uClear.value as Vector4).set(cur.clearSide * 0.52, -0.26 * (1 - side), 0.56 - side * 0.12, 0.31 + side * 0.9);
+      mat.uniforms.uClearAmt.value = cur.clear * (0.72 - side * 0.12);
+    }
     const galaxyness = Math.max(0, 1 - p) * (1 - cur.word);
     (core.material as SpriteMaterial).opacity = galaxyness * 0.6 * vis * intro;
     const skyness = Math.max(0, 1 - Math.max(0, p - 1.5)) * vis;

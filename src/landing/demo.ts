@@ -55,9 +55,9 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
     <div class="demo__side">
       <p class="demo__hint" id="demo-hint" data-hint aria-live="polite"></p>
       <div class="demo__buttons">
-        <button type="button" class="lumen lumen--quiet" data-peek>Peek</button>
-        <button type="button" class="lumen" data-good>I knew it</button>
-        <button type="button" class="lumen lumen--rose" data-again>Not yet</button>
+        <button type="button" class="btn btn--ghost" data-peek>Peek</button>
+        <button type="button" class="btn" data-good>I knew it</button>
+        <button type="button" class="btn btn--ghost btn--rose" data-again>Not yet</button>
       </div>
       <div class="demo__result" data-result hidden></div>
       <p class="demo__keys">Drag the star up if you knew it, down if you did not. Or use Space, and the up and down arrows.</p>
@@ -112,7 +112,7 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
         ? `<strong>Locked in.</strong> Loci will bring ${item.cue} back in ${span(s.first)}. Keep knowing it and the gaps grow:
            <span class="demo__chain">${s.chain.map((c) => `<span>${span(c)}</span>`).join('')}</span>`
         : `<strong>No problem.</strong> ${item.cue} comes back in ${span(s.first)} so you get another go while it is fresh.`) +
-      `<button type="button" class="lumen lumen--next" data-next>${last ? 'Choose what to learn' : 'Next memory'}</button>`;
+      `<button type="button" class="btn btn--next" data-next>${last ? 'Choose what to learn' : 'Next memory'}</button>`;
     hint.textContent = 'That rating just set the schedule. This is the same maths the headset uses.';
     result.querySelector<HTMLButtonElement>('[data-next]')!.addEventListener('click', () => {
       if (last) return onDone();

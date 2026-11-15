@@ -4,8 +4,9 @@
  * room, and finally the name), the words sit quietly beside it, and the tools
  * (try a recall, build a palace, recall from any screen) live in the same sky.
  */
-import '@fontsource-variable/mona-sans/standard.css';
-import '@fontsource-variable/mona-sans/standard-italic.css';
+import '@fontsource-variable/funnel-display/wght.css';
+import '@fontsource-variable/inter/opsz.css';
+import '@fontsource-variable/inter/opsz-italic.css';
 import 'lenis/dist/lenis.css';
 import Lenis from 'lenis';
 import './landing.css';
@@ -89,10 +90,6 @@ const MODES: { id: Mode; label: string; who: string; help: string; example: stri
 // Which tile lights up while each step of "how it works" is in view.
 const STEP_TILE = [4, 5, -1, 7];
 
-// What people bring to Loci, circling the galaxy in the opening.
-const ORBIT = ['Saturn', 'la biblioteca', 'the Golgi body', 'the Krebs cycle', 'Priya runs the bakery', 'my wedding toast',
-  'Grandma\u2019s number', 'the 12 cranial nerves', 'the order of the planets', 'el desayuno'];
-
 const HTML = `
 <canvas class="cosmos" aria-hidden="true"></canvas>
 <div class="veil" aria-hidden="true"></div>
@@ -110,15 +107,13 @@ const HTML = `
   </nav>
   <div class="bar__tools">
     <button class="sound" type="button" data-ambient aria-pressed="false" aria-label="Sound"><i></i><i></i><i></i><i></i></button>
-    <button class="lumen lumen--small" type="button" data-enter>Enter</button>
+    <button class="btn btn--small" type="button" data-enter>Enter</button>
   </div>
 </header>
 <div class="thread" aria-hidden="true"><i data-progress></i></div>
 
 <div class="flow" data-flow>
-<section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0.1">
-  <div class="orbit" data-orbit role="group" aria-label="Things people keep in Loci. Choose one to write it in the stars."></div>
-  <div class="horizon" aria-hidden="true"><i></i></div>
+<section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0" data-clear="1">
   <div class="hero">
     <h1 id="landing-title"><span class="line"><span>Your room</span></span><span class="line"><span>remembers.</span></span></h1>
     <p class="hero__lede">A memory palace built from the room you are sitting in. What you want to learn rests on
@@ -127,12 +122,14 @@ const HTML = `
       <label for="whisper" class="sr-only">Something you want to remember</label>
       <input id="whisper" name="whisper" maxlength="32" placeholder="Type anything you want to remember" data-whisper-input />
     </form>
+    <p class="suggest" data-suggest>Or try <button type="button">Saturn</button> <button type="button">the Krebs cycle</button>
+      <button type="button">la biblioteca</button> <button type="button">my wedding toast</button></p>
     <p class="whisper__said" data-whisper-said hidden><span data-whisper-line></span>
-      <button class="lumen lumen--small" type="button" data-whisper-build>Build a palace from it</button>
-      <button class="lumen lumen--small lumen--quiet" type="button" data-whisper-free>Let it go</button></p>
+      <button class="btn btn--small" type="button" data-whisper-build>Build a palace from it</button>
+      <button class="btn btn--small btn--ghost" type="button" data-whisper-free>Let it go</button></p>
     <div class="hero__actions">
-      <button class="lumen" type="button" data-enter>Enter your palace</button>
-      <button class="lumen lumen--quiet" type="button" data-breathe-open>Take a breath first</button>
+      <button class="btn" type="button" data-enter>Enter your palace</button>
+      <button class="btn btn--ghost" type="button" data-breathe-open>Take a breath first</button>
     </div>
     <p class="hero__note" data-device-note>Hands only, sitting down. Meta Quest 3 and 3S, right in the browser.</p>
     <p class="hero__note hero__note--warm" data-shared hidden></p>
@@ -141,7 +138,7 @@ const HTML = `
   <p class="scroll-cue" aria-hidden="true"><span>Scroll slowly</span><i></i></p>
 </section>
 
-<section class="s s--story" id="why" data-stage="1" data-shift="1" data-dim="0">
+<section class="s s--story" id="why" data-stage="1" data-shift="1" data-dim="0" data-clear="1" data-side="-1">
   <div class="copy">
     <h2>Memory keeps an address.</h2>
     <p>Deep in your brain, place cells fire when you stand in one particular spot, and grid cells map the space
@@ -159,7 +156,7 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--story" data-stage="2" data-shift="-1" data-dim="0">
+<section class="s s--story" data-stage="2" data-shift="-1" data-dim="0" data-clear="1" data-side="1">
   <div class="copy copy--right">
     <h2>Anyone can learn to use it.</h2>
     <p>It is called the method of loci. You picture a place you know and leave each thing to remember somewhere
@@ -175,7 +172,7 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--story" data-stage="3" data-shift="1" data-dim="0">
+<section class="s s--story" data-stage="3" data-shift="1" data-dim="0" data-clear="1" data-side="-1">
   <div class="copy">
     <h2>It is stronger when you are inside it.</h2>
     <p>The hard part was always imagining the palace clearly enough. When researchers let people explore one
@@ -189,7 +186,7 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--story s--steps" id="how" data-stage="3" data-tiles="1" data-shift="-1" data-dim="0" data-labels="1">
+<section class="s s--story s--steps" id="how" data-stage="3" data-tiles="1" data-shift="-1" data-dim="0" data-labels="1" data-clear="1" data-side="1">
   <div class="copy copy--right">
     <h2>How your palace is built.</h2>
     <ol class="steps">
@@ -260,7 +257,7 @@ const HTML = `
         <p class="weave__before"><span>Before it is placed</span>${WEAVE.scene}</p>
         <blockquote class="weave__scene" data-weave-scene></blockquote>
         <figcaption class="small" data-weave-note></figcaption>
-        <button class="lumen lumen--quiet lumen--small" type="button" data-weave-live>Ask the Architect again</button>
+        <button class="btn btn--small btn--ghost" type="button" data-weave-live>Ask the Architect again</button>
       </figure>
     </div>
   </div>
@@ -295,7 +292,7 @@ const HTML = `
           <span class="desk__count" data-count-lines></span>
         </div>
         <div class="desk__go">
-          <button class="lumen" type="button" data-build>Build my palace</button>
+          <button class="btn" type="button" data-build>Build my palace</button>
           <button class="textlink" type="button" data-example>Fill in an example</button>
         </div>
         <p class="desk__status" role="status" aria-live="polite" data-build-status></p>
@@ -306,8 +303,8 @@ const HTML = `
     <div class="ready" data-chosen hidden>
       <p data-chosen-text></p>
       <div class="ready__actions">
-        <button class="lumen" type="button" data-enter>Enter your palace</button>
-        <button class="lumen lumen--quiet" type="button" data-see-room>See it in a room first</button>
+        <button class="btn" type="button" data-enter>Enter your palace</button>
+        <button class="btn btn--ghost" type="button" data-see-room>See it in a room first</button>
         <button class="textlink" type="button" data-copy-link>Copy a link for your headset</button>
       </div>
       <p class="small" role="status" aria-live="polite" data-link-status></p>
@@ -392,7 +389,7 @@ const HTML = `
 <section class="s s--close" data-stage="4" data-shift="0" data-dim="0">
   <div class="close">
     <p class="close__line">Your room is ready when you are.</p>
-    <button class="lumen" type="button" data-enter>Enter your palace</button>
+    <button class="btn" type="button" data-enter>Enter your palace</button>
     <p class="close__foot">Open source under the MIT licence.
     <a href="https://github.com/apexxx01/loci" target="_blank" rel="noopener">Read the code</a></p>
   </div>
@@ -402,7 +399,7 @@ const HTML = `
 <div class="breathe" data-breathe hidden role="dialog" aria-modal="true" aria-label="A minute of breathing">
   <p class="breathe__word" data-breathe-word aria-live="polite">Settle in</p>
   <p class="breathe__count" data-breathe-count></p>
-  <button class="lumen lumen--quiet" type="button" data-breathe-close>I am ready</button>
+  <button class="btn btn--ghost" type="button" data-breathe-close>I am ready</button>
 </div>`;
 
 /** A palace drawn as its own constellation: where each memory rests, the route between them, and how strong each is. */
@@ -476,6 +473,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   const progressBar = $('[data-progress]');
   const num = (el: HTMLElement, k: string) => Number(el.dataset[k] ?? 0);
   let breathing = false;
+  let written = '';
   let labelsOn = 0;
   let litTile = -1;
   let ticking = false;
@@ -495,7 +493,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       const b = sections[i + 1];
       const mix = (k: string) => num(a, k) + (num(b, k) - num(a, k)) * t;
       labelsOn = mix('labels');
-      if (!breathing) scene?.set({ progress: mix('stage'), tiles: mix('tiles'), shift: mix('shift'), dim: mix('dim') });
+      if (!breathing) scene?.set({ progress: mix('stage'), tiles: mix('tiles'), shift: mix('shift'), dim: mix('dim'), clear: written ? 0 : mix('clear'), clearSide: mix('side') });
       const max = root.scrollHeight - vh;
       progressBar.style.transform = `scaleY(${max > 0 ? root.scrollTop / max : 0})`;
       root.classList.toggle('is-scrolled', root.scrollTop > 40);
@@ -680,80 +678,25 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     else headIO.observe(h);
   });
 
-  /* ---------------------------------------------------- lanterns lean towards the cursor */
-  if (!coarse && !calm) {
-    let leaning: HTMLElement | null = null;
-    root.addEventListener('pointermove', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('.lumen');
-      if (leaning && leaning !== b) leaning.style.transform = '';
-      leaning = b;
-      if (!b) return;
-      const r = b.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width / 2)) * 0.18;
-      const dy = (e.clientY - (r.top + r.height / 2)) * 0.3;
-      b.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
-    }, { passive: true });
-  }
-
-  /* ---------------------------------------------------- memories in orbit */
-  {
-    const orbit = $('[data-orbit]');
-    orbit.innerHTML = ORBIT.map((t, i) => `<button type="button" class="orbiter" data-orbiter="${i}">${sigilSVG(t, 26, 'sigil orbiter__sigil')}<span>${esc(t)}</span></button>`).join('');
-    const els = $$('[data-orbiter]');
-    const phase = ORBIT.map((_, i) => (i / ORBIT.length) * Math.PI * 2);
-    let running = false, raf = 0, t0 = performance.now();
-    const place = (now: number) => {
-      const t = calm ? 0 : (now - t0) / 1000;
-      const w = window.innerWidth, h = root.clientHeight;
-      const rx = Math.min(w * 0.4, 700), ry = rx * 0.24;
-      const cy = h * 0.4;
-      els.forEach((el, i) => {
-        const a = phase[i] + t * 0.045;
-        const depth = Math.sin(a); // 1 in front, -1 behind
-        const x = w / 2 + Math.cos(a) * rx;
-        const y = cy + depth * ry - 20;
-        const sc = 0.72 + (depth + 1) * 0.2;
-        el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) scale(${sc.toFixed(3)})`;
-        // Memories pass behind the words, so they fade as they cross the middle.
-        const side = Math.min(1, Math.max(0, (Math.abs(Math.cos(a)) - 0.42) / 0.3));
-        el.style.opacity = ((0.3 + (depth + 1) * 0.35) * side).toFixed(3);
-        el.style.pointerEvents = side > 0.5 ? 'auto' : 'none';
-        el.style.filter = depth < -0.2 ? `blur(${((-depth - 0.2) * 2.4).toFixed(2)}px)` : '';
-        el.style.zIndex = depth > 0 ? '2' : '0';
-      });
-    };
-    const loop = (now: number) => {
-      place(now);
-      if (running) raf = requestAnimationFrame(loop);
-    };
-    new IntersectionObserver((en) => {
-      running = en[0].isIntersecting && !root.hidden;
-      cancelAnimationFrame(raf);
-      if (running) raf = requestAnimationFrame(loop);
-    }, { root, threshold: 0.05 }).observe($('#top'));
-    place(performance.now());
-    orbit.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-orbiter]');
-      if (!b) return;
-      const input = $<HTMLInputElement>('[data-whisper-input]');
-      input.value = ORBIT[Number(b.dataset.orbiter)];
-      $<HTMLFormElement>('[data-whisper]').requestSubmit();
-    });
-  }
-
   /* ---------------------------------------------------- write it in the stars */
   {
     const form = $<HTMLFormElement>('[data-whisper]');
     const input = $<HTMLInputElement>('[data-whisper-input]');
     const said = $('[data-whisper-said]');
     const line = $('[data-whisper-line]');
-    let written = '';
+    $('[data-suggest]').addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('button');
+      if (!b) return;
+      input.value = b.textContent!.trim();
+      form.requestSubmit();
+    });
     const free = () => {
       if (!written) return;
       written = '';
       scene?.release();
       root.classList.remove('is-whispering');
       said.hidden = true;
+      onScroll();
     };
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -762,6 +705,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       if (!scene?.write(text)) return;
       written = text;
       root.classList.add('is-whispering');
+      scene?.set({ clear: 0 });
       said.hidden = false;
       line.textContent = 'Written in your sky.';
       chime('good');
@@ -930,7 +874,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     const label = !hasXR
       ? chosen ? `Preview ${chosen.title} here` : 'Preview on this screen'
       : chosen ? `Enter with ${chosen.title}` : palace ? 'Return to your palace' : 'Enter your palace';
-    enterButtons.forEach((b) => (b.textContent = b.classList.contains('lumen--small') ? (hasXR ? 'Enter' : 'Preview') : label));
+    enterButtons.forEach((b) => (b.textContent = b.classList.contains('btn--small') ? (hasXR ? 'Enter' : 'Preview') : label));
     chosenBox.hidden = !chosen;
     if (chosen) {
       $('[data-chosen-text]').textContent = `${chosen.title}: ${chosen.items.length} ${chosen.items.length === 1 ? 'memory' : 'memories'}, ready to be placed around your room. Palaces you already keep stay in your library.`;
@@ -1178,8 +1122,8 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
               ${Math.round(mastery(p) * 100)}% mastered${s ? `, ${s} day streak` : ''}.</p>
             <div class="days" role="img" aria-label="Days practised in the last two weeks">${days.map((on) => `<i class="${on ? 'on' : ''}"></i>`).join('')}</div>
             <div class="palace__actions">
-              <button class="lumen lumen--small" type="button" data-act="recall">${due ? `Recall ${due} now` : 'Practise the weakest'}</button>
-              ${isActive ? '' : '<button class="lumen lumen--small lumen--quiet" type="button" data-act="open">Put it in my room</button>'}
+              <button class="btn btn--small" type="button" data-act="recall">${due ? `Recall ${due} now` : 'Practise the weakest'}</button>
+              ${isActive ? '' : '<button class="btn btn--small btn--ghost" type="button" data-act="open">Put it in my room</button>'}
               <button class="textlink" type="button" data-act="share">Share</button>
               <button class="textlink" type="button" data-act="remind">Add a reminder</button>
               <button class="textlink" type="button" data-act="download">Save a copy</button>
@@ -1198,7 +1142,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       returning.innerHTML = `<p class="welcome__line">Welcome back. <b>${esc(active.deck.title)}</b> is in your room. ${
         due ? `${due} ${due === 1 ? 'memory is' : 'memories are'} glowing.` : next ? `Nothing is due; the next returns in ${span(next.getTime() - now.getTime())}.` : ''
       }</p>
-      <div class="welcome__actions">${due ? `<button class="lumen lumen--small lumen--quiet" type="button" data-welcome-recall>Recall ${due === 1 ? 'it' : 'them'} here</button>` : ''}
+      <div class="welcome__actions">${due ? `<button class="btn btn--small btn--ghost" type="button" data-welcome-recall>Recall ${due === 1 ? 'it' : 'them'} here</button>` : ''}
       <a class="textlink" href="#library">${all.length > 1 ? `All ${all.length} palaces` : 'See how strong it is'}</a></div>`;
       returning.querySelector('[data-welcome-recall]')?.addEventListener('click', () => recall(active));
     }
@@ -1325,15 +1269,6 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   };
   if (!xr) noXR();
   else xr.isSessionSupported('immersive-ar').then((ok) => (ok ? undefined : noXR())).catch(noXR);
-
-  /* ---------------------------------------------------- a small light that follows you */
-  const glow = document.createElement('div');
-  glow.className = 'cursor';
-  glow.setAttribute('aria-hidden', 'true');
-  if (!coarse && !calm) {
-    root.after(glow);
-    root.addEventListener('pointermove', (e) => (glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`), { passive: true });
-  }
 
   /* ---------------------------------------------------- preview back */
   const back = document.createElement('button');
