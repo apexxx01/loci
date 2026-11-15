@@ -253,6 +253,7 @@ const HTML = `
       <p data-chosen-text></p>
       <div class="hero__actions">
         <button class="candle" type="button" data-enter>Enter your palace</button>
+        <button class="quiet quiet--line" type="button" data-see-room>See it in a room first</button>
         <button class="textlink" type="button" data-copy-link>Copy a link for your headset</button>
       </div>
       <p class="small" role="status" aria-live="polite" data-link-status></p>
@@ -459,6 +460,14 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     (l) => `<g><line/><circle r="2.2"/><text class="c-cue">${esc(l.cue)}</text><text class="c-place">on ${esc(l.label)}</text></g>`,
   ).join('');
   const groups = [...callouts.querySelectorAll('g')];
+  const showInRoom = (deck: Deck) => {
+    const items = [...deck.items].sort((a, b) => a.order - b.order).slice(0, LOCI.length);
+    scene?.showDeck(items.map((it) => ({ glyph: it.glyphs[0] ?? '✨', cue: it.cue })));
+    groups.forEach((g, i) => {
+      g.style.display = i < items.length ? '' : 'none';
+      if (i < items.length) g.querySelector('.c-cue')!.textContent = items[i].cue.length > 22 ? `${items[i].cue.slice(0, 21)}…` : items[i].cue;
+    });
+  };
   scene?.onTiles((tiles) => {
     const show = labelsOn > 0.5 && window.innerWidth > 900 && !breathing;
     callouts.style.opacity = show ? '1' : '0';
@@ -606,6 +615,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   };
   const choose = (deck: Deck | null) => {
     chosen = deck;
+    if (deck) showInRoom(deck);
     $$('[data-sample]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sample === deck?.id)));
     paintEnter();
   };
@@ -779,6 +789,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     choose(built);
   });
 
+  $('[data-see-room]').addEventListener('click', () => scrollTo($('#how')));
   const linkStatus = $('[data-link-status]');
   $('[data-copy-link]').addEventListener('click', async () => {
     if (!chosen) return;

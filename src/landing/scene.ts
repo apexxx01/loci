@@ -61,6 +61,8 @@ export interface LandingScene {
   ripple(x: number, y: number): void;
   /** Called after each frame with each memory tile's screen position. */
   onTiles(cb: ((tiles: TileScreen[]) => void) | null): void;
+  /** Rest these memories on the furniture instead (up to eight), and replay their landing. */
+  showDeck(items: { glyph: string; cue: string }[]): void;
   /** Resolves once the opening has played. */
   ready: Promise<void>;
   setActive(on: boolean): void;
@@ -589,6 +591,8 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   const focusGlow = LOCI.map(() => 0);
   const screen = LOCI.map((l) => ({ x: 0, y: 0, a: 0, label: l.label }));
   const v3 = new Vector3();
+  let shownTiles = LOCI.length;
+  let landedAt = -99;
   const ROOM_YAW = -0.52;
   const BRAIN_YAW = 1.05;
 
@@ -669,8 +673,9 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     routeMat.opacity = Math.max(0, cur.tiles * 1.4 - 0.4) * 0.8 * vis * roomness;
     route.visible = routeMat.opacity > 0.01;
     const lit = Math.round(target.focus);
+    const relanding = Math.min(1, (time - landedAt) / 2.4);
     tiles.forEach((t, i) => {
-      const a = Math.max(0, Math.min(1, cur.tiles * (tiles.length + 1) - i)) * roomness;
+      const a = i >= shownTiles ? 0 : Math.max(0, Math.min(1, cur.tiles * relanding * (tiles.length + 1) - i)) * roomness;
       const e = 1 - Math.pow(1 - a, 3);
       const bob = calm ? 0 : Math.sin(time * 1.3 + i) * 0.025;
       focusGlow[i] += ((lit === i ? 1 : 0) - focusGlow[i]) * Math.min(1, dt * 4);
@@ -719,6 +724,18 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     },
     onTiles(cb) {
       tileCb = cb;
+    },
+    showDeck(items) {
+      const n = Math.min(items.length, tiles.length);
+      for (let i = 0; i < n; i++) {
+        const m = tiles[i].material as SpriteMaterial;
+        m.map?.dispose();
+        m.map = tileTexture(items[i].glyph, i + 1);
+        m.needsUpdate = true;
+        screen[i].label = items[i].cue;
+      }
+      shownTiles = n;
+      landedAt = time;
     },
     setActive(on) {
       wanted = on;
