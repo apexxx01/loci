@@ -1,0 +1,1058 @@
+/**
+ * The Loci website: a memory palace you walk through.
+ *
+ * Scrolling walks you through a palace of light. You carry five things in,
+ * leave one at each place, and at the door you walk back in your mind and
+ * recall them. Then the camera rises over the palace and the rest of the
+ * page is the product: build a palace for anything, recall what is glowing,
+ * the headset, the Palace Architect, the research and its sources.
+ */
+import '@fontsource/marcellus/400.css';
+import '@fontsource-variable/lexend/wght.css';
+import 'lenis/dist/lenis.css';
+import Lenis from 'lenis';
+import './site.css';
+import type { Audience, Kind } from '../core/architect.js';
+import { STARTER_DECKS } from '../core/decks.js';
+import { deckFromNumber } from '../core/numbers.js';
+import { dueIds, mastery, nextDue, streak } from '../core/scheduler.js';
+import { PalaceSchema } from '../core/schema.js';
+import { decodeDeck, encodeDeck } from '../core/share.js';
+import type { Deck, Palace, ReviewEvent } from '../core/types.js';
+import { buildDeck } from '../net/architect-client.js';
+import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './parts/ambient.js';
+import { AUDIENCES, HEADSET, PIPELINE, RECEIPTS, ROADMAP, WEAVE } from './parts/features.js';
+import { openReview } from './parts/review.js';
+import { span } from './time.js';
+import { createWorld, STATIONS } from './world.js';
+
+export interface SiteOptions {
+  launchXR: () => void;
+  onDeckReady: (deck: Deck | null) => void;
+  onPreviewDeck: (deck: Deck | null) => void;
+  getPalace: () => Palace | null;
+  library: {
+    list: () => Palace[];
+    activate: (id: string) => void;
+    remove: (id: string) => void;
+    review: (id: string, memoryId: string, rating: ReviewEvent['rating']) => Palace | null;
+    restore: (palace: Palace) => boolean;
+  };
+}
+
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/* ------------------------------------------------------------------ the walk */
+const CARRY = [
+  { label: 'A shopping list', items: ['eggs', 'lemons', 'candles', 'honey', 'bread'] },
+  { label: 'Five planets', items: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'] },
+  { label: 'A short speech', items: ['thank the hosts', 'the lost suitcase', 'three lessons', 'a quiet pause', 'the toast'] },
+  { label: 'Spanish words', items: ['la lluvia', 'el desayuno', 'la cuenta', 'barato', 'la biblioteca'] },
+];
+
+// How each thing is pictured at its place: vivid, a little absurd, tied to what the place does.
+const IMAGE = [
+  (x: string) => `Picture ${x} hanging from the keystone of the gate, swinging and ringing like bells as you pass under.`,
+  (x: string) => `Picture the fountain throwing ${x} high into the air instead of water, raining down all around you.`,
+  (x: string) => `Picture ${x} glowing inside every lantern in the grove, warm enough to feel on your face.`,
+  (x: string) => `Picture each step of the stair made of ${x}, creaking under you all the way up.`,
+  (x: string) => `Picture ${x}, enormous, floating in the middle of the moon pool and turning slowly in the silver light.`,
+];
+
+const CHAPTERS = [
+  {
+    title: 'Memory keeps an address.',
+    body: 'Deep in your brain, place cells fire when you stand in one particular spot, and grid cells map the space between. Their discovery won the 2014 Nobel Prize in Physiology or Medicine. Where something happened is one of the strongest hooks memory has.',
+    figure: '2014',
+    figureText: 'Nobel Prize for the brain’s own map of places',
+    cite: [['The Nobel Prize, 2014', 'https://www.nobelprize.org/prizes/medicine/2014/summary/']],
+  },
+  {
+    title: 'Champions use places.',
+    body: 'When researchers scanned World Memory Championship competitors, their brains looked ordinary. What set them apart was a strategy, and it lit up the parts of the brain that handle space.',
+    figure: '9 of 10',
+    figureText: 'of the champions studied used the method of loci',
+    cite: [['Maguire et al., Nature Neuroscience, 2003', 'https://doi.org/10.1038/nn988']],
+  },
+  {
+    title: 'Anyone can learn it.',
+    body: 'People with ordinary memory practised the method for 30 minutes a day over 40 days. Four months later, with no more practice, they still recalled 22 more words than when they began.',
+    figure: '26 to 62',
+    figureText: 'words recalled out of 72, before and after training',
+    cite: [['Dresler et al., Neuron, 2017', 'https://doi.org/10.1016/j.neuron.2017.02.003']],
+  },
+  {
+    title: 'It is stronger when you stand inside it.',
+    body: 'The hard part was always imagining the palace clearly. When people explored one through a headset instead of on a desktop screen, recall rose. So Loci skips the imagining and uses the room you are already in.',
+    figure: '8.8%',
+    figureText: 'better recall inside the headset than at a screen',
+    cite: [['Krokos, Plaisant and Varshney, Virtual Reality, 2018', 'https://doi.org/10.1007/s10055-018-0346-3']],
+  },
+  {
+    title: 'Recall, rest, recall again.',
+    body: 'Trying to remember strengthens memory more than reading again, and spreading the tries out works better than cramming. Loci always asks before it shows, and times each return for you.',
+    figure: '61% vs 40%',
+    figureText: 'remembered a week later by students who tested themselves, against those who reread',
+    cite: [
+      ['Roediger and Karpicke, Psychological Science, 2006', 'https://doi.org/10.1111/j.1467-9280.2006.01693.x'],
+      ['Cepeda et al., Psychological Bulletin, 2006', 'https://doi.org/10.1037/0033-2909.132.3.354'],
+    ],
+  },
+];
+
+/* ------------------------------------------------------------------ the studio */
+type Mode = Kind | 'number';
+const MODES: { id: Mode; label: string; who: string; help: string; example: string; cta: string }[] = [
+  { id: 'notes', label: 'My notes', who: 'Revision, and anything already written down', help: 'One thing per line, like term - meaning.',
+    example: 'Mitochondria - makes energy for the cell\nRibosome - builds proteins\nNucleus - stores the DNA\nGolgi body - packages and ships proteins\nCell membrane - controls what enters and leaves', cta: 'Build my palace' },
+  { id: 'topic', label: 'A topic', who: 'Start from nothing, at any age', help: 'Name a topic or paste a passage. The Palace Architect picks the key facts and teaches them.',
+    example: 'How vaccines train the immune system', cta: 'Teach me' },
+  { id: 'sequence', label: 'A speech', who: 'Talks, toasts, steps and routines', help: 'Your points or steps, in order. You will recall them as one walk around the room.',
+    example: 'Open with the story about the lost luggage\nThank the hosts by name\nThe three things I learned from Asha\nThe toast: to curiosity', cta: 'Build my route' },
+  { id: 'vocab', label: 'A language', who: 'Words you want to keep', help: 'One word per line with its meaning. Each one gets a picture that sounds like it.',
+    example: 'la biblioteca - the library\nel desayuno - breakfast\nla lluvia - the rain\nbarato - cheap\nla cuenta - the bill', cta: 'Build my palace' },
+  { id: 'names', label: 'Names', who: 'A new job, a new class, a family gathering', help: 'A detail, then the name, like runs payroll - Farida.',
+    example: 'runs payroll - Farida\nmy desk neighbour - Tomasz\nthe team lead - Oluwaseun\nfront desk - Marguerite', cta: 'Build my palace' },
+  { id: 'number', label: 'A number', who: 'Phone numbers, dates and codes', help: 'Each digit becomes the object it looks like. This never leaves your device.',
+    example: 'Grandma - 98450 12345', cta: 'Turn it into pictures' },
+];
+
+const FAQ: [string, string][] = [
+  ['What do I need?', 'A Meta Quest 3 or 3S, and this page open in its browser. Nothing to install. Run Space Setup once so Loci knows where your furniture is. Without it, memories rest in a gentle arc around you instead.'],
+  ['I do not have a headset.', 'You can still walk this palace, build palaces, and recall what is due from this page on any screen; the schedule is the same one the headset uses. Send a palace to anyone with a link.'],
+  ['Is it only for students?', 'No. People use memory palaces for speeches, languages, names, numbers, routines and shopping lists. A setting for younger learners keeps the words simple, and read-aloud is there for anyone who would rather listen.'],
+  ['Do I have to move around?', 'No. Loci is made for sitting. Memories are placed where you can see them by turning your head, and the far ones are drawn larger.'],
+  ['What if I cannot pinch or lift my arm?', 'Open Comfort and access on the panel in your room. Look to select lets you flip and rate memories just by looking. There is also high contrast, larger tiles, calm motion, read-aloud and a sound switch.'],
+  ['Can I trust what the Architect writes?', 'You see every memory before it reaches your room and can remove any of them. When it teaches a topic it is asked to use only well-established facts, but it can still be wrong, so check anything important against your own source.'],
+  ['Where does my data go?', 'Your palaces and progress stay in this browser, on this device. Text goes to the Palace Architect only when you press build. Numbers are converted on your device and never sent anywhere. There are no accounts.'],
+];
+
+const SOURCES: { n: string; text: string; ref: string; url: string }[] = [
+  { n: '2014', text: 'Nobel Prize for the discovery of place cells and grid cells, the brain’s positioning system.', ref: 'O’Keefe, Moser and Moser. The Nobel Prize in Physiology or Medicine 2014.', url: 'https://www.nobelprize.org/prizes/medicine/2014/summary/' },
+  { n: '9 of 10', text: 'of the memory champions studied used the method of loci; their brains were otherwise ordinary.', ref: 'Maguire, Valentine, Wilding and Kapur (2003). Routes to remembering: the brains behind superior memory. Nature Neuroscience 6, 90-95.', url: 'https://doi.org/10.1038/nn988' },
+  { n: '26 to 62', text: 'words recalled out of 72 after 40 days of 30-minute practice, by people with ordinary memory.', ref: 'Dresler et al. (2017). Mnemonic training reshapes brain networks to support superior memory. Neuron 93, 1227-1235.', url: 'https://doi.org/10.1016/j.neuron.2017.02.003' },
+  { n: '8.8%', text: 'better recall when a memory palace was explored in a headset instead of on a desktop screen.', ref: 'Krokos, Plaisant and Varshney (2018). Virtual memory palaces: immersion aids recall. Virtual Reality 23, 1-15.', url: 'https://doi.org/10.1007/s10055-018-0346-3' },
+  { n: '61% vs 40%', text: 'of a passage remembered a week later by students who tested themselves, against those who reread it.', ref: 'Roediger and Karpicke (2006). Test-enhanced learning. Psychological Science 17, 249-255.', url: 'https://doi.org/10.1111/j.1467-9280.2006.01693.x' },
+  { n: '317', text: 'experiments reviewed: spacing practice out improves retention, and the best gap grows with how long you want to remember.', ref: 'Cepeda, Pashler, Vul, Wixted and Rohrer (2006). Distributed practice in verbal recall tasks. Psychological Bulletin 132, 354-380.', url: 'https://doi.org/10.1037/0033-2909.132.3.354' },
+];
+
+/* ------------------------------------------------------------------ markup */
+const html = () => `
+<canvas class="sky" aria-hidden="true"></canvas>
+
+<header class="top">
+  <a class="brand" href="#top" aria-label="Loci, back to the start">Loci</a>
+  <nav class="menu" aria-label="Sections">
+    <a href="#walk" data-to="walk">The walk</a>
+    <a href="#room" data-to="room">In your room</a>
+    <a href="#build" data-to="build">Build</a>
+    <a href="#palaces" data-to="palaces" data-nav-palaces hidden>Your palaces</a>
+    <a href="#science" data-to="science">Science</a>
+  </nav>
+  <div class="tools">
+    <button class="tool" type="button" data-breathe-open aria-label="Breathe for a minute">Breathe</button>
+    <button class="tool tool--sound" type="button" data-sound aria-pressed="false" aria-label="Sound"><i></i><i></i><i></i></button>
+    <button class="b b--small" type="button" data-enter>Enter</button>
+  </div>
+</header>
+
+<nav class="map" aria-label="Places in the palace" data-map>
+  ${STATIONS.map((s, i) => `<button type="button" data-goto="${i}" aria-label="Go to ${s.name}"><i></i><span>${cap(s.name.replace('the ', ''))}</span></button>`).join('')}
+</nav>
+
+<div class="flow" data-flow>
+<section class="walk" id="walk" aria-label="Walk through the palace" style="--n:${STATIONS.length}">
+  <div class="stage">
+
+    <article class="station station--approach" id="top" data-station="0">
+      <p class="kicker">A memory palace for Meta Quest 3 and 3S</p>
+      <h1>Your room<br />remembers.</h1>
+      <p class="lede">Loci turns the room you sit in into a memory palace. What you want to learn rests on your lamp,
+      your shelf, your couch, and returns just before you would forget it. This page is a palace too: carry five things
+      in, walk through, and see what you remember at the door.</p>
+      <div class="carry">
+        <p class="carry__label" id="carry-label">Five things to carry in</p>
+        <div class="carry__presets" role="group" aria-labelledby="carry-label" data-presets></div>
+        <div class="carry__field">
+          <input data-carry aria-labelledby="carry-label" maxlength="160" spellcheck="false" />
+          <button class="b" type="button" data-walk>Walk in</button>
+        </div>
+        <p class="carry__hint">Separate them with commas. Or keep ours.</p>
+      </div>
+      <p class="note" data-device-note>Hands only, sitting down, right in the headset browser.</p>
+      <p class="note note--warm" data-shared hidden></p>
+      <div class="welcome" data-returning hidden></div>
+    </article>
+
+    ${CHAPTERS.map((c, i) => {
+      const s = STATIONS[i + 1];
+      return `<article class="station station--${s.side > 0 ? 'left' : 'right'}" data-station="${i + 1}" aria-labelledby="st-${i + 1}">
+        <p class="kicker">At ${esc(s.name)}</p>
+        <h2 id="st-${i + 1}">${esc(c.title)}</h2>
+        <p>${esc(c.body)}</p>
+        <div class="figure"><span class="figure__n">${esc(c.figure)}</span><span class="figure__t">${esc(c.figureText)}</span></div>
+        <p class="cites">${c.cite.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</p>
+        <div class="left-here" data-left="${i}">
+          <p class="left-here__label">You left something here</p>
+          <p class="left-here__item" data-item></p>
+          <p class="left-here__image" data-image></p>
+        </div>
+      </article>`;
+    }).join('')}
+
+    <article class="station station--door" data-station="6" aria-labelledby="st-door">
+      <p class="kicker">At the door</p>
+      <h2 id="st-door">Now walk back in your mind.</h2>
+      <p>Picture each place in order. What did you leave there?</p>
+      <form class="recall-test" data-test autocomplete="off">
+        ${STATIONS.slice(1, 6).map((s, i) => `<label><span>${cap(s.name)}</span><input data-guess="${i}" spellcheck="false" /><em data-mark="${i}"></em></label>`).join('')}
+        <div class="recall-test__go"><button class="b" type="submit">Check what I remembered</button>
+        <button class="linkish" type="button" data-test-reset>Walk again with new things</button></div>
+      </form>
+      <div class="result" data-result hidden></div>
+    </article>
+  </div>
+</section>
+
+<div class="after">
+
+<section class="sec" id="room" aria-labelledby="room-title">
+  <header class="sec__head">
+    <h2 id="room-title">In your own room.</h2>
+    <p>Everything you just did, done with your real furniture. Put on a Quest 3 or 3S, open this page, and Loci builds
+    the palace around you. Here is every part of it. The ones marked tested are checked by our mixed-reality test suite.</p>
+  </header>
+  <ol class="parts">
+    ${HEADSET.map((f, i) => `<li><span class="parts__n">${String(i + 1).padStart(2, '0')}</span><h3>${esc(f.title)}</h3><p>${esc(f.text)}</p>${f.verified ? `<p class="tested"><i></i>${esc(f.verified)}</p>` : ''}</li>`).join('')}
+  </ol>
+  <div class="enter-strip">
+    <p>Ready when you are. It opens straight in the Quest browser.</p>
+    <button class="b" type="button" data-enter>Enter your palace</button>
+  </div>
+</section>
+
+<section class="sec" id="build" aria-labelledby="build-title">
+  <header class="sec__head">
+    <h2 id="build-title">Build a palace for anything.</h2>
+    <p>Bring it in whatever shape you have it. The Palace Architect turns it into memories, each with a picture that
+    happens on a real object in your room. You check every one before it goes in.</p>
+  </header>
+  <div class="studio">
+    <div class="kinds" role="tablist" aria-label="What are you remembering?" data-modes></div>
+    <div class="desk">
+      <label class="desk__help" for="notes" data-help></label>
+      <textarea id="notes" rows="6" spellcheck="true" data-notes data-lenis-prevent></textarea>
+      <div class="desk__row">
+        <div class="seg" role="group" aria-label="Written for" data-audience>
+          <button type="button" data-aud="child" aria-pressed="false">A child</button>
+          <button type="button" data-aud="teen" aria-pressed="false">A teenager</button>
+          <button type="button" data-aud="adult" aria-pressed="true">An adult</button>
+        </div>
+        <span class="desk__count" data-count></span>
+      </div>
+      <div class="desk__go">
+        <button class="b" type="button" data-build>Build my palace</button>
+        <button class="linkish" type="button" data-example>Fill in an example</button>
+      </div>
+      <p class="status" role="status" aria-live="polite" data-status></p>
+      <p class="samples">Or start with one of ours: <span data-samples></span></p>
+    </div>
+  </div>
+  <ol class="memories" data-memories hidden></ol>
+  <div class="chosen" data-chosen hidden>
+    <p data-chosen-text></p>
+    <div class="chosen__go">
+      <button class="b" type="button" data-enter>Enter with it</button>
+      <button class="b b--line" type="button" data-walk-deck>Walk it on this page</button>
+      <button class="linkish" type="button" data-copy-link>Copy a link for your headset</button>
+    </div>
+    <p class="small" role="status" aria-live="polite" data-link-status></p>
+  </div>
+</section>
+
+<section class="sec" id="palaces" aria-labelledby="palaces-title" hidden>
+  <header class="sec__head">
+    <h2 id="palaces-title">Your palaces.</h2>
+    <p data-palaces-lede></p>
+  </header>
+  <div class="palaces" data-palaces></div>
+  <p class="restore"><label class="linkish" tabindex="0">Restore a palace from a file<input type="file" accept="application/json,.json" data-import hidden /></label>
+  <span class="small" role="status" aria-live="polite" data-import-status></span></p>
+</section>
+
+<section class="sec" id="architect" aria-labelledby="architect-title">
+  <header class="sec__head">
+    <h2 id="architect-title">The Palace Architect.</h2>
+    <p>Inventing a vivid picture is the hardest part of the method, so the Architect does it for you, and a plain
+    rule-based check reads every line before you see it.</p>
+  </header>
+  <p class="live" data-live><i></i><span>Checking the Architect</span></p>
+  <ol class="flowline">${PIPELINE.map((p, i) => `<li><span>${i + 1}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`).join('')}</ol>
+  <div class="weave">
+    <div>
+      <h3>One memory, any room.</h3>
+      <p>The same memory for Saturn (${esc(WEAVE.answer)}), rewoven around different objects. These are real answers from
+      the Architect. Ask it again for a fresh one.</p>
+      <div class="chips" role="group" aria-label="Objects" data-weave-objects></div>
+    </div>
+    <figure>
+      <p class="weave__before">Before it is placed: ${esc(WEAVE.scene)}</p>
+      <blockquote data-weave-scene></blockquote>
+      <figcaption class="small" data-weave-note></figcaption>
+      <button class="b b--small b--line" type="button" data-weave-live>Ask the Architect again</button>
+    </figure>
+  </div>
+</section>
+
+<section class="sec" id="science" aria-labelledby="science-title">
+  <header class="sec__head">
+    <h2 id="science-title">The research, in full.</h2>
+    <p>Every number on this page, where it comes from. Scheduling uses
+    <a href="https://github.com/open-spaced-repetition/ts-fsrs" target="_blank" rel="noopener">FSRS</a>, an open spaced-repetition algorithm.</p>
+  </header>
+  <ol class="sources">${SOURCES.map((s) => `<li><span class="sources__n">${esc(s.n)}</span><p>${esc(s.text)}</p><a href="${s.url}" target="_blank" rel="noopener">${esc(s.ref)}</a></li>`).join('')}</ol>
+</section>
+
+<section class="sec" id="for" aria-labelledby="for-title">
+  <header class="sec__head"><h2 id="for-title">For whoever is remembering.</h2></header>
+  <ul class="people">${AUDIENCES.map((a) => `<li><h3>${esc(a.who)}</h3><p>${esc(a.text)}</p></li>`).join('')}</ul>
+</section>
+
+<section class="sec" id="next" aria-labelledby="next-title">
+  <header class="sec__head">
+    <h2 id="next-title">Built, measured, and next.</h2>
+    <p>Every number below comes from a real run of the code in the repository. Nothing under Next or Later exists yet.</p>
+  </header>
+  <ul class="receipts">${RECEIPTS.map((r) => `<li><span class="receipts__n" data-count-to="${esc(r.n)}">${esc(r.n)}</span>${r.unit ? `<span class="receipts__u">${esc(r.unit)}</span>` : ''}<p>${esc(r.text)}</p></li>`).join('')}</ul>
+  <div class="road">${ROADMAP.map((g) => `<div class="road__col road__col--${g.when.toLowerCase()}"><h3>${g.when}</h3><ul>${g.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}</div>
+</section>
+
+<section class="sec sec--narrow" id="questions" aria-labelledby="q-title">
+  <header class="sec__head"><h2 id="q-title">Questions.</h2></header>
+  <div class="faq">${FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('')}</div>
+</section>
+
+<footer class="foot">
+  <p class="foot__brand">Loci</p>
+  <p>Your room remembers. Open source under the MIT licence. <a href="https://github.com/apexxx01/loci" target="_blank" rel="noopener">Read the code</a></p>
+  <button class="b" type="button" data-enter>Enter your palace</button>
+</footer>
+</div>
+</div>
+
+<div class="breathe" data-breathe hidden role="dialog" aria-modal="true" aria-label="A minute of breathing">
+  <p class="breathe__word" data-breathe-word aria-live="polite">Settle in</p>
+  <p class="breathe__count" data-breathe-count></p>
+  <button class="b b--line" type="button" data-breathe-close>I am ready</button>
+</div>`;
+
+/* ------------------------------------------------------------------ helpers */
+function normal(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\b(the|a|an|la|el|los|las)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+function close(a: string, b: string): boolean {
+  const x = normal(a), y = normal(b);
+  if (!x || !y) return false;
+  if (x === y || x.includes(y) || y.includes(x)) return true;
+  // Allow a small slip of spelling.
+  const d: number[][] = Array.from({ length: x.length + 1 }, (_, i) => [i, ...Array(y.length).fill(0)]);
+  for (let j = 1; j <= y.length; j++) d[0][j] = j;
+  for (let i = 1; i <= x.length; i++)
+    for (let j = 1; j <= y.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
+  return d[x.length][y.length] <= Math.max(1, Math.floor(y.length / 5));
+}
+
+/* ------------------------------------------------------------------ mount */
+export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focusNotes(): void } {
+  const root = document.createElement('main');
+  root.className = 'site';
+  root.innerHTML = html();
+  document.body.appendChild(root);
+  const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+  const $$ = <T extends HTMLElement>(s: string) => [...root.querySelectorAll<T>(s)];
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const flow = $('[data-flow]');
+  const walk = $('#walk');
+  const stations = $$('[data-station]');
+  const mapButtons = $$('[data-goto]');
+
+  /* ---------- smooth scroll */
+  const lenis = calm || coarse ? null : new Lenis({ wrapper: root, content: flow, lerp: 0.075, smoothWheel: true, wheelMultiplier: 0.9 });
+  if (lenis) {
+    const loop = (t: number) => {
+      if (!root.hidden) lenis.raf(t);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+  const scrollTo = (y: number | HTMLElement) => {
+    if (lenis) lenis.scrollTo(y, { duration: typeof y === 'number' ? 2.2 : 1.6, offset: typeof y === 'number' ? 0 : -10 });
+    else if (typeof y === 'number') root.scrollTo({ top: y, behavior: calm ? 'auto' : 'smooth' });
+    else y.scrollIntoView({ behavior: calm ? 'auto' : 'smooth' });
+  };
+
+  /* ---------- the palace */
+  const world = createWorld($<HTMLCanvasElement>('.sky'));
+  void (world?.ready ?? Promise.resolve()).then(() => root.classList.add('is-ready'));
+  setTimeout(() => root.classList.add('is-ready'), 1800);
+
+  const N = STATIONS.length - 1; // 6 steps from the approach to the door
+  const stationY = (i: number) => walk.offsetTop + (Math.min(i, N) / N) * (walk.offsetHeight - root.clientHeight);
+  let breathing = false;
+  let ticking = false;
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      const vh = root.clientHeight;
+      const len = walk.offsetHeight - vh;
+      const raw = Math.max(0, Math.min(N, ((root.scrollTop - walk.offsetTop) / len) * N));
+      // Linger at each place, then walk to the next.
+      const k = Math.min(N - 1, Math.floor(raw));
+      const f = raw - k;
+      const eased = raw >= N ? N : k + (f < 0.3 ? 0 : f > 0.8 ? 1 : (f - 0.3) / 0.5);
+      const e = Math.min(N, eased);
+      const after = Math.max(0, Math.min(1, (root.scrollTop - (walk.offsetTop + len)) / vh));
+      if (!breathing) {
+        world?.setProgress(e + after);
+        world?.setDim(after * 0.62);
+      }
+      stations.forEach((st, i) => {
+        const d = Math.abs(e - i);
+        const o = after > 0.05 ? 0 : 1 - Math.min(1, Math.max(0, (d - 0.12) / 0.26));
+        st.style.setProperty('--o', o.toFixed(3));
+        st.classList.toggle('is-on', o > 0.5);
+        st.inert = o < 0.5;
+      });
+      const here = after > 0.4 ? -1 : Math.round(e);
+      mapButtons.forEach((b, i) => b.toggleAttribute('aria-current', i === here));
+      root.classList.toggle('is-after', after > 0.4);
+      root.classList.toggle('is-moving', root.scrollTop > 30);
+    });
+  };
+  root.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+
+  mapButtons.forEach((b) => b.addEventListener('click', () => scrollTo(stationY(Number(b.dataset.goto)) + 2)));
+  root.addEventListener('click', (e) => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href')!.slice(1);
+    e.preventDefault();
+    if (id === 'walk' || id === 'top') return scrollTo(0);
+    const el = root.querySelector<HTMLElement>(`#${id}`);
+    if (el) scrollTo(el);
+  });
+  // Arrow keys walk one place at a time while you are in the palace.
+  root.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('input, textarea, select, [contenteditable]')) return;
+    if (!['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp'].includes(e.key)) return;
+    const vh = root.clientHeight;
+    const len = walk.offsetHeight - vh;
+    const raw = ((root.scrollTop - walk.offsetTop) / len) * N;
+    if (raw > N + 0.01) return;
+    e.preventDefault();
+    const next = e.key === 'ArrowDown' || e.key === 'PageDown' ? Math.floor(raw + 0.05) + 1 : Math.ceil(raw - 0.05) - 1;
+    if (next > N) return scrollTo($('#room'));
+    scrollTo(stationY(Math.max(0, next)) + 2);
+  });
+  root.tabIndex = -1;
+
+  // Section titles in the nav light up as you reach them.
+  const spy = new IntersectionObserver((en) => en.forEach((x) => {
+    if (!x.isIntersecting) return;
+    const id = (x.target as HTMLElement).id;
+    $$('[data-to]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.to === id));
+  }), { root, rootMargin: '-45% 0px -50% 0px' });
+  $$('.sec').forEach((s) => spy.observe(s));
+  new IntersectionObserver((en) => en.forEach((x) => x.isIntersecting && $$('[data-to]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.to === 'walk'))),
+    { root, threshold: 0.2 }).observe(walk);
+
+  /* ---------- carrying things in */
+  const carry = $<HTMLInputElement>('[data-carry]');
+  let carried: string[] = [];
+  const presets = $('[data-presets]');
+  presets.innerHTML = CARRY.map((c, i) => `<button type="button" data-preset="${i}" aria-pressed="${i === 0}">${esc(c.label)}</button>`).join('');
+  const setCarried = (list: string[]) => {
+    carried = list.map((s) => s.trim()).filter(Boolean).slice(0, 5);
+    while (carried.length < 5) carried.push(CARRY[0].items[carried.length]);
+    world?.setItems(carried);
+    $$('[data-left]').forEach((el, i) => {
+      el.querySelector('[data-item]')!.textContent = carried[i];
+      el.querySelector('[data-image]')!.textContent = IMAGE[i](carried[i]);
+    });
+    resetTest();
+  };
+  carry.value = CARRY[0].items.join(', ');
+  presets.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-preset]');
+    if (!b) return;
+    const p = CARRY[Number(b.dataset.preset)];
+    carry.value = p.items.join(', ');
+    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    setCarried(p.items);
+  });
+  carry.addEventListener('change', () => {
+    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+    setCarried(carry.value.split(','));
+  });
+  const walkIn = () => {
+    setCarried(carry.value.split(','));
+    chime('soft');
+    scrollTo(stationY(1) + 2);
+  };
+  $('[data-walk]').addEventListener('click', walkIn);
+  carry.addEventListener('keydown', (e) => e.key === 'Enter' && walkIn());
+
+  /* ---------- the door: what do you remember? */
+  const test = $<HTMLFormElement>('[data-test]');
+  const result = $('[data-result]');
+  function resetTest() {
+    test.reset();
+    $$('[data-mark]').forEach((m) => (m.textContent = ''));
+    $$('[data-guess]').forEach((g) => g.removeAttribute('data-ok'));
+    result.hidden = true;
+    test.closest('.station')?.classList.remove('is-checked');
+  }
+  test.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let right = 0;
+    $$<HTMLInputElement>('[data-guess]').forEach((g, i) => {
+      const ok = close(g.value, carried[i]);
+      if (ok) right++;
+      g.dataset.ok = String(ok);
+      $(`[data-mark="${i}"]`).textContent = ok ? 'Yes' : `It was ${carried[i]}`;
+    });
+    result.hidden = false;
+    test.closest('.station')!.classList.add('is-checked');
+    result.innerHTML = `<p class="result__n">${right} of 5</p>
+      <p>${right >= 4 ? 'That is the method of loci working.' : right >= 2 ? 'A good first walk. The places do more of the work each time you return.' : 'Try one more walk and really picture each scene.'}
+      In your headset, Loci does this with your real furniture, and brings each memory back just before you would forget it.</p>
+      <div class="result__go"><button class="b" type="button" data-enter-now>Enter your palace</button>
+      <button class="b b--line" type="button" data-to-build>Build one for your own things</button></div>`;
+    chime(right >= 4 ? 'good' : 'soft');
+    result.querySelector('[data-enter-now]')?.addEventListener('click', () => enter());
+    result.querySelector('[data-to-build]')?.addEventListener('click', () => scrollTo($('#build')));
+  });
+  $('[data-test-reset]').addEventListener('click', () => {
+    resetTest();
+    scrollTo(0);
+    setTimeout(() => carry.focus({ preventScroll: true }), 1600);
+  });
+  setCarried(CARRY[0].items);
+
+  /* ---------- breathe */
+  const bEl = $('[data-breathe]');
+  const bWord = $('[data-breathe-word]');
+  const bCount = $('[data-breathe-count]');
+  let bRaf = 0;
+  const endBreath = () => {
+    cancelAnimationFrame(bRaf);
+    breathing = false;
+    bEl.classList.remove('is-open');
+    setTimeout(() => (bEl.hidden = true), 700);
+    root.classList.remove('is-breathing');
+    world?.breathe(0);
+    lenis?.start();
+    onScroll();
+  };
+  $('[data-breathe-open]').addEventListener('click', () => {
+    breathing = true;
+    bEl.hidden = false;
+    lenis?.stop();
+    root.classList.add('is-breathing');
+    requestAnimationFrame(() => bEl.classList.add('is-open'));
+    world?.setDim(0);
+    const IN = 4, OUT = 6, ROUNDS = 6;
+    const t0 = performance.now() + 2000;
+    bWord.textContent = 'Settle in';
+    bCount.textContent = `One minute, ${ROUNDS} slow breaths`;
+    let lastWord = '';
+    const tick = (now: number) => {
+      bRaf = requestAnimationFrame(tick);
+      const t = (now - t0) / 1000;
+      if (t < 0) return;
+      const round = Math.floor(t / (IN + OUT));
+      if (round >= ROUNDS) {
+        bWord.textContent = 'Welcome.';
+        bCount.textContent = 'You are here, and ready.';
+        world?.breathe(0);
+        cancelAnimationFrame(bRaf);
+        setTimeout(() => breathing && endBreath(), 2600);
+        return;
+      }
+      const k = t % (IN + OUT);
+      const v = k < IN ? Math.sin((k / IN) * Math.PI * 0.5) : Math.cos(((k - IN) / OUT) * Math.PI * 0.5);
+      world?.breathe(v);
+      breatheTone(v);
+      const w = k < IN ? 'Breathe in' : 'And slowly out';
+      if (w !== lastWord) {
+        lastWord = w;
+        bWord.textContent = w;
+        bCount.textContent = `${round + 1} of ${ROUNDS}`;
+      }
+    };
+    bRaf = requestAnimationFrame(tick);
+    $('[data-breathe-close]').focus({ preventScroll: true });
+  });
+  $('[data-breathe-close]').addEventListener('click', endBreath);
+  bEl.addEventListener('keydown', (e) => e.key === 'Escape' && endBreath());
+
+  /* ---------- sound */
+  const soundBtn = $('[data-sound]');
+  const paintSound = () => soundBtn.setAttribute('aria-pressed', String(ambientOn()));
+  soundBtn.addEventListener('click', () => {
+    toggleAmbient();
+    paintSound();
+  });
+
+  /* ---------- entering */
+  let chosen: Deck | null = null;
+  let hasXR = true;
+  const enterButtons = () => $$<HTMLButtonElement>('[data-enter]');
+  const paintEnter = () => {
+    const palace = opts.getPalace();
+    enterButtons().forEach((b) => {
+      if (b.classList.contains('b--small')) b.textContent = hasXR ? 'Enter' : 'Preview';
+      else if (b.closest('[data-chosen]')) b.textContent = hasXR ? 'Enter with it' : 'Preview it here';
+      else b.textContent = !hasXR ? 'Preview on this screen' : chosen ? 'Enter with your new palace' : palace ? 'Return to your palace' : 'Enter your palace';
+    });
+    $('[data-chosen]').hidden = !chosen;
+    if (chosen) $('[data-chosen-text]').textContent = `${chosen.title} is ready: ${chosen.items.length} ${chosen.items.length === 1 ? 'memory' : 'memories'} to place around your room. Palaces you already keep stay in your library.`;
+  };
+  const enter = () => {
+    stopAmbient();
+    paintSound();
+    if (hasXR) {
+      opts.onDeckReady(chosen);
+      opts.launchXR();
+    } else {
+      root.hidden = true;
+      opts.onPreviewDeck(chosen);
+    }
+  };
+  root.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-enter]')) enter();
+  });
+
+  /* ---------- the studio */
+  const notes = $<HTMLTextAreaElement>('[data-notes]');
+  const buildBtn = $<HTMLButtonElement>('[data-build]');
+  const status = $('[data-status]');
+  const memList = $('[data-memories]');
+  let mode: Mode = 'notes';
+  let audience: Audience = 'adult';
+  let built: Deck | null = null;
+  const drafts: Partial<Record<Mode, string>> = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('loci.draft.v2') ?? '{}') as Partial<Record<Mode, string>>;
+    } catch {
+      return {};
+    }
+  })();
+  $('[data-modes]').innerHTML = MODES.map((m) => `<button type="button" role="tab" class="kind" data-mode="${m.id}" aria-selected="false"><span class="kind__label">${m.label}</span><span class="kind__who">${m.who}</span></button>`).join('');
+  $('[data-samples]').innerHTML = STARTER_DECKS.map((d) => `<button type="button" class="linkish" data-sample="${d.id}">${esc(d.title)}</button>`).join('');
+  const count = () => {
+    const el = $('[data-count]');
+    if (mode === 'topic' || mode === 'number') return (el.textContent = '');
+    const n = notes.value.split('\n').filter((l) => l.trim()).length;
+    el.textContent = n ? `${Math.min(n, 12)} of 12 lines${n > 12 ? '; the rest are left out' : ''}` : '';
+  };
+  const setMode = (id: Mode) => {
+    mode = id;
+    const m = MODES.find((x) => x.id === id)!;
+    $$('[data-mode]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === id)));
+    $('[data-help]').textContent = m.help;
+    notes.placeholder = m.example;
+    notes.value = drafts[id] ?? '';
+    notes.rows = id === 'topic' || id === 'number' ? 2 : 6;
+    buildBtn.textContent = m.cta;
+    $('[data-audience]').hidden = id === 'number';
+    count();
+  };
+  $('[data-modes]').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-mode]');
+    if (b) setMode(b.dataset.mode as Mode);
+  });
+  $('[data-modes]').addEventListener('keydown', (e) => {
+    const fwd = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+    if (!fwd && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const i = MODES.findIndex((m) => m.id === mode);
+    const next = MODES[(i + (fwd ? 1 : MODES.length - 1)) % MODES.length];
+    setMode(next.id);
+    root.querySelector<HTMLElement>(`[data-mode="${next.id}"]`)?.focus();
+  });
+  $('[data-audience]').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-aud]');
+    if (!b) return;
+    audience = b.dataset.aud as Audience;
+    $$('[data-aud]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+  notes.addEventListener('input', () => {
+    count();
+    drafts[mode] = notes.value;
+    try {
+      localStorage.setItem('loci.draft.v2', JSON.stringify(drafts));
+    } catch {
+      /* private browsing */
+    }
+  });
+  notes.addEventListener('keydown', (e) => (e.metaKey || e.ctrlKey) && e.key === 'Enter' && buildBtn.click());
+  $('[data-example]').addEventListener('click', () => {
+    notes.value = MODES.find((m) => m.id === mode)!.example;
+    notes.dispatchEvent(new Event('input'));
+    notes.focus({ preventScroll: true });
+  });
+  const showMemories = () => {
+    if (!built) return;
+    memList.innerHTML = built.items.map((it, i) => `<li style="--i:${i}"><span class="memories__n">${i + 1}</span><div>
+      <p class="memories__cue">${esc(it.cue)}</p><p class="memories__answer">${esc(it.answer)}</p><p class="memories__scene">${esc(it.scene)}</p>
+      <button type="button" class="linkish linkish--quiet" data-remove="${i}" aria-label="Remove ${esc(it.cue)}">Remove</button></div></li>`).join('');
+    memList.hidden = false;
+  };
+  const choose = (d: Deck | null) => {
+    chosen = d;
+    paintEnter();
+  };
+  memList.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-remove]');
+    if (!b || !built || built.items.length <= 1) return;
+    const items = built.items.filter((_, i) => i !== Number(b.dataset.remove)).map((it, order) => ({ ...it, order }));
+    built = { ...built, id: `${built.id.split('~')[0]}~${items.length}`, items };
+    showMemories();
+    choose(built);
+  });
+  $('[data-samples]').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-sample]');
+    if (!b) return;
+    built = STARTER_DECKS.find((d) => d.id === b.dataset.sample) ?? null;
+    status.textContent = built ? `${built.title}. ${built.subtitle}.` : '';
+    showMemories();
+    choose(built);
+  });
+  buildBtn.addEventListener('click', async () => {
+    const m = MODES.find((x) => x.id === mode)!;
+    if (mode === 'number') {
+      built = deckFromNumber(notes.value);
+      status.textContent = built ? `${built.subtitle}. Made on this device; nothing was sent anywhere.` : 'Type a number with at least three digits.';
+      if (built) {
+        showMemories();
+        choose(built);
+        chime('soft');
+      }
+      return;
+    }
+    buildBtn.disabled = true;
+    root.classList.add('is-building');
+    buildBtn.textContent = 'Building';
+    status.textContent = mode === 'topic' ? 'The Palace Architect is choosing the key facts and turning them into pictures.' : 'The Palace Architect is turning your words into pictures. This takes a few seconds.';
+    const res = await buildDeck(notes.value, mode, audience);
+    buildBtn.disabled = false;
+    root.classList.remove('is-building');
+    buildBtn.textContent = m.cta;
+    if (!res.ok) {
+      status.textContent = res.error;
+      notes.focus();
+      return;
+    }
+    built = res.deck;
+    chime('good');
+    status.textContent = res.via === 'architect'
+      ? `${built.items.length} memories, built in ${(res.ms / 1000).toFixed(1)} seconds.${res.repaired ? ` ${res.repaired} picture${res.repaired > 1 ? 's were' : ' was'} replaced by the safety check.` : ''}${mode === 'topic' ? ' Check the facts against your own source.' : ''} Remove any you do not want.`
+      : `${built.items.length} memories made straight from your lines, because the Palace Architect is unavailable right now.`;
+    showMemories();
+    choose(built);
+  });
+  $('[data-walk-deck]').addEventListener('click', () => {
+    if (!chosen) return;
+    const cues = chosen.items.slice(0, 5).map((it) => it.cue);
+    carry.value = cues.join(', ');
+    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+    setCarried(cues);
+    scrollTo(stationY(1) + 2);
+  });
+  $('[data-copy-link]').addEventListener('click', async () => {
+    if (!chosen) return;
+    const url = `${location.origin}${location.pathname}#p=${await encodeDeck(chosen)}`;
+    const st = $('[data-link-status]');
+    try {
+      await navigator.clipboard.writeText(url);
+      st.textContent = 'Link copied. Open it in the headset browser and the same palace builds there.';
+    } catch {
+      st.textContent = url;
+    }
+  });
+
+  /* ---------- your palaces */
+  const palacesEl = $('[data-palaces]');
+  const returning = $('[data-returning]');
+  const recall = (p: Palace) => {
+    lenis?.stop();
+    openReview({
+      palace: p,
+      save: (memoryId, rating) => opts.library.review(p.id, memoryId, rating),
+      onRated: (r) => chime(r === 'again' ? 'soft' : 'good'),
+      onClose: () => {
+        lenis?.start();
+        paintPalaces();
+      },
+    });
+  };
+  const download = (name: string, text: string, type: string) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  function paintPalaces() {
+    const all = opts.library.list();
+    const active = opts.getPalace();
+    const now = new Date();
+    $('#palaces').hidden = all.length === 0;
+    $('[data-nav-palaces]').hidden = all.length === 0;
+    const kept = all.reduce((n, p) => n + p.deck.items.length, 0);
+    $('[data-palaces-lede]').textContent = `You are keeping ${kept} ${kept === 1 ? 'memory' : 'memories'} in ${all.length} ${all.length === 1 ? 'palace' : 'palaces'}. Recall what is due right here on any screen; your headset reads the same schedule.`;
+    palacesEl.innerHTML = all.map((p) => {
+      const due = dueIds(p, now).length;
+      const next = nextDue(p);
+      const m = mastery(p);
+      const s = streak(p.history, now);
+      const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(now.getTime() - (13 - i) * 86_400_000).toDateString();
+        return p.history.some((h) => new Date(h.at).toDateString() === d);
+      });
+      const isActive = active?.id === p.id;
+      return `<article class="palace" data-id="${esc(p.id)}">
+        <div class="palace__head"><h3>${esc(p.deck.title)}</h3>${isActive ? '<span class="tag">In your room</span>' : ''}</div>
+        <p class="palace__meta">${p.deck.items.length} memories. ${due ? `<b>${due} due now.</b>` : next ? `Next one returns in ${span(next.getTime() - now.getTime())}.` : ''} ${s ? `${s}-day streak.` : ''}</p>
+        <div class="strength" role="img" aria-label="${Math.round(m * 100)}% mastered"><i style="width:${Math.max(3, m * 100)}%"></i></div>
+        <p class="palace__strength">${Math.round(m * 100)}% mastered</p>
+        <div class="days" role="img" aria-label="Days practised in the last two weeks">${days.map((on) => `<i class="${on ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="palace__go">
+          <button class="b b--small" type="button" data-act="recall">${due ? `Recall ${due} now` : 'Practise the weakest'}</button>
+          ${isActive ? '' : '<button class="b b--small b--line" type="button" data-act="open">Put it in my room</button>'}
+          <button class="linkish" type="button" data-act="share">Share</button>
+          <button class="linkish" type="button" data-act="remind">Add a reminder</button>
+          <button class="linkish" type="button" data-act="download">Save a copy</button>
+          <button class="linkish linkish--quiet" type="button" data-act="delete">Delete</button>
+        </div>
+        <p class="small" role="status" aria-live="polite" data-pstatus></p>
+      </article>`;
+    }).join('');
+    returning.hidden = !active;
+    if (active) {
+      const due = dueIds(active, now).length;
+      const next = nextDue(active);
+      returning.innerHTML = `<p>Welcome back. <b>${esc(active.deck.title)}</b> is in your room. ${due ? `${due} ${due === 1 ? 'memory is' : 'memories are'} due.` : next ? `Nothing is due; the next returns in ${span(next.getTime() - now.getTime())}.` : ''}</p>
+        ${due ? '<button class="b b--small b--line" type="button" data-welcome-recall>Recall them here</button>' : ''}`;
+      returning.querySelector('[data-welcome-recall]')?.addEventListener('click', () => recall(active));
+    }
+  }
+  palacesEl.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
+    const card = b?.closest<HTMLElement>('[data-id]');
+    if (!b || !card) return;
+    const p = opts.library.list().find((x) => x.id === card.dataset.id);
+    if (!p) return;
+    const st = card.querySelector<HTMLElement>('[data-pstatus]')!;
+    const slug = p.deck.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    switch (b.dataset.act) {
+      case 'recall':
+        return recall(p);
+      case 'open':
+        opts.library.activate(p.id);
+        choose(null);
+        paintPalaces();
+        return paintEnter();
+      case 'share': {
+        const url = `${location.origin}${location.pathname}#p=${await encodeDeck(p.deck)}`;
+        try {
+          if (navigator.share) await navigator.share({ title: `Loci: ${p.deck.title}`, url });
+          else {
+            await navigator.clipboard.writeText(url);
+            st.textContent = 'Link copied. It rebuilds around their furniture, not yours.';
+          }
+        } catch {
+          st.textContent = url;
+        }
+        return;
+      }
+      case 'remind': {
+        const due = nextDue(p) ?? new Date();
+        const at = new Date(Math.max(due.getTime(), Date.now() + 5 * 60_000));
+        const stamp = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, '');
+        download(`loci-${slug}.ics`, ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Loci//EN', 'BEGIN:VEVENT', `UID:${p.id}-${at.getTime()}@loci`,
+          `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(at)}`, `DTEND:${stamp(new Date(at.getTime() + 600_000))}`, `SUMMARY:Loci: recall ${p.deck.title}`,
+          `DESCRIPTION:Your memories are due. ${location.origin}${location.pathname}`, 'BEGIN:VALARM', 'TRIGGER:PT0M', 'ACTION:DISPLAY',
+          `DESCRIPTION:Loci: recall ${p.deck.title}`, 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n'), 'text/calendar');
+        st.textContent = `Reminder saved for ${at.toLocaleString([], { weekday: 'long', hour: 'numeric', minute: '2-digit' })}, when the next memory is due.`;
+        return;
+      }
+      case 'download':
+        download(`loci-${slug}.json`, JSON.stringify(p, null, 2), 'application/json');
+        st.textContent = 'Saved. Restore it on any device from the bottom of this list.';
+        return;
+      case 'delete':
+        if (b.dataset.armed) {
+          opts.library.remove(p.id);
+          paintPalaces();
+          paintEnter();
+        } else {
+          b.dataset.armed = '1';
+          b.textContent = 'Delete for good?';
+          setTimeout(() => {
+            delete b.dataset.armed;
+            b.textContent = 'Delete';
+          }, 4000);
+        }
+    }
+  });
+  $<HTMLInputElement>('[data-import]').addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const st = $('[data-import-status]');
+    try {
+      const parsed = PalaceSchema.safeParse(JSON.parse(await file.text()));
+      if (!parsed.success || !opts.library.restore(parsed.data as Palace)) throw new Error('invalid');
+      st.textContent = 'Palace restored.';
+      paintPalaces();
+      paintEnter();
+    } catch {
+      st.textContent = 'That file is not a Loci palace, or this browser cannot save it.';
+    }
+  });
+
+  /* ---------- the Architect */
+  {
+    const live = $('[data-live]');
+    fetch('/api/architect', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((h: { ok?: boolean; configured?: boolean; model?: string; fallbacks?: string[] }) => {
+        if (!h.ok || !h.configured) throw new Error('down');
+        live.classList.add('is-on');
+        live.querySelector('span')!.textContent = `Online now: ${h.model}, with ${(h.fallbacks ?? []).join(' and ')} as backups.`;
+      })
+      .catch(() => {
+        live.classList.add('is-off');
+        live.querySelector('span')!.textContent = 'The Architect is unreachable right now; Loci will build straight from your lines instead.';
+      });
+    const objs = Object.keys(WEAVE.scenes);
+    const objEl = $('[data-weave-objects]');
+    const sceneEl = $('[data-weave-scene]');
+    const noteEl = $('[data-weave-note]');
+    let current = 'lamp';
+    const fresh: Record<string, { text: string; ms: number; model: string }> = {};
+    objEl.innerHTML = objs.map((o) => `<button type="button" data-obj="${o}" aria-pressed="false">your ${o}</button>`).join('');
+    const show = (o: string) => {
+      current = o;
+      $$('[data-obj]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.obj === o)));
+      const f = fresh[o];
+      sceneEl.textContent = f ? f.text : WEAVE.scenes[o];
+      sceneEl.classList.remove('is-new');
+      void sceneEl.offsetWidth;
+      sceneEl.classList.add('is-new');
+      noteEl.textContent = f ? `Just now, from ${f.model}, in ${(f.ms / 1000).toFixed(1)} seconds.` : `Saved from a real run on 15 November, from ${WEAVE.model}.`;
+    };
+    objEl.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-obj]');
+      if (b) show(b.dataset.obj!);
+    });
+    const liveBtn = $<HTMLButtonElement>('[data-weave-live]');
+    liveBtn.addEventListener('click', async () => {
+      liveBtn.disabled = true;
+      liveBtn.textContent = 'Weaving';
+      const t0 = performance.now();
+      try {
+        const r = await fetch('/api/architect', { method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ mode: 'bind', items: [{ cue: WEAVE.cue, scene: WEAVE.scene, label: current }] }) });
+        const d = (await r.json()) as { scenes?: string[]; model?: string; error?: string };
+        if (!r.ok || !d.scenes?.[0]) throw new Error(d.error ?? 'no answer');
+        fresh[current] = { text: d.scenes[0], ms: performance.now() - t0, model: d.model ?? 'the Architect' };
+        show(current);
+      } catch (err) {
+        noteEl.textContent = `The Architect did not answer (${(err as Error).message}). The saved answer is shown instead.`;
+      } finally {
+        liveBtn.disabled = false;
+        liveBtn.textContent = 'Ask the Architect again';
+      }
+    });
+    show('lamp');
+  }
+
+  /* ---------- quiet reveals as sections arrive */
+  const io = new IntersectionObserver((en) => en.forEach((x) => x.isIntersecting && x.target.classList.add('in')), { root, threshold: 0.15 });
+  $$('.sec').forEach((s) => io.observe(s));
+  if (calm) $$('.sec').forEach((s) => s.classList.add('in'));
+
+  /* ---------- shared links */
+  const shared = $('[data-shared]');
+  const m = /[#&]p=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (m) {
+    void decodeDeck(m[1]).then((r) => {
+      shared.hidden = false;
+      if (!r.ok) return void (shared.textContent = r.error);
+      shared.innerHTML = `Someone sent you <b>${esc(r.deck.title)}</b>, ${r.deck.items.length} memories. Enter and it is built around your own furniture.`;
+      built = r.deck;
+      showMemories();
+      choose(r.deck);
+    });
+  }
+
+  /* ---------- headset check */
+  const xr = (navigator as Navigator & { xr?: { isSessionSupported(m: string): Promise<boolean> } }).xr;
+  const noXR = () => {
+    hasXR = false;
+    $('[data-device-note]').textContent = 'No headset here? The walk, building, and recall all work on this screen.';
+    paintEnter();
+  };
+  if (!xr) noXR();
+  else xr.isSessionSupported('immersive-ar').then((ok) => (ok ? undefined : noXR())).catch(noXR);
+
+  /* ---------- back from the on-screen preview */
+  const back = document.createElement('button');
+  back.className = 'back';
+  back.type = 'button';
+  back.textContent = 'Back to Loci';
+  back.hidden = true;
+  back.addEventListener('click', () => api.show());
+  document.body.appendChild(back);
+  let immersive = false;
+  new MutationObserver(() => {
+    back.hidden = !root.hidden || immersive;
+    world?.setActive(!root.hidden);
+  }).observe(root, { attributes: true, attributeFilter: ['hidden'] });
+
+  setMode('notes');
+  paintEnter();
+  paintPalaces();
+  paintSound();
+  onScroll();
+
+  const api = {
+    hide: () => {
+      immersive = true;
+      stopAmbient();
+      if (breathing) endBreath();
+      root.hidden = true;
+    },
+    show: () => {
+      immersive = false;
+      root.hidden = false;
+      paintEnter();
+      paintPalaces();
+      onScroll();
+    },
+    focusNotes: () => {
+      api.show();
+      $('#build').scrollIntoView();
+      notes.focus();
+    },
+  };
+  return api;
+}

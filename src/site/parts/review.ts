@@ -3,10 +3,9 @@
  * can be recalled right here, prompted by where they live in the room, and the
  * result goes into the same FSRS schedule the headset reads.
  */
-import { dueIds, nextDue } from '../core/scheduler.js';
-import type { Palace, ReviewEvent } from '../core/types.js';
-import { span } from './demo.js';
-import { sigilSVG } from './sigil.js';
+import { dueIds, nextDue } from '../../core/scheduler.js';
+import type { Palace, ReviewEvent } from '../../core/types.js';
+import { span } from '../time.js';
 
 type Rating = ReviewEvent['rating'];
 
@@ -63,7 +62,7 @@ export function openReview(opts: ReviewOptions): () => void {
     const place = where.get(it.id);
     body.innerHTML = `
       <p class="recall__where">${place ? `Resting on ${esc(place.replace(/^the /i, 'the '))} in your room` : `Memory ${it.order + 1} on your walk`}</p>
-      <div class="recall__sigil">${sigilSVG(it.cue, 120)}</div>
+      <p class="recall__place">${i + 1}</p>
       <h2 class="recall__cue">${esc(it.cue)}</h2>
       <div class="recall__reveal" data-reveal ${shown ? '' : 'hidden'}>
         <p class="recall__answer">${esc(it.answer)}</p>

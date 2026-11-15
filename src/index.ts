@@ -8,7 +8,7 @@ import { HubSystem } from './xr/hub-system.js';
 import { PalaceSystem } from './xr/palace-system.js';
 import { RecallSystem } from './xr/recall-system.js';
 import { RoomSystem } from './xr/room-system.js';
-import { mountLanding } from './landing/landing.js';
+import { mountSite } from './site/site.js';
 
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
   (world) => {
@@ -20,7 +20,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(AccessSystem)
       .registerSystem(HubSystem);
     const palaces = world.getSystem(PalaceSystem)!;
-    const landing = mountLanding({
+    const landing = mountSite({
       launchXR: () => world.launchXR(),
       onDeckReady: (deck) => (app.pendingDeck = deck),
       onPreviewDeck: (deck) => {
