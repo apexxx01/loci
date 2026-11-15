@@ -317,3 +317,64 @@ export const CONCEPTS: Deck[] = [
 export function conceptById(id: string): Deck | undefined {
   return CONCEPTS.find((d) => d.id === id);
 }
+
+/**
+ * The walk on the website before anyone asks for anything: how the method
+ * itself works, from the research, taught the same way as any other concept.
+ * It is shown on the page, never pushed into the headset as a topic.
+ */
+export const LOCI_METHOD: Deck = concept('method', 'How Loci works', 'Six stages, the science of remembering places', [
+  {
+    cue: 'Memory keeps an address',
+    answer: 'Your brain has place cells and grid cells that map where you are. Their discovery won the 2014 Nobel Prize.',
+    why: 'Because the brain tracks places so closely, tying a fact to a place gives it a strong hook.',
+    scene: 'A tiny map-maker in your head sticks a gold pin in the couch every time you sit down.',
+    glyphs: ['\u{1F4CD}', '\u{1F9E0}'],
+    check: { wrong: 'Memories are stored like a video you can replay exactly.', right: 'Memories are rebuilt each time you recall them, and places help rebuild them.' },
+    link: 'which is why champions',
+  },
+  {
+    cue: 'Champions use places',
+    answer: 'In a 2003 study, 9 of the 10 memory champions scanned used the method of loci. Their brains were otherwise ordinary.',
+    why: 'While they memorised, the parts of the brain that handle space and navigation lit up.',
+    scene: 'A champion strolls through a palace, dropping a fact in every room like breadcrumbs of light.',
+    glyphs: ['\u{1F3C6}', '\u{1F3DB}\u{FE0F}'],
+    check: { wrong: 'Memory champions are born with unusual brains.', right: 'Memory champions mostly use a learnable method, not special brains.' },
+    link: 'and anyone can learn it:',
+  },
+  {
+    cue: 'Anyone can learn it',
+    answer: 'People with ordinary memory practised 30 minutes a day for 40 days and went from 26 to 62 of 72 words.',
+    why: 'Training shifted how their brain networks worked together, towards the pattern seen in champions.',
+    scene: 'A pile of 72 word cards on the floor slowly climbs, card by card, into a tidy glowing tower.',
+    glyphs: ['\u{1F4C8}', '\u{1F0CF}'],
+    check: { wrong: 'Memory training only works while you keep practising every day.', right: 'Gains from the method were still there four months after training stopped.' },
+    link: 'and it works better when you stand in it',
+  },
+  {
+    cue: 'Standing in it helps',
+    answer: 'Recall was 8.8% better when people explored a memory palace in a headset instead of on a desktop screen.',
+    why: 'Turning your head and body gives your brain the same place cues it uses in real rooms.',
+    scene: 'You turn your head and the whole room turns with you, every object holding its fact out to you.',
+    glyphs: ['\u{1F97D}', '\u{1F504}'],
+    check: { wrong: 'Headsets only make learning more fun, not more effective.', right: 'In that study, people recalled more in the headset than at a screen.' },
+    link: 'so the practice that counts is',
+  },
+  {
+    cue: 'Recall beats rereading',
+    answer: 'Students who tested themselves remembered 61% of a passage a week later; those who reread it remembered 40%.',
+    why: 'Pulling a memory back out strengthens it more than looking at it again.',
+    scene: 'You yank a glowing fact out of the lamp like a fish on a line, and it gets brighter every time.',
+    glyphs: ['\u{1F3A3}', '\u{1F4A1}'],
+    check: { wrong: 'Rereading your notes is the best way to remember them.', right: 'Testing yourself beats rereading, even though it feels harder.' },
+    link: 'spaced out over days, because',
+  },
+  {
+    cue: 'Space it out',
+    answer: 'Across 317 experiments, spreading practice out beat cramming, and the best gap grows with how long you want to remember.',
+    why: 'A little forgetting between tries makes each recall work harder, so it sticks longer.',
+    scene: 'Your shelf glows softly a day later, then a week later, calling you back just before you forget.',
+    glyphs: ['\u{1F4C5}', '\u{2728}'],
+    check: { wrong: 'Cramming the night before works as well as spreading it out.', right: 'Spreading practice out keeps memories far longer than cramming.' },
+  },
+]);

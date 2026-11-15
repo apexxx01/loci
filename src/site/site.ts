@@ -16,11 +16,11 @@ import type { Audience, Kind } from '../core/architect.js';
 import { STARTER_DECKS } from '../core/decks.js';
 import { deckFromNumber } from '../core/numbers.js';
 import { dueIds, mastery, nextDue, streak } from '../core/scheduler.js';
-import { PalaceSchema } from '../core/schema.js';
+import { DeckSchema, PalaceSchema } from '../core/schema.js';
 import { decodeDeck, encodeDeck } from '../core/share.js';
 import type { Deck, Palace, ReviewEvent } from '../core/types.js';
 import { buildDeck, gradeExplanation, teachConcept } from '../net/architect-client.js';
-import { CONCEPTS } from '../core/concepts.js';
+import { LOCI_METHOD } from '../core/concepts.js';
 import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './parts/ambient.js';
 import { AUDIENCES, HEADSET, PIPELINE, RECEIPTS, ROADMAP, WEAVE } from './parts/features.js';
 import { openReview } from './parts/review.js';
@@ -48,10 +48,6 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 // The walk carries a concept: stage 1 at the gate, then the fountain, the
 // lantern grove, the stair and the moon pool. Longer concepts share the pool.
 const WALK_STOPS = 5;
-const SHORT: Record<string, string> = {
-  'concept-heart': 'Your heart', 'concept-plants': 'Plants making food', 'concept-seasons': 'The seasons',
-  'concept-vaccine': 'Vaccines', 'concept-water': 'The water cycle', 'concept-web': 'A web page',
-};
 
 /* ------------------------------------------------------------------ the studio */
 type Mode = Kind | 'number';
@@ -103,7 +99,6 @@ const html = () => `
     <a href="#science" data-to="science">Science</a>
   </nav>
   <div class="tools">
-    <button class="tool" type="button" data-breathe-open aria-label="Breathe for a minute">Breathe</button>
     <button class="tool tool--sound" type="button" data-sound aria-pressed="false" aria-label="Sound"><i></i><i></i><i></i></button>
     <button class="b b--small" type="button" data-enter>Enter</button>
   </div>
@@ -120,17 +115,34 @@ const html = () => `
     <article class="station station--approach" id="top" data-station="0">
       <p class="kicker">A memory palace for Meta Quest 3 and 3S</p>
       <h1>Your room<br />remembers.</h1>
-      <p class="lede">Name anything you want to understand. Loci explains it as a chain of stages, sets each stage on a
-      place, and checks you on the myths people believe. Walk through it on this page, then put it on the furniture in
-      your own room.</p>
+      <p class="lede">Ask about anything, or paste your notes. Loci turns it into a chain of stages, sets each one on a
+      piece of furniture, and keeps checking you on the myths people believe until it makes sense.</p>
+      <div class="xr-now" data-xr-now hidden>
+        <p>You are in a headset. Your room is ready.</p>
+        <button class="b" type="button" data-enter>Put it in my room</button>
+      </div>
       <form class="ask" data-ask autocomplete="off">
-        <label class="ask__label" for="ask">What do you want to understand?</label>
-        <div class="ask__field">
-          <input id="ask" data-ask-input maxlength="300" spellcheck="true" placeholder="How do volcanoes erupt?" />
-          <button class="b" type="submit" data-ask-go>Teach me</button>
+        <label class="sr" for="ask">What do you want to understand?</label>
+        <div class="ask__box" data-ask-box>
+          <textarea id="ask" rows="1" data-ask-input maxlength="4000" spellcheck="true" data-lenis-prevent></textarea>
+          <span class="ask__ghost" aria-hidden="true" data-ghost></span>
+          <div class="ask__bar">
+            <div class="ask__for" role="group" aria-label="Explain it for">
+              <span>For</span>
+              <button type="button" data-hero-aud="child" aria-pressed="false">a child</button>
+              <button type="button" data-hero-aud="teen" aria-pressed="false">a teen</button>
+              <button type="button" data-hero-aud="adult" aria-pressed="true">an adult</button>
+            </div>
+            <span class="ask__meta" data-ask-meta>Drop a text file or paste notes</span>
+            <button class="b" type="submit" data-ask-go>Teach me</button>
+          </div>
         </div>
+        <ol class="ask__steps" data-ask-steps hidden>
+          <li>Finding the key stages</li><li>Working out why each one is true</li><li>Collecting the myths people believe</li><li>Placing them in the room</li>
+        </ol>
         <p class="ask__status" role="status" aria-live="polite" data-ask-status></p>
-        <div class="ask__ready" role="group" aria-label="Ready-made" data-ready></div>
+        <div class="ask__done" data-ask-done hidden></div>
+        <p class="ask__mine" data-mine hidden></p>
       </form>
       <p class="note" data-device-note>Hands only, sitting down, right in the headset browser.</p>
       <p class="note note--warm" data-shared hidden></p>
@@ -285,6 +297,7 @@ const html = () => `
 
 <footer class="foot">
   <p class="foot__brand">Loci</p>
+  <button class="linkish" type="button" data-breathe-open>Breathe for a minute before you begin</button>
   <p>Your room remembers. Open source under the MIT licence. <a href="https://github.com/apexxx01/loci" target="_blank" rel="noopener">Read the code</a></p>
   <button class="b" type="button" data-enter>Enter your palace</button>
 </footer>
@@ -408,7 +421,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     { root, threshold: 0.2 }).observe(walk);
 
   /* ---------- the concept being walked */
-  let concept: Deck = CONCEPTS[0];
+  let concept: Deck = LOCI_METHOD;
   let checked: boolean[] = [];
   const stationEls = $$('[data-station]').slice(1, 6);
   const stopsFor = (d: Deck) => {
@@ -459,7 +472,6 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       }
     });
     world?.setItems(stops.map((idx) => (idx.length ? d.items[idx[0]].cue : '')));
-    $$('[data-ready] button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.concept === d.id)));
     resetDoor();
     if (walk) scrollTo(stationY(1) + 2);
   };
@@ -478,47 +490,173 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     chime(right ? 'good' : 'soft');
   });
 
-  const ready = $('[data-ready]');
-  ready.innerHTML = CONCEPTS.map((d) => `<button type="button" data-concept="${d.id}" aria-pressed="false">${esc(SHORT[d.id] ?? d.title)}</button>`).join('');
-  ready.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-concept]');
-    const d = b && CONCEPTS.find((c) => c.id === b.dataset.concept);
-    if (!d) return;
-    askStatus.textContent = `${d.title}: ${d.items.length} stages. Walk on to begin.`;
-    showConcept(d, true);
-    chime('soft');
-  });
-
+  /* ---------- asking */
   const ask = $<HTMLFormElement>('[data-ask]');
-  const askInput = $<HTMLInputElement>('[data-ask-input]');
+  const askInput = $<HTMLTextAreaElement>('[data-ask-input]');
+  const askBox = $('[data-ask-box]');
   const askGo = $<HTMLButtonElement>('[data-ask-go]');
   const askStatus = $('[data-ask-status]');
+  const askMeta = $('[data-ask-meta]');
+  const askSteps = $('[data-ask-steps]');
+  const askDone = $('[data-ask-done]');
+  const ghost = $('[data-ghost]');
+  let heroAudience: Audience = 'adult';
+  $$('[data-hero-aud]').forEach((b) =>
+    b.addEventListener('click', () => {
+      heroAudience = b.dataset.heroAud as Audience;
+      $$('[data-hero-aud]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    }),
+  );
+  // The box grows with what you type or paste, up to a few lines.
+  const grow = () => {
+    askInput.style.height = 'auto';
+    askInput.style.height = `${Math.min(askInput.scrollHeight, 220)}px`;
+    const n = askInput.value.length;
+    const lines = askInput.value.split('\n').filter((l) => l.trim()).length;
+    askMeta.textContent = !n ? 'Drop a text file or paste notes' : lines > 1 || n > 160 ? `Your notes: ${n.toLocaleString()} characters` : 'Enter to teach me, Shift+Enter for a new line';
+    ghost.hidden = n > 0;
+    askBox.classList.toggle('is-notes', lines > 1 || n > 160);
+  };
+  askInput.addEventListener('input', grow);
+  askInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      ask.requestSubmit();
+    }
+  });
+  // Examples drift through the empty box, so it is clear anything goes.
+  const EXAMPLES = [
+    'How does a bill become a law?',
+    'Why is the sky blue?',
+    'How does compound interest grow money?',
+    'Paste your lecture notes here',
+    'How do noise-cancelling headphones work?',
+    'What causes the tides?',
+    'How does the stock market set a price?',
+    'How do antibiotics stop an infection?',
+  ];
+  {
+    let ex = 0, ch = 0, del = false, wait = 0;
+    const tick = () => {
+      if (askInput.value || document.activeElement === askInput) return void (ghost.textContent = askInput.value ? '' : EXAMPLES[ex]);
+      const word = EXAMPLES[ex];
+      if (wait > 0) wait--;
+      else if (!del) {
+        ch++;
+        if (ch >= word.length) (del = true), (wait = 26);
+      } else {
+        ch -= 2;
+        if (ch <= 0) (del = false), (ch = 0), (ex = (ex + 1) % EXAMPLES.length), (wait = 4);
+      }
+      ghost.textContent = word.slice(0, Math.max(0, ch));
+    };
+    if (calm) ghost.textContent = EXAMPLES[0];
+    else setInterval(tick, 55);
+  }
+  // Drop a text file of notes onto the box.
+  askBox.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    askBox.classList.add('is-drop');
+  });
+  askBox.addEventListener('dragleave', () => askBox.classList.remove('is-drop'));
+  askBox.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    askBox.classList.remove('is-drop');
+    const f = e.dataTransfer?.files?.[0];
+    if (!f) return;
+    if (!/\.(txt|md|markdown|csv)$/i.test(f.name) && !f.type.startsWith('text/')) {
+      askStatus.textContent = 'That file is not plain text. Paste the words instead, or drop a .txt or .md file.';
+      return;
+    }
+    askInput.value = (await f.text()).slice(0, 4000);
+    grow();
+    askInput.focus();
+    askStatus.textContent = `Read ${f.name}. Press Teach me when you are ready.`;
+  });
+
+  // What you asked before, kept on this device so you can walk it again.
+  const MINE = 'loci.asked.v1';
+  const mineEl = $('[data-mine]');
+  const readMine = (): Deck[] => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(MINE) ?? '[]') as unknown[];
+      return raw.map((d) => DeckSchema.safeParse(d)).filter((r) => r.success).map((r) => r.data as Deck);
+    } catch {
+      return [];
+    }
+  };
+  const paintMine = () => {
+    const mine = readMine();
+    mineEl.hidden = !mine.length;
+    mineEl.innerHTML = mine.length ? `Walk again: ${mine.map((d, i) => `<button type="button" class="linkish" data-mine-i="${i}">${esc(d.title)}</button>`).join('')}` : '';
+  };
+  mineEl.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-mine-i]');
+    const d = b && readMine()[Number(b.dataset.mineI)];
+    if (d) {
+      showConcept(d, true);
+      choose(d);
+    }
+  });
+  paintMine();
+
+  let stepTimer = 0;
   ask.addEventListener('submit', async (e) => {
     e.preventDefault();
     const topic = askInput.value.trim();
-    if (!topic) {
-      askStatus.textContent = 'Type a question, or pick one of these.';
+    if (topic.length < 3) {
+      askStatus.textContent = 'Type a question or paste some notes first.';
       askInput.focus();
       return;
     }
     askGo.disabled = true;
     askGo.textContent = 'Thinking';
+    askDone.hidden = true;
+    askStatus.textContent = '';
     root.classList.add('is-teaching');
-    askStatus.textContent = 'The Palace Architect is working out the stages, the reasons and the myths.';
-    const res = await teachConcept(topic, audience);
+    askSteps.hidden = false;
+    const steps = [...askSteps.children] as HTMLElement[];
+    steps.forEach((li) => li.removeAttribute('data-state'));
+    let step = 0;
+    const t0 = performance.now();
+    steps[0].dataset.state = 'now';
+    clearInterval(stepTimer);
+    stepTimer = window.setInterval(() => {
+      if (step < steps.length - 1) {
+        steps[step].dataset.state = 'done';
+        steps[++step].dataset.state = 'now';
+      }
+    }, 1900);
+    const res = await teachConcept(topic, heroAudience);
+    clearInterval(stepTimer);
     askGo.disabled = false;
     askGo.textContent = 'Teach me';
     root.classList.remove('is-teaching');
+    askSteps.hidden = true;
     if (!res.ok) {
       askStatus.textContent = res.error;
       return;
     }
-    askStatus.textContent = `${res.deck.title}: ${res.deck.items.length} stages, written in ${(res.ms / 1000).toFixed(1)} seconds. The Architect can be wrong, so check anything important.`;
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    try {
+      const mine = [res.deck, ...readMine().filter((d) => d.title !== res.deck.title)].slice(0, 4);
+      localStorage.setItem(MINE, JSON.stringify(mine));
+    } catch {
+      /* private browsing */
+    }
+    paintMine();
     built = res.deck;
     showMemories();
     choose(res.deck);
+    showConcept(res.deck);
     chime('good');
-    showConcept(res.deck, true);
+    askDone.hidden = false;
+    askDone.innerHTML = `<p><b>${esc(res.deck.title)}</b>: ${res.deck.items.length} stages, ${res.offline ? 'from the walks that ship with Loci, because the Palace Architect could not be reached' : `ready in ${secs} seconds`}.</p>
+      <div class="ask__go"><button class="b" type="button" data-walk-now>Walk through it</button>
+      <button class="b b--line" type="button" data-room-mine>Put it in my room</button></div>
+      <p class="small">${res.offline ? 'Checked by hand before it shipped.' : 'Written by the Palace Architect. It can be wrong, so check anything important against your own source.'}</p>`;
+    askDone.querySelector('[data-walk-now]')?.addEventListener('click', () => scrollTo(stationY(1) + 2));
+    askDone.querySelector('[data-room-mine]')?.addEventListener('click', () => enter());
   });
 
   /* ---------- the door: explain it back */
@@ -640,7 +778,8 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   const paintEnter = () => {
     const palace = opts.getPalace();
     enterButtons().forEach((b) => {
-      if (b.classList.contains('b--small')) b.textContent = hasXR ? 'Enter' : 'Preview';
+      if (b.classList.contains('b--small')) b.textContent = hasXR ? 'Enter your room' : 'Try it here';
+      else if (b.closest('[data-xr-now]')) b.textContent = chosen ? 'Put it in my room' : opts.getPalace() ? 'Return to my palace' : 'Start in my room';
       else if (b.closest('[data-chosen]')) b.textContent = hasXR ? 'Enter with it' : 'Preview it here';
       else b.textContent = !hasXR ? 'Preview on this screen' : chosen ? 'Enter with your new palace' : palace ? 'Return to your palace' : 'Enter your palace';
     });
@@ -1031,7 +1170,15 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     paintEnter();
   };
   if (!xr) noXR();
-  else xr.isSessionSupported('immersive-ar').then((ok) => (ok ? undefined : noXR())).catch(noXR);
+  else
+    xr.isSessionSupported('immersive-ar')
+      .then((ok) => {
+        if (!ok) return noXR();
+        // In the headset browser: the first thing to see is the way into your room.
+        $('[data-xr-now]').hidden = false;
+        paintEnter();
+      })
+      .catch(noXR);
 
   /* ---------- back from the on-screen preview */
   const back = document.createElement('button');
@@ -1048,7 +1195,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   }).observe(root, { attributes: true, attributeFilter: ['hidden'] });
 
   setMode('notes');
-  showConcept(CONCEPTS[0]);
+  showConcept(LOCI_METHOD);
   paintEnter();
   paintPalaces();
   paintSound();

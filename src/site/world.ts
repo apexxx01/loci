@@ -566,7 +566,7 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
 
   let target = 0, cur = 0, dim = 0, dimT = 0, breath = 0, breathT = 0;
   const mouse = new Vector2();
-  const camPos = new Vector3(), look = new Vector3(), head = new Vector3();
+  const camPos = new Vector3(), look = new Vector3(), head = new Vector3(), proj = new Vector3();
   let active = true, raf = 0, prev = performance.now(), time = 0;
 
   const onMove = (e: PointerEvent) => mouse.set((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1);
@@ -647,7 +647,13 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
     // Each stage name rises into view once the thread has reached its object.
     labels.forEach((l) => {
       // Only the stage you are at shows its name (all of them in the overview), so names never sit behind the words.
-      const on = reach[l.t] > 0.5 && (Math.abs(cur - 1 - l.t) < 0.7 || cur > 6.5) ? 1 : 0;
+      let on = reach[l.t] > 0.5 && (Math.abs(cur - 1 - l.t) < 0.7 || cur > 6.5) ? 1 : 0;
+      if (on && cur <= 6.5) {
+        // Never let a name drift into the column of words beside its object.
+        const side = STATIONS[l.t + 1].side;
+        proj.copy(l.s.position).project(camera);
+        if (side !== 0 && proj.x * -side > -0.12) on = 0;
+      }
       const m = l.s.material as SpriteMaterial;
       m.opacity += (on * (1 - dim * 0.5) - m.opacity) * Math.min(1, dt * 3);
       l.s.position.y = NODES[l.t].y + 0.55 + m.opacity * 0.08 + (calm ? 0 : Math.sin(time * 0.8 + l.t) * 0.02);

@@ -5,6 +5,7 @@
 import { deterministicBind, type Audience, type Kind } from '../core/architect.js';
 import { deckFromNotes } from '../core/notes.js';
 import { gradeOffline } from '../core/grade.js';
+import { conceptById } from '../core/concepts.js';
 import { DeckSchema } from '../core/schema.js';
 import type { Deck } from '../core/types.js';
 
@@ -73,7 +74,7 @@ export async function bindScenes(items: BindInput[]): Promise<{ scenes: string[]
 }
 
 /* ------------------------------------------------------------------ teach, grade, re-imagine */
-export type TeachResult = { ok: true; deck: Deck; ms: number; repaired: number } | { ok: false; error: string };
+export type TeachResult = { ok: true; deck: Deck; ms: number; repaired: number; offline?: boolean } | { ok: false; error: string };
 
 export async function teachConcept(topic: string, audience: Audience = 'adult'): Promise<TeachResult> {
   if (topic.trim().length < 3) return { ok: false, error: 'Name something to understand first.' };
@@ -81,9 +82,10 @@ export async function teachConcept(topic: string, audience: Audience = 'adult'):
     const { status, data } = await post({ mode: 'teach', topic, audience });
     const parsed = DeckSchema.safeParse(data.deck);
     if (status === 200 && parsed.success) return { ok: true, deck: parsed.data as Deck, ms: Number(data.ms) || 0, repaired: Number(data.repaired) || 0 };
-    return { ok: false, error: String(data.error ?? 'The Palace Architect is unavailable right now. Try one of the ready-made topics.') };
+    if (status >= 500 || status === 429) return offlineConcept(topic, String(data.error ?? ''));
+    return { ok: false, error: String(data.error ?? 'The Palace Architect could not explain that one. Try asking it a different way.') };
   } catch (e) {
-    return { ok: false, error: (e as Error).name === 'AbortError' ? 'The Architect took too long. Try again, or pick a ready-made topic.' : 'Could not reach the Palace Architect. Try a ready-made topic instead.' };
+    return offlineConcept(topic, (e as Error).name === 'AbortError' ? 'The Palace Architect took too long.' : 'The Palace Architect could not be reached.');
   }
 }
 
@@ -123,3 +125,24 @@ export async function reimagineScene(item: { cue: string; answer: string; scene:
     return null;
   }
 }
+
+/**
+ * When the Architect cannot answer, a question that matches one of the
+ * ready-made concepts still gets a walk; anything else gets a clear way on.
+ */
+function offlineConcept(topic: string, why: string): TeachResult {
+  const t = topic.toLowerCase();
+  const match = OFFLINE_KEYS.find(([, words]) => words.some((w) => t.includes(w)));
+  const deck = match && conceptById(match[0]);
+  if (deck) return { ok: true, deck, ms: 0, repaired: 0, offline: true };
+  return { ok: false, error: `${why} Check your connection and try again in a moment.`.trim() };
+}
+
+const OFFLINE_KEYS: [string, string[]][] = [
+  ['concept-heart', ['heart', 'blood', 'circulat', 'ventricle', 'atrium']],
+  ['concept-plants', ['photosynth', 'plants make', 'chlorophyll', 'plant food']],
+  ['concept-seasons', ['season', 'summer', 'winter', 'axial tilt']],
+  ['concept-vaccine', ['vaccin', 'immun', 'antibod']],
+  ['concept-water', ['water cycle', 'evaporat', 'precipitat', 'condensation', 'rain form']],
+  ['concept-web', ['web page', 'website', 'browser', 'dns', 'http']],
+];
