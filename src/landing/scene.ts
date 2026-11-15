@@ -320,7 +320,12 @@ const VERT = /* glsl */ `
   float st(float t){ t = clamp(t*1.5 - aSeed*0.5, 0., 1.); return t*t*(3.-2.*t); }
   void main(){
     float p = uProgress;
-    vec3 pos = mix(position, a1, st(clamp(p,0.,1.)));
+    // The galaxy turns about its own axis, inner arms faster than outer, like a real one.
+    vec3 k = vec3(0., .5234, .8521);
+    float rr = length(position - k * dot(position, k));
+    float th = -uTime * (1. - uCalm) * .55 / (.6 + rr * .9);
+    vec3 g = position * cos(th) + cross(k, position) * sin(th) + k * dot(k, position) * (1. - cos(th));
+    vec3 pos = mix(g, a1, st(clamp(p,0.,1.)));
     pos = mix(pos, a2, st(clamp(p-1.,0.,1.)));
     pos = mix(pos, a3, st(clamp(p-2.,0.,1.)));
     pos = mix(pos, a4, st(clamp(p-3.,0.,1.)));
@@ -729,11 +734,13 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const roomness = Math.max(0, Math.min(1, (p - 2.15) / 0.85)) * (1 - wordness);
     // The brain reads best in three-quarter profile, the room from its open corner.
     const brainness = Math.max(0, 1 - Math.abs(p - 2) * 1.7);
-    const posed = Math.max(roomness, brainness, wordness);
+    // The galaxy holds still and spins in its own plane; only the neurons drift around.
+    const galaxyHold = Math.max(0, 1 - p * 1.6) * (1 - wordness);
+    const posed = Math.max(roomness, brainness, wordness, galaxyHold);
     if (posed < 0.01) yaw += calm ? 0 : dt * 0.07;
     else {
-      const goal = wordness > 0.5 ? 0 : roomness > brainness ? ROOM_YAW : BRAIN_YAW;
-      let d = goal + (calm ? 0 : Math.sin(time * 0.3) * (roomness > brainness ? 0.07 : 0.22)) - yaw;
+      const goal = wordness > 0.5 || galaxyHold > Math.max(roomness, brainness) ? 0 : roomness > brainness ? ROOM_YAW : BRAIN_YAW;
+      let d = goal + (calm ? 0 : Math.sin(time * 0.3) * (galaxyHold > Math.max(roomness, brainness) ? 0.06 : roomness > brainness ? 0.07 : 0.22)) - yaw;
       d = ((d + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
       yaw += d * Math.min(1, dt * 2.4 * posed + (calm ? 1 : 0));
     }

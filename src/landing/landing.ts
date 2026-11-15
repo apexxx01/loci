@@ -89,6 +89,10 @@ const MODES: { id: Mode; label: string; who: string; help: string; example: stri
 // Which tile lights up while each step of "how it works" is in view.
 const STEP_TILE = [4, 5, -1, 7];
 
+// What people bring to Loci, circling the galaxy in the opening.
+const ORBIT = ['Saturn', 'la biblioteca', 'the Golgi body', 'the Krebs cycle', 'Priya runs the bakery', 'my wedding toast',
+  'Grandma\u2019s number', 'the 12 cranial nerves', 'the order of the planets', 'el desayuno'];
+
 const HTML = `
 <canvas class="cosmos" aria-hidden="true"></canvas>
 <div class="veil" aria-hidden="true"></div>
@@ -113,6 +117,8 @@ const HTML = `
 
 <div class="flow" data-flow>
 <section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0.1">
+  <div class="orbit" data-orbit role="group" aria-label="Things people keep in Loci. Choose one to write it in the stars."></div>
+  <div class="horizon" aria-hidden="true"><i></i></div>
   <div class="hero">
     <h1 id="landing-title"><span class="line"><span>Your room</span></span><span class="line"><span>remembers.</span></span></h1>
     <p class="hero__lede">A memory palace built from the room you are sitting in. What you want to learn rests on
@@ -687,6 +693,52 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       const dy = (e.clientY - (r.top + r.height / 2)) * 0.3;
       b.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
     }, { passive: true });
+  }
+
+  /* ---------------------------------------------------- memories in orbit */
+  {
+    const orbit = $('[data-orbit]');
+    orbit.innerHTML = ORBIT.map((t, i) => `<button type="button" class="orbiter" data-orbiter="${i}">${sigilSVG(t, 26, 'sigil orbiter__sigil')}<span>${esc(t)}</span></button>`).join('');
+    const els = $$('[data-orbiter]');
+    const phase = ORBIT.map((_, i) => (i / ORBIT.length) * Math.PI * 2);
+    let running = false, raf = 0, t0 = performance.now();
+    const place = (now: number) => {
+      const t = calm ? 0 : (now - t0) / 1000;
+      const w = window.innerWidth, h = root.clientHeight;
+      const rx = Math.min(w * 0.4, 700), ry = rx * 0.24;
+      const cy = h * 0.4;
+      els.forEach((el, i) => {
+        const a = phase[i] + t * 0.045;
+        const depth = Math.sin(a); // 1 in front, -1 behind
+        const x = w / 2 + Math.cos(a) * rx;
+        const y = cy + depth * ry - 20;
+        const sc = 0.72 + (depth + 1) * 0.2;
+        el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) scale(${sc.toFixed(3)})`;
+        // Memories pass behind the words, so they fade as they cross the middle.
+        const side = Math.min(1, Math.max(0, (Math.abs(Math.cos(a)) - 0.42) / 0.3));
+        el.style.opacity = ((0.3 + (depth + 1) * 0.35) * side).toFixed(3);
+        el.style.pointerEvents = side > 0.5 ? 'auto' : 'none';
+        el.style.filter = depth < -0.2 ? `blur(${((-depth - 0.2) * 2.4).toFixed(2)}px)` : '';
+        el.style.zIndex = depth > 0 ? '2' : '0';
+      });
+    };
+    const loop = (now: number) => {
+      place(now);
+      if (running) raf = requestAnimationFrame(loop);
+    };
+    new IntersectionObserver((en) => {
+      running = en[0].isIntersecting && !root.hidden;
+      cancelAnimationFrame(raf);
+      if (running) raf = requestAnimationFrame(loop);
+    }, { root, threshold: 0.05 }).observe($('#top'));
+    place(performance.now());
+    orbit.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-orbiter]');
+      if (!b) return;
+      const input = $<HTMLInputElement>('[data-whisper-input]');
+      input.value = ORBIT[Number(b.dataset.orbiter)];
+      $<HTMLFormElement>('[data-whisper]').requestSubmit();
+    });
   }
 
   /* ---------------------------------------------------- write it in the stars */
@@ -1268,7 +1320,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   const noXR = () => {
     hasXR = false;
     $('[data-device-note]').textContent =
-      'Mixed reality needs a Quest 3 or 3S. On this screen you can try a recall, build a palace, recall what is glowing, and send it to a headset.';
+      'No headset here? Everything below still works on this screen, and sends to a Quest 3 or 3S when you have one.';
     paintEnter();
   };
   if (!xr) noXR();
