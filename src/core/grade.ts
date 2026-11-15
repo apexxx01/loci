@@ -27,12 +27,17 @@ export interface OfflineGrade {
 
 export function gradeOffline(stages: { cue: string; answer: string }[], explanation: string): OfflineGrade {
   const said = new Set(stems(explanation));
+  const keys = stages.map((st) => [...new Set(stems(`${st.cue} ${st.answer}`))]);
+  // Words shared by many stages ("blood", "heart") say little about any one stage.
+  const df = new Map<string, number>();
+  keys.forEach((k) => k.forEach((w) => df.set(w, (df.get(w) ?? 0) + 1)));
   const hit: number[] = [];
   const missed: number[] = [];
-  stages.forEach((st, i) => {
-    const key = [...new Set(stems(`${st.cue} ${st.answer}`))];
-    const found = key.filter((k) => said.has(k)).length;
-    (key.length && (found >= 3 || found / key.length >= 0.4) ? hit : missed).push(i);
+  keys.forEach((key, i) => {
+    const weight = (w: string) => 1 / (df.get(w) ?? 1);
+    const total = key.reduce((n, w) => n + weight(w), 0);
+    const found = key.filter((w) => said.has(w)).reduce((n, w) => n + weight(w), 0);
+    (total > 0 && found / total >= 0.34 ? hit : missed).push(i);
   });
   const first = missed[0];
   const feedback = !hit.length

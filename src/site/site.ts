@@ -19,7 +19,8 @@ import { dueIds, mastery, nextDue, streak } from '../core/scheduler.js';
 import { PalaceSchema } from '../core/schema.js';
 import { decodeDeck, encodeDeck } from '../core/share.js';
 import type { Deck, Palace, ReviewEvent } from '../core/types.js';
-import { buildDeck } from '../net/architect-client.js';
+import { buildDeck, gradeExplanation, teachConcept } from '../net/architect-client.js';
+import { CONCEPTS } from '../core/concepts.js';
 import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './parts/ambient.js';
 import { AUDIENCES, HEADSET, PIPELINE, RECEIPTS, ROADMAP, WEAVE } from './parts/features.js';
 import { openReview } from './parts/review.js';
@@ -44,62 +45,13 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ------------------------------------------------------------------ the walk */
-const CARRY = [
-  { label: 'A shopping list', items: ['eggs', 'lemons', 'candles', 'honey', 'bread'] },
-  { label: 'Five planets', items: ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'] },
-  { label: 'A short speech', items: ['thank the hosts', 'the lost suitcase', 'three lessons', 'a quiet pause', 'the toast'] },
-  { label: 'Spanish words', items: ['la lluvia', 'el desayuno', 'la cuenta', 'barato', 'la biblioteca'] },
-];
-
-// How each thing is pictured at its place: vivid, a little absurd, tied to what the place does.
-const IMAGE = [
-  (x: string) => `Picture ${x} hanging from the keystone of the gate, swinging and ringing like bells as you pass under.`,
-  (x: string) => `Picture the fountain throwing ${x} high into the air instead of water, raining down all around you.`,
-  (x: string) => `Picture ${x} glowing inside every lantern in the grove, warm enough to feel on your face.`,
-  (x: string) => `Picture each step of the stair made of ${x}, creaking under you all the way up.`,
-  (x: string) => `Picture ${x}, enormous, floating in the middle of the moon pool and turning slowly in the silver light.`,
-];
-
-const CHAPTERS = [
-  {
-    title: 'Memory keeps an address.',
-    body: 'Deep in your brain, place cells fire when you stand in one particular spot, and grid cells map the space between. Their discovery won the 2014 Nobel Prize in Physiology or Medicine. Where something happened is one of the strongest hooks memory has.',
-    figure: '2014',
-    figureText: 'Nobel Prize for the brain’s own map of places',
-    cite: [['The Nobel Prize, 2014', 'https://www.nobelprize.org/prizes/medicine/2014/summary/']],
-  },
-  {
-    title: 'Champions use places.',
-    body: 'When researchers scanned World Memory Championship competitors, their brains looked ordinary. What set them apart was a strategy, and it lit up the parts of the brain that handle space.',
-    figure: '9 of 10',
-    figureText: 'of the champions studied used the method of loci',
-    cite: [['Maguire et al., Nature Neuroscience, 2003', 'https://doi.org/10.1038/nn988']],
-  },
-  {
-    title: 'Anyone can learn it.',
-    body: 'People with ordinary memory practised the method for 30 minutes a day over 40 days. Four months later, with no more practice, they still recalled 22 more words than when they began.',
-    figure: '26 to 62',
-    figureText: 'words recalled out of 72, before and after training',
-    cite: [['Dresler et al., Neuron, 2017', 'https://doi.org/10.1016/j.neuron.2017.02.003']],
-  },
-  {
-    title: 'It is stronger when you stand inside it.',
-    body: 'The hard part was always imagining the palace clearly. When people explored one through a headset instead of on a desktop screen, recall rose. So Loci skips the imagining and uses the room you are already in.',
-    figure: '8.8%',
-    figureText: 'better recall inside the headset than at a screen',
-    cite: [['Krokos, Plaisant and Varshney, Virtual Reality, 2018', 'https://doi.org/10.1007/s10055-018-0346-3']],
-  },
-  {
-    title: 'Recall, rest, recall again.',
-    body: 'Trying to remember strengthens memory more than reading again, and spreading the tries out works better than cramming. Loci always asks before it shows, and times each return for you.',
-    figure: '61% vs 40%',
-    figureText: 'remembered a week later by students who tested themselves, against those who reread',
-    cite: [
-      ['Roediger and Karpicke, Psychological Science, 2006', 'https://doi.org/10.1111/j.1467-9280.2006.01693.x'],
-      ['Cepeda et al., Psychological Bulletin, 2006', 'https://doi.org/10.1037/0033-2909.132.3.354'],
-    ],
-  },
-];
+// The walk carries a concept: stage 1 at the gate, then the fountain, the
+// lantern grove, the stair and the moon pool. Longer concepts share the pool.
+const WALK_STOPS = 5;
+const SHORT: Record<string, string> = {
+  'concept-heart': 'Your heart', 'concept-plants': 'Plants making food', 'concept-seasons': 'The seasons',
+  'concept-vaccine': 'Vaccines', 'concept-water': 'The water cycle', 'concept-web': 'A web page',
+};
 
 /* ------------------------------------------------------------------ the studio */
 type Mode = Kind | 'number';
@@ -168,47 +120,45 @@ const html = () => `
     <article class="station station--approach" id="top" data-station="0">
       <p class="kicker">A memory palace for Meta Quest 3 and 3S</p>
       <h1>Your room<br />remembers.</h1>
-      <p class="lede">Loci turns the room you sit in into a memory palace. What you want to learn rests on your lamp,
-      your shelf, your couch, and returns just before you would forget it. This page is a palace too: carry five things
-      in, walk through, and see what you remember at the door.</p>
-      <div class="carry">
-        <p class="carry__label" id="carry-label">Five things to carry in</p>
-        <div class="carry__presets" role="group" aria-labelledby="carry-label" data-presets></div>
-        <div class="carry__field">
-          <input data-carry aria-labelledby="carry-label" maxlength="160" spellcheck="false" />
-          <button class="b" type="button" data-walk>Walk in</button>
+      <p class="lede">Name anything you want to understand. Loci explains it as a chain of stages, sets each stage on a
+      place, and checks you on the myths people believe. Walk through it on this page, then put it on the furniture in
+      your own room.</p>
+      <form class="ask" data-ask autocomplete="off">
+        <label class="ask__label" for="ask">What do you want to understand?</label>
+        <div class="ask__field">
+          <input id="ask" data-ask-input maxlength="300" spellcheck="true" placeholder="How do volcanoes erupt?" />
+          <button class="b" type="submit" data-ask-go>Teach me</button>
         </div>
-        <p class="carry__hint">Separate them with commas. Or keep ours.</p>
-      </div>
+        <p class="ask__status" role="status" aria-live="polite" data-ask-status></p>
+        <div class="ask__ready" role="group" aria-label="Ready-made" data-ready></div>
+      </form>
       <p class="note" data-device-note>Hands only, sitting down, right in the headset browser.</p>
       <p class="note note--warm" data-shared hidden></p>
       <div class="welcome" data-returning hidden></div>
     </article>
 
-    ${CHAPTERS.map((c, i) => {
-      const s = STATIONS[i + 1];
-      return `<article class="station station--${s.side > 0 ? 'left' : 'right'}" data-station="${i + 1}" aria-labelledby="st-${i + 1}">
-        <p class="kicker">At ${esc(s.name)}</p>
-        <h2 id="st-${i + 1}">${esc(c.title)}</h2>
-        <p>${esc(c.body)}</p>
-        <div class="figure"><span class="figure__n">${esc(c.figure)}</span><span class="figure__t">${esc(c.figureText)}</span></div>
-        <p class="cites">${c.cite.map(([t, u]) => `<a href="${u}" target="_blank" rel="noopener">${esc(t)}</a>`).join('')}</p>
-        <div class="left-here" data-left="${i}">
-          <p class="left-here__label">You left something here</p>
-          <p class="left-here__item" data-item></p>
-          <p class="left-here__image" data-image></p>
+    ${STATIONS.slice(1, 6).map((st, i) => `<article class="station station--${st.side > 0 ? 'left' : 'right'}" data-station="${i + 1}" aria-labelledby="st-${i + 1}">
+        <p class="kicker" data-kicker>Stage ${i + 1}, at ${esc(st.name)}</p>
+        <h2 id="st-${i + 1}" data-cue></h2>
+        <p class="claim" data-claim></p>
+        <p class="why" data-why></p>
+        <p class="picture" data-scene></p>
+        <div class="myth" data-myth>
+          <p class="myth__q">Which is true?</p>
+          <div class="myth__opts"><button type="button" data-opt="0"></button><button type="button" data-opt="1"></button></div>
+          <p class="myth__v" role="status" aria-live="polite" data-verdict></p>
         </div>
-      </article>`;
-    }).join('')}
+        <p class="link" data-link></p>
+      </article>`).join('')}
 
     <article class="station station--door" data-station="6" aria-labelledby="st-door">
       <p class="kicker">At the door</p>
-      <h2 id="st-door">Now walk back in your mind.</h2>
-      <p>Picture each place in order. What did you leave there?</p>
-      <form class="recall-test" data-test autocomplete="off">
-        ${STATIONS.slice(1, 6).map((s, i) => `<label><span>${cap(s.name)}</span><input data-guess="${i}" spellcheck="false" /><em data-mark="${i}"></em></label>`).join('')}
-        <div class="recall-test__go"><button class="b" type="submit">Check what I remembered</button>
-        <button class="linkish" type="button" data-test-reset>Walk again with new things</button></div>
+      <h2 id="st-door">Now explain it back.</h2>
+      <p data-door-lede>In your own words, how does it work? A sentence or two is enough.</p>
+      <form class="explain" data-explain autocomplete="off">
+        <textarea rows="4" data-explain-input data-lenis-prevent aria-labelledby="st-door"></textarea>
+        <div class="explain__go"><button class="b" type="submit" data-explain-go>Check my explanation</button>
+        <button class="linkish" type="button" data-walk-again>Walk it again</button></div>
       </form>
       <div class="result" data-result hidden></div>
     </article>
@@ -348,21 +298,6 @@ const html = () => `
 </div>`;
 
 /* ------------------------------------------------------------------ helpers */
-function normal(s: string): string {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\b(the|a|an|la|el|los|las)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-}
-function close(a: string, b: string): boolean {
-  const x = normal(a), y = normal(b);
-  if (!x || !y) return false;
-  if (x === y || x.includes(y) || y.includes(x)) return true;
-  // Allow a small slip of spelling.
-  const d: number[][] = Array.from({ length: x.length + 1 }, (_, i) => [i, ...Array(y.length).fill(0)]);
-  for (let j = 1; j <= y.length; j++) d[0][j] = j;
-  for (let i = 1; i <= x.length; i++)
-    for (let j = 1; j <= y.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
-  return d[x.length][y.length] <= Math.max(1, Math.floor(y.length / 5));
-}
-
 /* ------------------------------------------------------------------ mount */
 export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focusNotes(): void } {
   const root = document.createElement('main');
@@ -472,78 +407,166 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   new IntersectionObserver((en) => en.forEach((x) => x.isIntersecting && $$('[data-to]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.to === 'walk'))),
     { root, threshold: 0.2 }).observe(walk);
 
-  /* ---------- carrying things in */
-  const carry = $<HTMLInputElement>('[data-carry]');
-  let carried: string[] = [];
-  const presets = $('[data-presets]');
-  presets.innerHTML = CARRY.map((c, i) => `<button type="button" data-preset="${i}" aria-pressed="${i === 0}">${esc(c.label)}</button>`).join('');
-  const setCarried = (list: string[]) => {
-    carried = list.map((s) => s.trim()).filter(Boolean).slice(0, 5);
-    while (carried.length < 5) carried.push(CARRY[0].items[carried.length]);
-    world?.setItems(carried);
-    $$('[data-left]').forEach((el, i) => {
-      el.querySelector('[data-item]')!.textContent = carried[i];
-      el.querySelector('[data-image]')!.textContent = IMAGE[i](carried[i]);
+  /* ---------- the concept being walked */
+  let concept: Deck = CONCEPTS[0];
+  let checked: boolean[] = [];
+  const stationEls = $$('[data-station]').slice(1, 6);
+  const stopsFor = (d: Deck) => {
+    // Stage index list per walk stop; extra stages share the last stop.
+    const n = d.items.length;
+    return Array.from({ length: WALK_STOPS }, (_, i) => (i < WALK_STOPS - 1 ? (i < n ? [i] : []) : d.items.slice(i).map((_, k) => i + k)));
+  };
+  const showConcept = (d: Deck, walk = false) => {
+    concept = d;
+    checked = d.items.map(() => false);
+    const stops = stopsFor(d);
+    stationEls.forEach((el, i) => {
+      const idx = stops[i];
+      const it = d.items[idx[0]];
+      el.hidden = false;
+      const q = <T extends HTMLElement>(sel: string) => el.querySelector<T>(sel)!;
+      if (!it) {
+        q('[data-kicker]').textContent = `At ${STATIONS[i + 1].name}`;
+        q('[data-cue]').textContent = 'A quiet place to rest.';
+        q('[data-claim]').textContent = 'Nothing is kept here this time. Short concepts leave a place free, and that is fine.';
+        ['[data-why]', '[data-scene]', '[data-link]'].forEach((s2) => (q(s2).textContent = ''));
+        q('[data-myth]').hidden = true;
+        return;
+      }
+      const many = idx.length > 1;
+      q('[data-kicker]').textContent = many ? `Stages ${idx[0] + 1} ${idx.length === 2 ? 'and' : 'to'} ${idx[idx.length - 1] + 1}, at ${STATIONS[i + 1].name}` : `Stage ${idx[0] + 1}, at ${STATIONS[i + 1].name}`;
+      q('[data-cue]').textContent = many ? idx.map((k, j) => (j ? d.items[k].cue.charAt(0).toLowerCase() + d.items[k].cue.slice(1) : d.items[k].cue)).join(', then ') : it.cue;
+      q('[data-claim]').textContent = many ? idx.map((k) => d.items[k].answer).join(' ') : it.answer;
+      q('[data-why]').textContent = !many && it.why ? `Why: ${it.why}` : '';
+      q('[data-scene]').textContent = !many ? `Picture it: ${it.scene}` : '';
+      const last = d.items[idx[idx.length - 1]];
+      const next = d.items[idx[idx.length - 1] + 1];
+      q('[data-link]').textContent = last.link && next ? `${cap(last.link)} → ${next.cue}` : '';
+      // One myth check per place, on its first stage.
+      const myth = q('[data-myth]');
+      myth.hidden = !it.check;
+      if (it.check) {
+        const flip = Math.random() < 0.5;
+        const opts = flip ? [it.check.wrong, it.check.right] : [it.check.right, it.check.wrong];
+        myth.querySelectorAll<HTMLButtonElement>('[data-opt]').forEach((btn, k) => {
+          btn.textContent = opts[k];
+          btn.dataset.right = String((k === 0) !== flip);
+          btn.disabled = false;
+          btn.removeAttribute('data-picked');
+        });
+        q('[data-verdict]').textContent = '';
+        myth.dataset.stage = String(idx[0]);
+      }
     });
-    resetTest();
+    world?.setItems(stops.map((idx) => (idx.length ? d.items[idx[0]].cue : '')));
+    $$('[data-ready] button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.concept === d.id)));
+    resetDoor();
+    if (walk) scrollTo(stationY(1) + 2);
   };
-  carry.value = CARRY[0].items.join(', ');
-  presets.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-preset]');
-    if (!b) return;
-    const p = CARRY[Number(b.dataset.preset)];
-    carry.value = p.items.join(', ');
-    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    setCarried(p.items);
+  root.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-opt]');
+    if (!btn || btn.disabled) return;
+    const myth = btn.closest<HTMLElement>('[data-myth]')!;
+    const right = btn.dataset.right === 'true';
+    myth.querySelectorAll<HTMLButtonElement>('[data-opt]').forEach((o) => {
+      o.disabled = true;
+      o.dataset.picked = o === btn ? (right ? 'right' : 'wrong') : o.dataset.right === 'true' ? 'answer' : '';
+    });
+    const it = concept.items[Number(myth.dataset.stage)];
+    myth.querySelector('[data-verdict]')!.textContent = right ? 'Right. Most people get that one wrong.' : `That one is a common myth. ${it.check?.right ?? ''}`;
+    checked[Number(myth.dataset.stage)] = right;
+    chime(right ? 'good' : 'soft');
   });
-  carry.addEventListener('change', () => {
-    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
-    setCarried(carry.value.split(','));
-  });
-  const walkIn = () => {
-    setCarried(carry.value.split(','));
-    chime('soft');
-    scrollTo(stationY(1) + 2);
-  };
-  $('[data-walk]').addEventListener('click', walkIn);
-  carry.addEventListener('keydown', (e) => e.key === 'Enter' && walkIn());
 
-  /* ---------- the door: what do you remember? */
-  const test = $<HTMLFormElement>('[data-test]');
-  const result = $('[data-result]');
-  function resetTest() {
-    test.reset();
-    $$('[data-mark]').forEach((m) => (m.textContent = ''));
-    $$('[data-guess]').forEach((g) => g.removeAttribute('data-ok'));
-    result.hidden = true;
-    test.closest('.station')?.classList.remove('is-checked');
-  }
-  test.addEventListener('submit', (e) => {
+  const ready = $('[data-ready]');
+  ready.innerHTML = CONCEPTS.map((d) => `<button type="button" data-concept="${d.id}" aria-pressed="false">${esc(SHORT[d.id] ?? d.title)}</button>`).join('');
+  ready.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-concept]');
+    const d = b && CONCEPTS.find((c) => c.id === b.dataset.concept);
+    if (!d) return;
+    askStatus.textContent = `${d.title}: ${d.items.length} stages. Walk on to begin.`;
+    showConcept(d, true);
+    chime('soft');
+  });
+
+  const ask = $<HTMLFormElement>('[data-ask]');
+  const askInput = $<HTMLInputElement>('[data-ask-input]');
+  const askGo = $<HTMLButtonElement>('[data-ask-go]');
+  const askStatus = $('[data-ask-status]');
+  ask.addEventListener('submit', async (e) => {
     e.preventDefault();
-    let right = 0;
-    $$<HTMLInputElement>('[data-guess]').forEach((g, i) => {
-      const ok = close(g.value, carried[i]);
-      if (ok) right++;
-      g.dataset.ok = String(ok);
-      $(`[data-mark="${i}"]`).textContent = ok ? 'Yes' : `It was ${carried[i]}`;
-    });
+    const topic = askInput.value.trim();
+    if (!topic) {
+      askStatus.textContent = 'Type a question, or pick one of these.';
+      askInput.focus();
+      return;
+    }
+    askGo.disabled = true;
+    askGo.textContent = 'Thinking';
+    root.classList.add('is-teaching');
+    askStatus.textContent = 'The Palace Architect is working out the stages, the reasons and the myths.';
+    const res = await teachConcept(topic, audience);
+    askGo.disabled = false;
+    askGo.textContent = 'Teach me';
+    root.classList.remove('is-teaching');
+    if (!res.ok) {
+      askStatus.textContent = res.error;
+      return;
+    }
+    askStatus.textContent = `${res.deck.title}: ${res.deck.items.length} stages, written in ${(res.ms / 1000).toFixed(1)} seconds. The Architect can be wrong, so check anything important.`;
+    built = res.deck;
+    showMemories();
+    choose(res.deck);
+    chime('good');
+    showConcept(res.deck, true);
+  });
+
+  /* ---------- the door: explain it back */
+  const explain = $<HTMLFormElement>('[data-explain]');
+  const explainInput = $<HTMLTextAreaElement>('[data-explain-input]');
+  const explainGo = $<HTMLButtonElement>('[data-explain-go]');
+  const result = $('[data-result]');
+  function resetDoor() {
+    explainInput.value = '';
+    result.hidden = true;
+    explain.closest('.station')?.classList.remove('is-checked');
+    explainInput.placeholder = concept.items[0] ? `Start with ${concept.items[0].cue.toLowerCase()}...` : '';
+  }
+  explain.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = explainInput.value.trim();
+    if (text.length < 12) {
+      result.hidden = false;
+      result.innerHTML = '<p>Write a sentence or two first. Walk back through the places in your mind and say what happens at each one.</p>';
+      return;
+    }
+    explainGo.disabled = true;
+    explainGo.textContent = 'Reading';
+    const stages = concept.items.map((it) => ({ cue: it.cue, answer: it.answer }));
+    const g = await gradeExplanation(concept.title, stages, text);
+    explainGo.disabled = false;
+    explainGo.textContent = 'Check my explanation';
+    const n = stages.length;
+    explain.closest('.station')?.classList.add('is-checked');
     result.hidden = false;
-    test.closest('.station')!.classList.add('is-checked');
-    result.innerHTML = `<p class="result__n">${right} of 5</p>
-      <p>${right >= 4 ? 'That is the method of loci working.' : right >= 2 ? 'A good first walk. The places do more of the work each time you return.' : 'Try one more walk and really picture each scene.'}
-      In your headset, Loci does this with your real furniture, and brings each memory back just before you would forget it.</p>
-      <div class="result__go"><button class="b" type="button" data-enter-now>Enter your palace</button>
-      <button class="b b--line" type="button" data-to-build>Build one for your own things</button></div>`;
-    chime(right >= 4 ? 'good' : 'soft');
-    result.querySelector('[data-enter-now]')?.addEventListener('click', () => enter());
-    result.querySelector('[data-to-build]')?.addEventListener('click', () => scrollTo($('#build')));
+    result.innerHTML = `<p class="result__n">${g.hit.length} of ${n}</p>
+      <p class="result__sub">stages explained${g.via === 'offline' ? ', checked on this device because the Architect is unreachable' : ''}</p>
+      <ol class="stages">${concept.items.map((it, i) => `<li data-hit="${g.hit.includes(i)}"><span>${esc(it.cue)}</span></li>`).join('')}</ol>
+      ${g.misconception ? `<p class="result__myth">Watch out: ${esc(g.misconception)}</p>` : ''}
+      ${g.feedback ? `<p>${esc(g.feedback)}</p>` : ''}
+      <div class="result__go"><button class="b" type="button" data-room-now>Put it in my room</button>
+      <button class="b b--line" type="button" data-to-build>Try your own topic</button></div>`;
+    chime(g.hit.length >= Math.ceil(n * 0.7) ? 'good' : 'soft');
+    result.querySelector('[data-room-now]')?.addEventListener('click', () => {
+      choose(concept);
+      enter();
+    });
+    result.querySelector('[data-to-build]')?.addEventListener('click', () => {
+      scrollTo(0);
+      setTimeout(() => askInput.focus({ preventScroll: true }), 1600);
+    });
   });
-  $('[data-test-reset]').addEventListener('click', () => {
-    resetTest();
-    scrollTo(0);
-    setTimeout(() => carry.focus({ preventScroll: true }), 1600);
-  });
-  setCarried(CARRY[0].items);
+  $('[data-walk-again]').addEventListener('click', () => scrollTo(stationY(1) + 2));
 
   /* ---------- breathe */
   const bEl = $('[data-breathe]');
@@ -769,12 +792,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     choose(built);
   });
   $('[data-walk-deck]').addEventListener('click', () => {
-    if (!chosen) return;
-    const cues = chosen.items.slice(0, 5).map((it) => it.cue);
-    carry.value = cues.join(', ');
-    $$('[data-preset]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
-    setCarried(cues);
-    scrollTo(stationY(1) + 2);
+    if (chosen) showConcept(chosen, true);
   });
   $('[data-copy-link]').addEventListener('click', async () => {
     if (!chosen) return;
@@ -1001,6 +1019,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       built = r.deck;
       showMemories();
       choose(r.deck);
+      showConcept(r.deck);
     });
   }
 
@@ -1029,6 +1048,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   }).observe(root, { attributes: true, attributeFilter: ['hidden'] });
 
   setMode('notes');
+  showConcept(CONCEPTS[0]);
   paintEnter();
   paintPalaces();
   paintSound();
