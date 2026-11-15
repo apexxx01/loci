@@ -127,50 +127,72 @@ kbd { font: 500 11.5px var(--font); color: inherit; opacity: 0.55; margin-left: 
 .open__lede { max-width: 38rem; color: var(--soft); font-size: 18.5px; margin-bottom: 3em; }
 
 /* ------------------------------------------------------------------ hero */
-.s--hero { min-height: 100vh; justify-content: center; text-align: center; padding-top: 120px; padding-bottom: 90px; }
-.hero { max-width: 60rem; display: flex; flex-direction: column; align-items: center; }
+/* Words on the left on clean dark sky, the galaxy on the right. */
+.s--hero { min-height: 100vh; padding-top: 120px; padding-bottom: 150px; align-items: center; }
+.s--hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(4, 4, 10, 0.92) 0%, rgba(4, 4, 10, 0.75) 34%, rgba(4, 4, 10, 0) 62%); }
+.hero { width: min(600px, 52vw); display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.badge { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 26px; padding: 7px 14px 7px 12px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 500; color: #fff; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); }
+.badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
+h1 { font-size: clamp(52px, 6.4vw, 96px); font-weight: 600; letter-spacing: -0.04em; line-height: 0.98; margin-bottom: 0.3em; }
 h1 .line { display: block; }
-h1 .line > span {
-  display: inline-block; opacity: 0; transform: translateY(0.14em); filter: blur(12px);
-  transition: opacity 2s ease, transform 2.2s var(--ease), filter 2s ease;
-  background: linear-gradient(180deg, #ffffff 35%, #e2d9ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-h1 .line:nth-child(2) > span { transition-delay: 0.15s; }
+h1 .line > span { display: inline-block; color: #fff; opacity: 0; transform: translateY(0.14em); filter: blur(12px);
+  transition: opacity 1.6s ease, transform 1.8s var(--ease), filter 1.6s ease; }
+h1 .line:nth-child(2) > span { transition-delay: 0.12s;
+  background: linear-gradient(95deg, #ffffff 10%, #ffd9e6 45%, #d9cfff 75%, #c9eeff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .is-ready h1 .line > span { opacity: 1; transform: none; filter: none; }
-.hero__lede { max-width: 34rem; font-size: clamp(17px, 1.35vw, 19.5px); color: var(--soft); line-height: 1.65; }
-.hero__lede, .whisper, .suggest, .hero__actions, .hero__note, .welcome, .bar, .scroll-cue { opacity: 0; transition: opacity 1.8s ease 0.6s; }
-.is-ready .hero__lede, .is-ready .whisper, .is-ready .suggest, .is-ready .hero__actions, .is-ready .hero__note, .is-ready .welcome, .is-ready .bar, .is-ready .scroll-cue { opacity: 1; }
+.hero__lede { max-width: 33rem; font-size: clamp(17.5px, 1.4vw, 20px); color: rgba(255, 255, 255, 0.84); line-height: 1.6; margin-bottom: 1.6em; }
+.badge, .hero__lede, .whisper, .suggest, .hero__actions, .hero__note, .welcome, .bar, .scroll-cue, .proof { opacity: 0; transition: opacity 1.6s ease 0.5s; }
+.is-ready .badge, .is-ready .hero__lede, .is-ready .whisper, .is-ready .suggest, .is-ready .hero__actions, .is-ready .hero__note,
+.is-ready .welcome, .is-ready .bar, .is-ready .scroll-cue, .is-ready .proof { opacity: 1; }
 
-.whisper { position: relative; width: min(460px, 90vw); margin: 1.4em 0 0; }
-.whisper input { width: 100%; background: none; border: 0; padding: 12px 4px; text-align: center; color: #fff; caret-color: var(--rose); font: 400 17.5px var(--font); }
-.whisper input::placeholder { color: var(--faint); }
+/* The prompt bar: the first thing to try. */
+.whisper { display: flex; align-items: center; gap: 8px; width: min(520px, 100%); padding: 6px 6px 6px 22px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 20px 60px -20px rgba(184, 166, 255, 0.45);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: box-shadow 0.4s, background 0.4s; }
+.whisper:focus-within { background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(184, 166, 255, 0.7), 0 0 0 5px rgba(184, 166, 255, 0.14), 0 20px 70px -16px rgba(255, 180, 205, 0.55); }
+.whisper input { flex: 1; min-width: 0; background: none; border: 0; padding: 12px 0; color: #fff; caret-color: var(--rose); font: 400 16.5px var(--font); }
+.whisper input::placeholder { color: rgba(255, 255, 255, 0.55); }
 .whisper input:focus { outline: none; }
-.whisper::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent); transition: background 0.5s; }
-.whisper:focus-within::after { background: var(--pearl); }
-.suggest { font-size: 13.5px; color: var(--faint); margin: 12px 0 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 14px; }
-.suggest button { cursor: pointer; background: none; border: 0; padding: 0; color: var(--soft); font: 500 13.5px var(--font); text-decoration: underline; text-decoration-color: rgba(255, 255, 255, 0.2); text-underline-offset: 4px; transition: color 0.3s; }
-.suggest button:hover { color: #fff; text-decoration-color: var(--rose); }
-.whisper__said { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 14px; color: var(--soft); margin: 16px 0 0; }
+.whisper .btn { flex: none; }
+.suggest { font-size: 13.5px; color: var(--faint); margin: 14px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.suggest button { cursor: pointer; border: 0; border-radius: 999px; padding: 6px 12px; background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85); font: 500 13px var(--font); transition: background 0.3s, color 0.3s; }
+.suggest button:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.whisper__said { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; color: #fff; margin: 16px 0 0; }
 .whisper__said[hidden] { display: none; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 2em 0 1.4em; }
-.hero__note { font-size: 13.5px; color: var(--faint); margin: 0; max-width: 34rem; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 2.2em 0 1.2em; }
+.hero__note { font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0; }
 .hero__note--warm { color: var(--peach); margin-top: 10px; }
-.welcome { margin-top: 26px; }
-.welcome__line { color: var(--soft); font-size: 15px; margin-bottom: 10px; }
+.welcome { margin-top: 22px; }
+.welcome__line { color: rgba(255, 255, 255, 0.8); font-size: 15px; margin-bottom: 10px; }
 .welcome__line b { color: #fff; font-weight: 600; }
-.welcome__actions { display: flex; gap: 16px; justify-content: center; align-items: center; flex-wrap: wrap; }
-.scroll-cue { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); margin: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 12.5px; color: var(--faint); letter-spacing: 0.02em; }
-.scroll-cue i { width: 1px; height: 40px; background: linear-gradient(transparent, rgba(255, 255, 255, 0.6), transparent); background-size: 100% 200%; animation: fall 2.8s ease-in-out infinite; }
-@keyframes fall { from { background-position: 0 100%; } to { background-position: 0 -100%; } }
-.s--hero:has(.welcome:not([hidden])) .scroll-cue { display: none; }
-@media (max-height: 760px) { .scroll-cue { display: none; } }
+.welcome__actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+/* Three numbers along the foot of the first screen. */
+.proof { position: absolute; left: var(--pad); right: var(--pad); bottom: 36px; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 260px)); gap: 28px; }
+.proof div { padding-left: 16px; box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.22); }
+.proof dt { font: 500 22px/1.1 var(--display); letter-spacing: -0.02em; color: #fff; margin-bottom: 6px; }
+.proof dd { margin: 0; font-size: 13.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.66); }
+.scroll-cue { display: none; }
+@media (max-height: 760px) { .proof { display: none; } }
 
 /* While the sky writes your words, everything else steps back. */
-.is-whispering .hero h1, .is-whispering .hero__lede, .is-whispering .suggest, .is-whispering .hero__actions, .is-whispering .hero__note, .is-whispering .welcome {
+.is-whispering .badge, .is-whispering .hero h1, .is-whispering .hero__lede, .is-whispering .suggest, .is-whispering .hero__actions,
+.is-whispering .hero__note, .is-whispering .welcome, .is-whispering .proof, .is-whispering .s--hero::before {
   opacity: 0 !important; pointer-events: none; transition: opacity 1s ease;
 }
-.whisper, .whisper__said { transition: transform 1.3s var(--ease), opacity 1.8s ease 0.6s; }
-.is-whispering .whisper, .is-whispering .whisper__said { transform: translateY(26vh); }
+.whisper, .whisper__said { transition: transform 1.3s var(--ease), opacity 1.6s ease 0.5s, box-shadow 0.4s, background 0.4s; }
+.is-whispering .whisper, .is-whispering .whisper__said { transform: translateY(38vh); }
+.s--hero::before { transition: opacity 1s ease; }
+
+@media (max-width: 900px) {
+  .s--hero { align-items: flex-end; padding-bottom: 60px; }
+  .s--hero::before { background: linear-gradient(0deg, rgba(4, 4, 10, 0.95) 0%, rgba(4, 4, 10, 0.7) 55%, rgba(4, 4, 10, 0) 85%); }
+  .hero { width: 100%; }
+  .proof { display: none; }
+}
 
 /* ------------------------------------------------------------------ figures and star charts */
 .figure { margin: 2.2em 0 1.4em; }

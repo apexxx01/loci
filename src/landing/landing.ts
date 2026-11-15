@@ -113,16 +113,18 @@ const HTML = `
 <div class="thread" aria-hidden="true"><i data-progress></i></div>
 
 <div class="flow" data-flow>
-<section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0" data-clear="1">
+<section class="s s--hero" id="top" data-stage="0" data-shift="0.9" data-dim="0" data-clear="1" data-side="-1">
   <div class="hero">
+    <p class="badge"><i></i>Mixed reality for Meta Quest 3 and 3S</p>
     <h1 id="landing-title"><span class="line"><span>Your room</span></span><span class="line"><span>remembers.</span></span></h1>
-    <p class="hero__lede">A memory palace built from the room you are sitting in. What you want to learn rests on
+    <p class="hero__lede">Loci turns the room you are sitting in into a memory palace. What you want to learn rests on
     your lamp, your shelf, your couch, and comes back just before you would forget it.</p>
     <form class="whisper" data-whisper autocomplete="off">
       <label for="whisper" class="sr-only">Something you want to remember</label>
-      <input id="whisper" name="whisper" maxlength="32" placeholder="Type anything you want to remember" data-whisper-input />
+      <input id="whisper" name="whisper" maxlength="32" placeholder="What do you want to remember?" data-whisper-input />
+      <button class="btn btn--small" type="submit">Write it in the stars</button>
     </form>
-    <p class="suggest" data-suggest>Or try <button type="button">Saturn</button> <button type="button">the Krebs cycle</button>
+    <p class="suggest" data-suggest>Try <button type="button">Saturn</button> <button type="button">the Krebs cycle</button>
       <button type="button">la biblioteca</button> <button type="button">my wedding toast</button></p>
     <p class="whisper__said" data-whisper-said hidden><span data-whisper-line></span>
       <button class="btn btn--small" type="button" data-whisper-build>Build a palace from it</button>
@@ -131,10 +133,15 @@ const HTML = `
       <button class="btn" type="button" data-enter>Enter your palace</button>
       <button class="btn btn--ghost" type="button" data-breathe-open>Take a breath first</button>
     </div>
-    <p class="hero__note" data-device-note>Hands only, sitting down. Meta Quest 3 and 3S, right in the browser.</p>
+    <p class="hero__note" data-device-note>Hands only, sitting down, right in the headset browser.</p>
     <p class="hero__note hero__note--warm" data-shared hidden></p>
     <div class="welcome" data-returning hidden></div>
   </div>
+  <dl class="proof">
+    <div><dt>9 of 10</dt><dd>memory champions studied used the method of loci</dd></div>
+    <div><dt>26 to 62</dt><dd>words out of 72 after 40 days of practice</dd></div>
+    <div><dt>61% vs 40%</dt><dd>remembered a week later by testing, not rereading</dd></div>
+  </dl>
   <p class="scroll-cue" aria-hidden="true"><span>Scroll slowly</span><i></i></p>
 </section>
 
@@ -493,7 +500,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       const b = sections[i + 1];
       const mix = (k: string) => num(a, k) + (num(b, k) - num(a, k)) * t;
       labelsOn = mix('labels');
-      if (!breathing) scene?.set({ progress: mix('stage'), tiles: mix('tiles'), shift: mix('shift'), dim: mix('dim'), clear: written ? 0 : mix('clear'), clearSide: mix('side') });
+      if (!breathing) scene?.set({ progress: mix('stage'), tiles: mix('tiles'), shift: written ? 0 : mix('shift'), dim: mix('dim'), clear: written ? 0 : mix('clear'), clearSide: mix('side') });
       const max = root.scrollHeight - vh;
       progressBar.style.transform = `scaleY(${max > 0 ? root.scrollTop / max : 0})`;
       root.classList.toggle('is-scrolled', root.scrollTop > 40);
@@ -1264,7 +1271,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   const noXR = () => {
     hasXR = false;
     $('[data-device-note]').textContent =
-      'No headset here? Everything below still works on this screen, and sends to a Quest 3 or 3S when you have one.';
+      'No headset here? Everything below still works on this screen.';
     paintEnter();
   };
   if (!xr) noXR();
