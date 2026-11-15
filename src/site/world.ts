@@ -1,30 +1,24 @@
 /**
- * The palace you walk through on the website.
- *
- * A palace of light floating in open space: a colonnade of luminous arches
- * over a mirror floor, a sky that runs from deep indigo to a rose and gold
- * horizon, and six places along the walk (a gate, a fountain, a lantern
- * grove, a stair, a moon pool and a door). As you scroll, the camera walks
- * from place to place, and the five things you chose to carry in appear
- * where you leave them. It is the method of loci, done on the page itself.
+ * The room on the website: a living room at night, drawn in fine lines of
+ * light, the way Loci sees your own room. As you scroll, one thread of gold
+ * draws itself from the couch to the lamp, the shelf, the window, the armchair
+ * and the door. Each object lights up as the thread reaches it, and the stage
+ * that rests there appears above it. The thread is the same one that joins
+ * stages across your real furniture in the headset.
  */
 import {
   AdditiveBlending,
-  BackSide,
   BoxGeometry,
   BufferGeometry,
   CanvasTexture,
   CatmullRomCurve3,
-  CircleGeometry,
   Color,
   CylinderGeometry,
   EdgesGeometry,
   Float32BufferAttribute,
   Group,
-  LineBasicMaterial,
   LineSegments,
   Mesh,
-  MeshBasicMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Points,
@@ -34,55 +28,61 @@ import {
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
-  TorusGeometry,
+  TubeGeometry,
   Vector2,
   Vector3,
   WebGLRenderer,
-  type Material,
-  type Object3D,
+  type BufferGeometry as Geo,
 } from '@iwsdk/core';
 
 export interface Station {
   id: string;
-  /** How the place is named in the page and in the recall at the door. */
+  /** How the place is named on the page. */
   name: string;
-  z: number;
   /** -1 object on the left (text right), 1 object on the right (text left), 0 centred. */
   side: number;
 }
 
 export const STATIONS: Station[] = [
-  { id: 'approach', name: 'the approach', z: 16, side: 0 },
-  { id: 'gate', name: 'the gate', z: 0, side: 1 },
-  { id: 'fountain', name: 'the fountain', z: -18, side: -1 },
-  { id: 'lanterns', name: 'the lantern grove', z: -36, side: 1 },
-  { id: 'stair', name: 'the stair', z: -54, side: -1 },
-  { id: 'pool', name: 'the moon pool', z: -72, side: 1 },
-  { id: 'door', name: 'the door', z: -90, side: 0 },
+  { id: 'room', name: 'the doorway', side: 0 },
+  { id: 'couch', name: 'the couch', side: -1 },
+  { id: 'lamp', name: 'the lamp', side: -1 },
+  { id: 'shelf', name: 'the shelf', side: -1 },
+  { id: 'window', name: 'the window', side: 1 },
+  { id: 'chair', name: 'the armchair', side: 1 },
+  { id: 'door', name: 'the far door', side: 0 },
 ];
 
-/** Where each carried thing rests (stations 1 to 5). */
-const ITEM_HEIGHT = [0, 4.9, 4.6, 4.3, 4.9, 3.9];
-
 export interface World {
-  /** 0 at the approach, 6 at the door, 7 risen above the palace. */
+  /** 0 at the doorway, 6 at the far door, 7 looking down over the whole room. */
   setProgress(p: number): void;
-  /** The five things to carry in; they appear as you reach their places. */
+  /** The stage names resting on the five objects. */
   setItems(items: string[]): void;
   /** 0..1, used by the breathing minute. */
   breathe(v: number): void;
-  /** 0..1, quiet the palace behind dense reading. */
+  /** 0..1, quiet the room behind dense reading. */
   setDim(v: number): void;
   setActive(on: boolean): void;
-  /** Screen position of each carried thing, for accessible labels. */
   ready: Promise<void>;
 }
 
-const GOLD = new Color('#ffd99c');
-const ROSE = new Color('#ffb7d0');
-const LILAC = new Color('#c7b8ff');
-const CYAN = new Color('#a9e9ff');
-const PEARL = new Color('#fff4e6');
+const GOLD = new Color('#ffcf7a');
+const PEARL = new Color('#fff1d6');
+const LILAC = new Color('#b9a8ff');
+
+/** Where the thread touches each object, in walk order (couch .. far door). */
+const NODES = [
+  new Vector3(-3.2, 0.95, 0.55),
+  new Vector3(-4.55, 1.72, -1.85),
+  new Vector3(-2.75, 1.65, -3.95),
+  new Vector3(1.55, 1.75, -4.3),
+  new Vector3(3.85, 1.15, -1.75),
+  new Vector3(5.75, 1.3, 2.35),
+];
+const START = new Vector3(0.7, 1.05, 6.2);
+
+const smooth = (t: number) => t * t * (3 - 2 * t);
+const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
 
 function rng(seed: number) {
   let a = seed >>> 0;
@@ -94,136 +94,110 @@ function rng(seed: number) {
   };
 }
 
-const smooth = (t: number) => t * t * (3 - 2 * t);
-
 /* ------------------------------------------------------------------ shaders */
-const SKY_VERT = /* glsl */ `
-  varying vec3 vDir;
-  void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
-const SKY_FRAG = /* glsl */ `
+// Furniture and walls: near-black surfaces lit softly by the moon and warmly by the thread.
+const SOLID_VERT = /* glsl */ `
+  varying vec3 vW; varying vec3 vN;
+  void main(){ vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; vN = normalize(mat3(modelMatrix) * normal);
+    gl_Position = projectionMatrix * viewMatrix * w; }`;
+const WARMTH = /* glsl */ `
+  uniform vec3 uNodes[6]; uniform float uReach[6]; uniform vec3 uHead; uniform float uHeadOn, uDim, uBreath;
+  float warmth(vec3 p){
+    float w = 0.;
+    for (int i = 0; i < 6; i++) { vec3 d = p - uNodes[i]; w += uReach[i] * exp(-dot(d, d) * .55); }
+    vec3 h = p - uHead; w += uHeadOn * exp(-dot(h, h) * 1.4) * 1.3;
+    return w * (1. + uBreath * .35);
+  }`;
+const SOLID_FRAG = /* glsl */ `
   precision highp float;
-  varying vec3 vDir; uniform float uTime, uBreath, uDim, uRise;
+  varying vec3 vW; varying vec3 vN;
+  ${WARMTH}
+  void main(){
+    float moon = max(0., dot(vN, normalize(vec3(.35, .55, .9)))) * .5 + max(0., vN.y) * .25;
+    float w = warmth(vW);
+    vec3 col = vec3(.035, .028, .075) + vec3(.07, .06, .14) * moon + vec3(1., .74, .42) * w * .16;
+    gl_FragColor = vec4(col * (1. - uDim * .5), 1.);
+  }`;
+const LINE_FRAG = /* glsl */ `
+  precision highp float;
+  varying vec3 vW; varying vec3 vN;
+  uniform vec3 uGold, uLilac;
+  ${WARMTH}
+  void main(){
+    float w = clamp(warmth(vW), 0., 1.6);
+    vec3 col = mix(uLilac * .42, uGold * 1.25, clamp(w, 0., 1.));
+    gl_FragColor = vec4(col, (.26 + w * .7) * (1. - uDim * .55));
+  }`;
+
+// The thread: drawn up to uDraw, with a bright head and light flowing along it.
+const THREAD_VERT = /* glsl */ `
+  varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+  void main(){ vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.); vN = normalize(normalMatrix * normal); vV = -mv.xyz;
+    gl_Position = projectionMatrix * mv; }`;
+const THREAD_FRAG = /* glsl */ `
+  precision highp float;
+  varying vec2 vUv; varying vec3 vN; varying vec3 vV;
+  uniform float uDraw, uTime, uDim, uBreath, uCalm;
+  uniform vec3 uGold, uPearl;
+  void main(){
+    float t = vUv.x;
+    if (t > uDraw) discard;
+    float facing = abs(dot(normalize(vN), normalize(vV)));
+    float core = pow(facing, 1.6);
+    float flow = (1. - uCalm) * pow(.5 + .5 * sin((t * 70. - uTime * 2.2)), 8.) * .6;
+    float head = exp(-pow((uDraw - t) * 60., 2.)) * step(.001, uDraw) * step(uDraw, .999);
+    float tail = smoothstep(0., .02, t) * smoothstep(.8, 2.6, length(vV));
+    vec3 col = mix(uGold, uPearl, core * .6 + head);
+    float a = (core * .85 + flow + head * 2.) * tail * (1. - uDim * .45) * (1. + uBreath * .4);
+    gl_FragColor = vec4(col * (1. + head * 2.), a);
+  }`;
+
+// The night outside the window.
+const NIGHT_FRAG = /* glsl */ `
+  precision highp float;
+  varying vec2 vUv; uniform float uTime, uDim;
   float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-  float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
-    return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
-  float fbm(vec2 p){ float v = 0., a = .5; for(int i = 0; i < 5; i++){ v += a * n(p); p = p * 2.07 + 9.3; a *= .5; } return v; }
   void main(){
-    // Below the horizon the sky is seen again, mirrored in the still floor.
-    float below = step(vDir.y, 0.);
-    float y = abs(vDir.y);
-    float az = atan(vDir.x, -vDir.z);
-    // Noise is sampled around a circle, not along the angle, so the sky has no seam behind you.
-    vec2 ring = normalize(vDir.xz + vec2(1e-5));
-    // From deep indigo overhead, through violet, to a rose and gold horizon.
-    vec3 top = vec3(.025, .022, .09), mid = vec3(.09, .06, .24), hor = vec3(.62, .36, .55), gold = vec3(1., .78, .5);
-    vec3 col = mix(mid, top, smoothstep(.0, .55, y));
-    col = mix(col, hor, exp(-max(y, 0.) * 9.) * .75);
-    col += gold * exp(-abs(y) * 26.) * .35 * (1. + .25 * sin(az * 2. + uTime * .05));
-    // A milky band of stars and dust arching across the sky.
-    float band = exp(-pow((y - .32 - .18 * sin(az * 1.0 + .6)), 2.) * 30.);
-    float dust = fbm(ring * 1.6 + vec2(y * 6., -y * 3.) + uTime * .004);
-    col += mix(LILAC_C, vec3(1., .82, .9), dust) * band * dust * .32;
-    // Aurora curtains low in the sky, drifting.
-    float t = uTime * .03;
-    float curtain = fbm(ring * 2. + vec2(t, t * .5));
-    float ay = y - .1 - curtain * .14;
-    float aur = exp(-ay * ay * 140.) * smoothstep(.0, .05, y) * (.5 + .5 * fbm(ring * 7. + vec2(y * 20., -t * 3.)));
-    vec3 aurCol = mix(vec3(.55, 1., .86), vec3(.78, .66, 1.), .5 + .5 * sin(az * 3. + t * 4.));
-    col += aurCol * aur * .55;
-    // Below the horizon: the deep, reflective dark beneath the palace.
-    vec3 mirrored = col * mix(1., .5, smoothstep(.0, .05, y));
-    col = mix(col, mix(mirrored, vec3(.03, .02, .07), smoothstep(.02, .4, y)), below);
-    col *= (1. + uBreath * .35) * (1. - uDim * .55);
-    gl_FragColor = vec4(col, 1.);
-  }`.replace('LILAC_C', 'vec3(.78, .72, 1.)');
-
-const STAR_VERT = /* glsl */ `
-  attribute float aSeed; attribute float aSize; uniform float uTime, uPx; varying float vA; varying float vSeed;
-  void main(){
-    vec4 mv = modelViewMatrix * vec4(position, 1.);
-    gl_Position = projectionMatrix * mv;
-    float tw = .55 + .45 * sin(uTime * (.6 + aSeed * 2.2) + aSeed * 60.);
-    vA = tw; vSeed = aSeed;
-    gl_PointSize = aSize * uPx * (.7 + tw * .5);
-  }`;
-const STAR_FRAG = /* glsl */ `
-  precision mediump float; varying float vA; varying float vSeed; uniform float uDim;
-  void main(){
-    float d = length(gl_PointCoord - .5);
-    float a = smoothstep(.5, .0, d); a *= a;
-    vec3 c = mix(vec3(1., .92, .86), vec3(.82, .86, 1.), vSeed);
-    gl_FragColor = vec4(c, a * vA * (1. - uDim * .5));
+    vec2 uv = vUv;
+    vec3 col = mix(vec3(.10, .07, .26), vec3(.02, .02, .08), uv.y);
+    col += vec3(.45, .22, .4) * pow(1. - uv.y, 6.) * .35;
+    vec2 g = floor(uv * vec2(90., 70.)); float s = h(g);
+    float tw = .55 + .45 * sin(uTime * (1. + s * 2.) + s * 40.);
+    col += vec3(1.) * step(.985, s) * tw * .9 * smoothstep(.15, .5, uv.y);
+    vec2 m = (uv - vec2(.7, .72)) * vec2(1.35, 1.);
+    float d = length(m);
+    col += vec3(1., .96, .88) * smoothstep(.075, .068, d) + vec3(.8, .72, 1.) * exp(-d * 9.) * .45;
+    gl_FragColor = vec4(col * (1. - uDim * .4), 1.);
   }`;
 
-/** Motes: slow, warm dust drifting along the walk. */
 const MOTE_VERT = /* glsl */ `
-  attribute float aSeed; uniform float uTime, uPx; varying float vA; varying vec3 vC;
+  attribute float aSeed; uniform float uTime, uPx;
+  varying float vA;
   void main(){
     vec3 p = position;
-    p.y += sin(uTime * .25 + aSeed * 40.) * .35;
-    p.x += cos(uTime * .2 + aSeed * 23.) * .25;
+    p.y += sin(uTime * .25 + aSeed * 20.) * .18;
+    p.x += cos(uTime * .2 + aSeed * 13.) * .15;
     vec4 mv = modelViewMatrix * vec4(p, 1.);
+    vA = .25 + .75 * (.5 + .5 * sin(uTime * (.6 + aSeed) + aSeed * 30.));
+    gl_PointSize = uPx * (.6 + aSeed) / -mv.z;
+    vA *= smoothstep(.6, 2.5, -mv.z);
     gl_Position = projectionMatrix * mv;
-    float near = smoothstep(3., 8., -mv.z) * (1. - smoothstep(40., 70., -mv.z));
-    vA = near * (.4 + .6 * sin(uTime * (1. + aSeed) + aSeed * 30.) * .5 + .3);
-    vC = mix(vec3(1., .85, .62), vec3(.8, .74, 1.), fract(aSeed * 7.));
-    gl_PointSize = uPx * (.9 + aSeed) * 2.6 / -mv.z;
   }`;
 const MOTE_FRAG = /* glsl */ `
-  precision mediump float; varying float vA; varying vec3 vC; uniform float uDim;
-  void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, .0, d); gl_FragColor = vec4(vC, a * a * vA * (1. - uDim * .6)); }`;
+  precision mediump float; varying float vA; uniform float uDim;
+  void main(){ float d = length(gl_PointCoord - .5); if (d > .5) discard;
+    gl_FragColor = vec4(vec3(1., .9, .75), (1. - d * 2.) * vA * .5 * (1. - uDim * .6)); }`;
 
-/** The fountain: drops of light thrown up and falling back, forever. */
-const FOUNT_VERT = /* glsl */ `
-  attribute float aSeed; attribute float aAng; uniform float uTime, uPx; varying float vA; varying vec3 vC;
-  void main(){
-    float life = fract(uTime * .32 + aSeed);
-    float sp = 1.6 + fract(aSeed * 13.) * .9;
-    vec3 p = vec3(cos(aAng) * sp * life * .9, (sp * 2.6) * life - 4.2 * life * life, sin(aAng) * sp * life * .9);
-    vec4 mv = modelViewMatrix * vec4(p, 1.);
-    gl_Position = projectionMatrix * mv;
-    vA = smoothstep(.0, .08, life) * (1. - smoothstep(.75, 1., life)) * step(-.2, p.y);
-    vC = mix(vec3(.66, .93, 1.), vec3(1., .8, .92), fract(aSeed * 5.));
-    gl_PointSize = uPx * (1.2 + fract(aSeed * 3.)) * 1.6 / -mv.z;
-  }`;
+const BASIC_VERT = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
 
-/** The floor: a dark mirror with fine lines of light and a glowing path. */
-const FLOOR_VERT = /* glsl */ `
-  varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
-const FLOOR_FRAG = /* glsl */ `
-  precision highp float; varying vec3 vW; uniform vec3 uCam; uniform float uTime, uDim;
-  float line(float x, float w){ float f = abs(fract(x) - .5); return smoothstep(w, 0., .5 - f); }
-  void main(){
-    float dist = length(vW.xz - uCam.xz);
-    float fade = exp(-dist * .035);
-    float grid = max(line(vW.x / 3., .012), line(vW.z / 3., .012)) * .22;
-    float path = exp(-vW.x * vW.x * .9) * (.5 + .5 * sin(vW.z * .6 - uTime * .8)) * .25 + exp(-vW.x * vW.x * 6.) * .2;
-    vec3 col = vec3(.78, .72, 1.) * grid + vec3(1., .85, .6) * path;
-    // Partly transparent, so the reflections beneath show through like water.
-    // and fading out toward the horizon so the floor meets the sky without a seam.
-    float a = (.74 - fade * .12) * smoothstep(150., 30., dist);
-    gl_FragColor = vec4(col * fade * (1. - uDim * .5), a);
-  }`;
-
-const DOOR_FRAG = /* glsl */ `
-  precision mediump float; varying vec2 vUv; uniform float uTime, uOpen;
-  void main(){
-    float edge = smoothstep(.0, .25, vUv.x) * smoothstep(1., .75, vUv.x);
-    float glow = edge * (.35 + .65 * vUv.y) * (.8 + .2 * sin(uTime * 1.3 + vUv.y * 9.));
-    vec3 c = mix(vec3(1., .86, .66), vec3(1., .96, .9), vUv.y);
-    gl_FragColor = vec4(c, glow * (.35 + uOpen * .5));
-  }`;
-const UV_VERT = /* glsl */ `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`;
-
-/* ------------------------------------------------------------------ textures */
 function haloTexture(): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = c.height = 128;
   const g = c.getContext('2d')!;
   const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(255,255,255,1)');
-  gr.addColorStop(0.2, 'rgba(255,255,255,0.45)');
-  gr.addColorStop(0.55, 'rgba(255,255,255,0.08)');
+  gr.addColorStop(0.18, 'rgba(255,255,255,0.45)');
+  gr.addColorStop(0.5, 'rgba(255,255,255,0.08)');
   gr.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = gr;
   g.fillRect(0, 0, 128, 128);
@@ -232,34 +206,36 @@ function haloTexture(): CanvasTexture {
   return t;
 }
 
-function wordTexture(text: string, sub: string): { tex: CanvasTexture; aspect: number } {
+function labelTexture(text: string, sub: string): { tex: CanvasTexture; aspect: number } {
   const c = document.createElement('canvas');
   const g = c.getContext('2d')!;
-  const font = '600 92px "Lexend Variable", "Lexend", system-ui, sans-serif';
-  const subFont = '400 40px "Lexend Variable", "Lexend", system-ui, sans-serif';
+  const font = '400 84px "Marcellus", Georgia, serif';
+  const subFont = '500 36px "Lexend Variable", "Lexend", system-ui, sans-serif';
   g.font = font;
-  const w = Math.max(g.measureText(text).width, (g.font = subFont, g.measureText(sub).width)) + 140;
-  c.width = Math.min(2048, Math.ceil(w));
-  c.height = 260;
+  const tw = g.measureText(text).width;
+  g.font = subFont;
+  const sw = g.measureText(sub).width;
+  c.width = Math.min(2048, Math.ceil(Math.max(tw, sw) + 120));
+  c.height = 230;
   const ctx = c.getContext('2d')!;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = font;
-  ctx.shadowColor = 'rgba(255,214,160,0.95)';
-  ctx.shadowBlur = 34;
-  ctx.fillStyle = '#fffaf2';
-  ctx.fillText(text, c.width / 2, 108);
-  ctx.shadowBlur = 0;
-  ctx.fillText(text, c.width / 2, 108);
   ctx.font = subFont;
-  ctx.fillStyle = 'rgba(236,228,255,0.8)';
-  ctx.fillText(sub, c.width / 2, 206);
+  ctx.fillStyle = 'rgba(255, 207, 122, 0.95)';
+  ctx.fillText(sub, c.width / 2, 48);
+  ctx.font = font;
+  ctx.shadowColor = 'rgba(255, 200, 140, 0.9)';
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = '#fff6ea';
+  ctx.fillText(text, c.width / 2, 148);
+  ctx.shadowBlur = 0;
+  ctx.fillText(text, c.width / 2, 148);
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
   return { tex: t, aspect: c.width / c.height };
 }
 
-/* ------------------------------------------------------------------ the world */
+/* ------------------------------------------------------------------ the room */
 export function createWorld(canvas: HTMLCanvasElement): World | null {
   let renderer: WebGLRenderer;
   try {
@@ -270,331 +246,327 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
   const lowPower = /OculusBrowser|Quest|Android|iPhone/i.test(navigator.userAgent) && !/[?&]full\b/.test(location.search);
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPower ? 1.25 : 2));
-  renderer.setClearColor(0x07061c, 1);
+  renderer.setClearColor(0x06050f, 1);
 
   const scene = new Scene();
-
-  const camera = new PerspectiveCamera(52, 1, 0.1, 900);
-  const r = rng(1729);
+  const camera = new PerspectiveCamera(50, 1, 0.05, 120);
   const halo = haloTexture();
-  const disposables: { dispose(): void }[] = [halo];
 
-  // The floor's reflections live in their own group, mirrored below y = 0.
-  const world = new Group();
-  const mirror = new Group();
-  mirror.scale.y = -1;
-  scene.add(mirror, world);
+  const shared = {
+    uNodes: { value: NODES },
+    uReach: { value: [0, 0, 0, 0, 0, 0] },
+    uHead: { value: new Vector3(0, -50, 0) },
+    uHeadOn: { value: 0 },
+    uDim: { value: 0 },
+    uBreath: { value: 0 },
+    uGold: { value: GOLD },
+    uLilac: { value: LILAC },
+  };
+  const solidMat = new ShaderMaterial({ vertexShader: SOLID_VERT, fragmentShader: SOLID_FRAG, uniforms: shared });
+  const lineMat = new ShaderMaterial({
+    vertexShader: SOLID_VERT,
+    fragmentShader: LINE_FRAG,
+    uniforms: shared,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
 
-  const glowMats: { m: Material & { opacity: number }; base: number }[] = [];
-  const lineMat = (color: Color, opacity: number) => {
-    const m = new MeshBasicMaterial({ color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false });
-    glowMats.push({ m, base: opacity });
+  const room = new Group();
+  scene.add(room);
+  const geos: Geo[] = [];
+  /** A solid piece with its outline drawn in light. */
+  const piece = (geo: Geo, x: number, y: number, z: number, ry = 0, outline = true, parent: Group = room): Mesh => {
+    geos.push(geo);
+    const m = new Mesh(geo, solidMat);
+    m.position.set(x, y, z);
+    m.rotation.y = ry;
+    parent.add(m);
+    if (outline) {
+      const eg = new EdgesGeometry(geo, 25);
+      geos.push(eg);
+      const l = new LineSegments(eg, lineMat);
+      l.position.copy(m.position);
+      l.rotation.copy(m.rotation);
+      l.scale.setScalar(1.002);
+      parent.add(l);
+    }
     return m;
   };
-  /** Add a luminous object, and its faint reflection in the floor. */
-  const place = (o: Object3D, reflect = !lowPower) => {
-    world.add(o);
-    if (reflect) {
-      const copy = o.clone(true);
-      copy.traverse((c) => {
-        const mesh = c as Mesh;
-        if (mesh.material && !Array.isArray(mesh.material)) {
-          const mm = (mesh.material as Material).clone() as Material & { opacity?: number };
-          if (mm.opacity !== undefined) mm.opacity *= 0.28;
-          mesh.material = mm;
-        }
-      });
-      mirror.add(copy);
+  const box = (w: number, h: number, d: number, x: number, y: number, z: number, ry = 0, outline = true, parent: Group = room) =>
+    piece(new BoxGeometry(w, h, d), x, y + h / 2, z, ry, outline, parent);
+
+  /* ---------- the shell: floor, three walls, skirting lines */
+  const W = 12.4, D = 10, H = 3.3, back = -4.6, front = 5.4;
+  piece(new PlaneGeometry(W, D).rotateX(-Math.PI / 2), 0, 0, (back + front) / 2, 0, false);
+  piece(new PlaneGeometry(W, H).translate(0, H / 2, 0), 0, 0, back, 0, false);
+  piece(new PlaneGeometry(D, H).translate(0, H / 2, 0), -W / 2, 0, (back + front) / 2, Math.PI / 2, false);
+  piece(new PlaneGeometry(D, H).translate(0, H / 2, 0), W / 2, 0, (back + front) / 2, -Math.PI / 2, false);
+  {
+    // Room edges: where walls meet the floor and each other.
+    const pts = [
+      [-W / 2, 0, back, W / 2, 0, back], [-W / 2, 0, back, -W / 2, 0, front], [W / 2, 0, back, W / 2, 0, front],
+      [-W / 2, 0, back, -W / 2, H, back], [W / 2, 0, back, W / 2, H, back],
+      [-W / 2, H, back, W / 2, H, back],
+    ].flat();
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pts, 3));
+    g.setAttribute('normal', new Float32BufferAttribute(new Array(pts.length).fill(0).map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+    geos.push(g);
+    room.add(new LineSegments(g, lineMat));
+  }
+  // A rug under the coffee table.
+  piece(new CylinderGeometry(1.9, 1.9, 0.02, 64), -0.6, 0.01, -0.6);
+  box(1.3, 0.38, 0.7, -0.6, 0, -0.6);
+
+  /* ---------- 1 the couch */
+  {
+    const g = new Group();
+    g.position.set(-3.2, 0, 0.55);
+    g.rotation.y = Math.PI / 2;
+    room.add(g);
+    box(2.3, 0.42, 0.95, 0, 0.08, 0, 0, true, g);
+    box(2.3, 0.62, 0.24, 0, 0.3, -0.42, 0, true, g);
+    box(0.24, 0.55, 0.95, -1.1, 0.08, 0, 0, true, g);
+    box(0.24, 0.55, 0.95, 1.1, 0.08, 0, 0, true, g);
+    box(0.95, 0.14, 0.7, -0.5, 0.5, 0.05, 0, true, g);
+    box(0.95, 0.14, 0.7, 0.5, 0.5, 0.05, 0, true, g);
+  }
+  /* ---------- 2 the lamp */
+  piece(new CylinderGeometry(0.22, 0.26, 0.05, 32), -4.55, 0.025, -1.85);
+  piece(new CylinderGeometry(0.018, 0.018, 1.55, 8), -4.55, 0.8, -1.85, 0, false);
+  const shadeGeo = new CylinderGeometry(0.2, 0.33, 0.38, 40, 1, true);
+  piece(shadeGeo, -4.55, 1.72, -1.85);
+  /* ---------- 3 the shelf */
+  {
+    const x = -2.75, z = -4.32;
+    box(1.5, 2.3, 0.04, x, 0, z - 0.17, 0);
+    box(0.05, 2.3, 0.38, x - 0.73, 0, z, 0);
+    box(0.05, 2.3, 0.38, x + 0.73, 0, z, 0);
+    const r = rng(7);
+    for (let s = 0; s < 5; s++) {
+      const y = 0.05 + s * 0.52;
+      box(1.46, 0.035, 0.38, x, y, z, 0);
+      if (s === 4) continue;
+      let bx = x - 0.66;
+      while (bx < x + 0.6) {
+        const w = 0.04 + r() * 0.05;
+        const h = 0.26 + r() * 0.16;
+        if (r() > 0.18) box(w, h, 0.24, bx + w / 2, y + 0.035, z + 0.02, 0, r() > 0.45);
+        bx += w + 0.008;
+      }
     }
-    return o;
-  };
-  const sprite = (color: Color, scale: number, opacity: number) => {
-    const m = new SpriteMaterial({ map: halo, color, transparent: true, opacity, blending: AdditiveBlending, depthWrite: false });
-    glowMats.push({ m, base: opacity });
-    const s = new Sprite(m);
-    s.scale.set(scale, scale, 1);
+  }
+  /* ---------- 4 the window, with the night outside */
+  const nightMat = new ShaderMaterial({ vertexShader: BASIC_VERT, fragmentShader: NIGHT_FRAG, uniforms: { uTime: { value: 0 }, uDim: { value: 0 } } });
+  {
+    const nightGeo = new PlaneGeometry(2.4, 1.7);
+    geos.push(nightGeo);
+    const night = new Mesh(nightGeo, nightMat);
+    night.position.set(1.55, 1.75, back + 0.01);
+    room.add(night);
+    box(2.6, 0.08, 0.22, 1.55, 0.86, back + 0.1);
+    box(2.6, 0.08, 0.12, 1.55, 2.6, back + 0.06);
+    box(0.08, 1.74, 0.12, 0.29, 0.86, back + 0.06);
+    box(0.08, 1.74, 0.12, 2.81, 0.86, back + 0.06);
+    box(0.04, 1.74, 0.06, 1.55, 0.86, back + 0.04, 0, false);
+    // Moonlight falling through it onto the floor.
+    const shaftGeo = new PlaneGeometry(2.6, 4.2);
+    geos.push(shaftGeo);
+    const shaftMat = new ShaderMaterial({
+      vertexShader: BASIC_VERT,
+      fragmentShader: `precision mediump float; varying vec2 vUv; uniform float uDim;
+        void main(){ float a = smoothstep(0., .35, vUv.y) * smoothstep(1., .55, vUv.y) * smoothstep(0., .25, vUv.x) * smoothstep(1., .75, vUv.x);
+          gl_FragColor = vec4(vec3(.6, .58, 1.), a * .07 * (1. - uDim)); }`,
+      uniforms: { uDim: shared.uDim },
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    const shaft = new Mesh(shaftGeo, shaftMat);
+    shaft.rotation.x = -Math.PI / 2;
+    shaft.position.set(1.9, 0.015, back + 2.3);
+    room.add(shaft);
+  }
+  /* ---------- 5 the armchair, and a plant */
+  {
+    const g = new Group();
+    g.position.set(3.85, 0, -1.75);
+    g.rotation.y = -Math.PI / 2 - 0.35;
+    room.add(g);
+    box(1.0, 0.42, 0.9, 0, 0.08, 0, 0, true, g);
+    box(1.0, 0.72, 0.22, 0, 0.3, -0.4, 0, true, g);
+    box(0.2, 0.55, 0.9, -0.5, 0.08, 0, 0, true, g);
+    box(0.2, 0.55, 0.9, 0.5, 0.08, 0, 0, true, g);
+    piece(new CylinderGeometry(0.24, 0.18, 0.5, 24), 5.0, 0.25, -3.4);
+    const r = rng(11);
+    for (let i = 0; i < 9; i++) {
+      const leaf = new SphereGeometry(0.12, 10, 8).scale(0.6, 2.4, 0.25);
+      const a = (i / 9) * Math.PI * 2;
+      const m = piece(leaf, 5.0 + Math.cos(a) * 0.14, 0.82 + r() * 0.25, -3.4 + Math.sin(a) * 0.14, a, false);
+      m.rotation.z = Math.cos(a) * 0.5;
+      m.rotation.x = Math.sin(a) * 0.5;
+    }
+  }
+  /* ---------- 6 the far door, open a crack with warm light behind */
+  const doorGlow = new ShaderMaterial({
+    vertexShader: BASIC_VERT,
+    fragmentShader: `precision mediump float; varying vec2 vUv; uniform float uOpen, uDim;
+      void main(){ float edge = smoothstep(0., .5, vUv.x) * smoothstep(1., .5, vUv.x);
+        gl_FragColor = vec4(vec3(1., .82, .55) * (.4 + uOpen * 1.6), (.18 + uOpen * .75) * (1. - uDim * .4) * (.6 + edge * .4)); }`,
+    uniforms: { uOpen: { value: 0 }, uDim: shared.uDim },
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  {
+    const x = W / 2 - 0.02, z = 2.35;
+    const lightGeo = new PlaneGeometry(0.95, 2.1).translate(0, 1.05, 0);
+    geos.push(lightGeo);
+    const light = new Mesh(lightGeo, doorGlow);
+    light.position.set(x - 0.005, 0, z);
+    light.rotation.y = -Math.PI / 2;
+    room.add(light);
+    box(0.12, 2.2, 0.08, x - 0.05, 0, z - 0.52, 0);
+    box(0.12, 2.2, 0.08, x - 0.05, 0, z + 0.52, 0);
+    box(0.12, 0.08, 1.12, x - 0.05, 2.18, z, 0);
+    box(0.05, 2.1, 0.92, x - 0.38, 0, z + 0.18, 0.75);
+  }
+
+  /* ---------- the thread */
+  const threadPts: Vector3[] = [START];
+  NODES.forEach((n, i) => {
+    const prev = i === 0 ? START : NODES[i - 1];
+    const mid = prev.clone().lerp(n, 0.5);
+    mid.y += 0.55 + prev.distanceTo(n) * 0.06;
+    threadPts.push(mid, n);
+  });
+  const curve = new CatmullRomCurve3(threadPts, false, 'centripetal', 0.5);
+  const tubeGeo = new TubeGeometry(curve, lowPower ? 360 : 720, 0.022, 10, false);
+  geos.push(tubeGeo);
+  const threadMat = new ShaderMaterial({
+    vertexShader: THREAD_VERT,
+    fragmentShader: THREAD_FRAG,
+    uniforms: { uDraw: { value: 0 }, uTime: { value: 0 }, uDim: shared.uDim, uBreath: shared.uBreath, uCalm: { value: calm ? 1 : 0 }, uGold: shared.uGold, uPearl: { value: PEARL } },
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+  const thread = new Mesh(tubeGeo, threadMat);
+  thread.frustumCulled = false;
+  scene.add(thread);
+  // Arc-length position of each node along the thread.
+  const nodeU = NODES.map((n) => {
+    let best = 0, bd = Infinity;
+    const p = new Vector3();
+    for (let i = 0; i <= 600; i++) {
+      curve.getPointAt(i / 600, p);
+      const d = p.distanceToSquared(n);
+      if (d < bd) (bd = d), (best = i / 600);
+    }
+    return best;
+  });
+
+  // A glow where the thread touches each object, and at its moving head.
+  const sprite = (size: number, color: Color) => {
+    const s = new Sprite(new SpriteMaterial({ map: halo, color, transparent: true, depthWrite: false, blending: AdditiveBlending, opacity: 0 }));
+    s.scale.setScalar(size);
+    scene.add(s);
     return s;
   };
+  const nodeGlows = NODES.map((n) => {
+    const s = sprite(0.9, GOLD);
+    s.position.copy(n);
+    return s;
+  });
+  const headGlow = sprite(0.7, PEARL);
+  const lampGlow = sprite(2.6, GOLD);
+  lampGlow.position.set(-4.55, 1.72, -1.85);
 
-  /* ---------- sky */
-  const skyMat = new ShaderMaterial({ vertexShader: SKY_VERT, fragmentShader: SKY_FRAG, side: BackSide, depthWrite: false,
-    uniforms: { uTime: { value: 0 }, uBreath: { value: 0 }, uDim: { value: 0 }, uRise: { value: 0 } } });
-  const sky = new Mesh(new SphereGeometry(500, 48, 32), skyMat);
-  scene.add(sky);
-
-  const starCount = lowPower ? 1400 : 4200;
-  const sp = new Float32Array(starCount * 3), ss = new Float32Array(starCount), sz = new Float32Array(starCount);
-  for (let i = 0; i < starCount; i++) {
-    const u = r() * 2 - 1, th = r() * Math.PI * 2;
-    const y = Math.abs(u) * 0.96 + 0.04;
-    const rr = Math.sqrt(1 - y * y);
-    sp.set([Math.cos(th) * rr * 420, y * 420, Math.sin(th) * rr * 420], i * 3);
-    ss[i] = r();
-    sz[i] = r() < 0.03 ? 3.2 : 0.8 + r() * 1.3;
-  }
-  const starGeo = new BufferGeometry();
-  starGeo.setAttribute('position', new Float32BufferAttribute(sp, 3));
-  starGeo.setAttribute('aSeed', new Float32BufferAttribute(ss, 1));
-  starGeo.setAttribute('aSize', new Float32BufferAttribute(sz, 1));
-  const starMat = new ShaderMaterial({ vertexShader: STAR_VERT, fragmentShader: STAR_FRAG, transparent: true, depthWrite: false, blending: AdditiveBlending,
-    uniforms: { uTime: { value: 0 }, uPx: { value: 1 }, uDim: { value: 0 } } });
-  const stars = new Points(starGeo, starMat);
-  stars.frustumCulled = false;
-  scene.add(stars);
-
-  // A far, pale moon low over the horizon at the end of the walk.
-  const moon = sprite(PEARL, 70, 0.55);
-  moon.position.set(-60, 55, -380);
-  scene.add(moon);
-  // A soft core of light rather than a solid ball, so it reads as a glow, not a disc.
-  const moonCore = sprite(PEARL, 22, 0.95);
-  moonCore.position.copy(moon.position);
-  scene.add(moonCore);
-
-  /* ---------- floor */
-  const floorMat = new ShaderMaterial({ vertexShader: FLOOR_VERT, fragmentShader: FLOOR_FRAG, transparent: true, depthWrite: false,
-    uniforms: { uCam: { value: new Vector3() }, uTime: { value: 0 }, uDim: { value: 0 } } });
-  const floor = new Mesh(new PlaneGeometry(600, 600), floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.renderOrder = 1;
-  scene.add(floor);
-
-  /* ---------- the colonnade: arches of light the length of the walk */
-  const archMat = lineMat(GOLD, 0.55);
-  const pillarMat = lineMat(PEARL, 0.5);
-  const archGeo = new TorusGeometry(5.2, 0.035, 6, 72, Math.PI);
-  const pillarGeo = new CylinderGeometry(0.035, 0.035, 6.5, 6);
-  disposables.push(archGeo, pillarGeo);
-  for (let z = 12; z >= -100; z -= 9) {
-    const g = new Group();
-    const arch = new Mesh(archGeo, archMat);
-    arch.position.set(0, 6.5, 0);
-    g.add(arch);
-    for (const x of [-5.2, 5.2]) {
-      const p = new Mesh(pillarGeo, pillarMat);
-      p.position.set(x, 3.25, 0);
-      g.add(p);
-      const cap = sprite(GOLD, 1.1, 0.7);
-      cap.position.set(x, 6.5, 0);
-      g.add(cap);
-    }
-    const key = sprite(PEARL, 1.6, 0.6);
-    key.position.set(0, 11.7, 0);
-    g.add(key);
-    g.position.z = z;
-    place(g);
-  }
-
-  /* ---------- the places */
-  const stationGroups: Group[] = [];
-  const at = (i: number) => {
-    const s = STATIONS[i];
-    const g = new Group();
-    g.position.set(s.side * 1.9, 0, s.z);
-    stationGroups[i] = g;
-    return g;
-  };
-
-  // 1 The gate: two concentric arches of light, a keystone that rings like a bell.
-  {
-    const g = at(1);
-    for (const [rad, col, op] of [[2.4, GOLD, 0.9], [2.85, ROSE, 0.6]] as const) {
-      const a = new Mesh(new TorusGeometry(rad, 0.05, 8, 80, Math.PI), lineMat(col, op));
-      a.position.y = 2.6;
-      g.add(a);
-      for (const x of [-rad, rad]) {
-        const p = new Mesh(new CylinderGeometry(0.05, 0.05, 2.6, 8), lineMat(col, op));
-        p.position.set(x, 1.3, 0);
-        g.add(p);
-      }
-    }
-    const key = sprite(GOLD, 2.6, 0.95);
-    key.position.y = 5.5;
-    g.add(key);
-    place(g);
-  }
-  // 2 The fountain: a ring of light and a plume of falling drops.
-  const fountainUniforms = { uTime: { value: 0 }, uPx: { value: 1 } };
-  {
-    const g = at(2);
-    for (const [rad, h] of [[1.7, 0.05], [1.2, 0.5]] as const) {
-      const ring = new Mesh(new TorusGeometry(rad, 0.045, 8, 80), lineMat(CYAN, 0.85));
-      ring.rotation.x = Math.PI / 2;
-      ring.position.y = h;
-      g.add(ring);
-    }
-    const n = lowPower ? 500 : 1600;
-    const pos = new Float32Array(n * 3), seed = new Float32Array(n), ang = new Float32Array(n);
-    for (let i = 0; i < n; i++) {
-      seed[i] = r();
-      ang[i] = r() * Math.PI * 2;
-    }
-    const geo = new BufferGeometry();
-    geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
-    geo.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
-    geo.setAttribute('aAng', new Float32BufferAttribute(ang, 1));
-    const m = new ShaderMaterial({ vertexShader: FOUNT_VERT, fragmentShader: MOTE_FRAG.replace('uniform float uDim;', 'uniform float uDim;'), transparent: true, depthWrite: false, blending: AdditiveBlending,
-      uniforms: { ...fountainUniforms, uDim: { value: 0 } } });
-    const plume = new Points(geo, m);
-    plume.position.y = 0.5;
-    plume.frustumCulled = false;
-    g.add(plume);
-    const glow = sprite(CYAN, 5, 0.35);
-    glow.position.y = 1.6;
-    g.add(glow);
-    place(g, false);
-  }
-  // 3 The lantern grove: three slender trees hung with warm lanterns.
-  const lanterns: Sprite[] = [];
-  {
-    const g = at(3);
-    const trunkMat = lineMat(LILAC, 0.55);
-    for (const [x, z, h] of [[-1.4, 0.4, 4.2], [0.2, -0.6, 5], [1.5, 0.5, 3.8]] as const) {
-      const trunk = new Mesh(new CylinderGeometry(0.03, 0.05, h, 6), trunkMat);
-      trunk.position.set(x, h / 2, z);
-      g.add(trunk);
-      for (let k = 0; k < 7; k++) {
-        const a = (k / 7) * Math.PI * 2 + x;
-        const l = sprite(k % 3 === 0 ? ROSE : GOLD, 0.55 + r() * 0.3, 0.95);
-        l.position.set(x + Math.cos(a) * (0.5 + r() * 0.5), h - 0.3 - r() * 1.6, z + Math.sin(a) * (0.5 + r() * 0.4));
-        l.userData.base = l.position.y;
-        l.userData.seed = r() * 10;
-        lanterns.push(l);
-        g.add(l);
-      }
-    }
-    place(g);
-  }
-  // 4 The stair: floating steps of light spiralling up into the air.
-  {
-    const g = at(4);
-    const stepGeo = new BoxGeometry(1.5, 0.08, 0.6);
-    const edges = new EdgesGeometry(stepGeo);
-    const edgeMat = new LineBasicMaterial({ color: GOLD, transparent: true, opacity: 0.85, blending: AdditiveBlending, depthWrite: false });
-    glowMats.push({ m: edgeMat, base: 0.85 });
-    const fillMat = lineMat(LILAC, 0.12);
-    for (let k = 0; k < 11; k++) {
-      const a = k * 0.42;
-      const step = new Group();
-      step.add(new Mesh(stepGeo, fillMat), new LineSegments(edges, edgeMat));
-      step.position.set(Math.cos(a) * 1.3, 0.3 + k * 0.42, Math.sin(a) * 1.3);
-      step.rotation.y = -a;
-      g.add(step);
-    }
-    const top = sprite(GOLD, 2.2, 0.8);
-    top.position.set(Math.cos(4.2) * 1.3, 5.1, Math.sin(4.2) * 1.3);
-    g.add(top);
-    place(g);
-  }
-  // 5 The moon pool: a still disc of water under a small, low moon.
-  let poolMoon: Sprite;
-  {
-    const g = at(5);
-    const water = new Mesh(new CircleGeometry(2.1, 64), lineMat(LILAC, 0.16));
-    water.rotation.x = -Math.PI / 2;
-    water.position.y = 0.04;
-    g.add(water);
-    const rim = new Mesh(new TorusGeometry(2.1, 0.04, 8, 96), lineMat(PEARL, 0.8));
-    rim.rotation.x = Math.PI / 2;
-    rim.position.y = 0.05;
-    g.add(rim);
-    // A small moon made of light: a bright soft core, never a solid disc.
-    poolMoon = sprite(PEARL, 2.2, 1);
-    poolMoon.position.y = 2.6;
-    g.add(poolMoon);
-    const mg = sprite(PEARL, 4.5, 0.6);
-    mg.position.y = 2.6;
-    g.add(mg);
-    place(g);
-  }
-  // 6 The door: a tall frame of light, open a crack, with warm light pouring through.
-  const doorUniforms = { uTime: { value: 0 }, uOpen: { value: 0 } };
-  {
-    const g = at(6);
-    const frame = new Mesh(new BoxGeometry(2.4, 4.4, 0.05), lineMat(GOLD, 0.06));
-    frame.position.y = 2.2;
-    const edgeMat = new LineBasicMaterial({ color: GOLD, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false });
-    glowMats.push({ m: edgeMat, base: 0.95 });
-    const outline = new LineSegments(new EdgesGeometry(new BoxGeometry(2.4, 4.4, 0.05)), edgeMat);
-    outline.position.y = 2.2;
-    const lightMat = new ShaderMaterial({ vertexShader: UV_VERT, fragmentShader: DOOR_FRAG, transparent: true, depthWrite: false, blending: AdditiveBlending, uniforms: doorUniforms });
-    const light = new Mesh(new PlaneGeometry(2.3, 4.3), lightMat);
-    light.position.set(0, 2.2, 0.03);
-    const spill = sprite(GOLD, 9, 0.45);
-    spill.position.set(0, 2.2, 0.5);
-    g.add(frame, outline, light, spill);
-    place(g);
-  }
-
-  /* ---------- motes along the walk */
+  /* ---------- dust in the moonlight */
   let moteMat!: ShaderMaterial;
   {
-    const n = lowPower ? 500 : 1500;
-    const pos = new Float32Array(n * 3), seed = new Float32Array(n);
+    const n = lowPower ? 160 : 420;
+    const r = rng(42);
+    const pos = new Float32Array(n * 3);
+    const seed = new Float32Array(n);
     for (let i = 0; i < n; i++) {
-      pos.set([(r() * 2 - 1) * 9, 0.3 + r() * 8, 22 - r() * 120], i * 3);
+      pos[i * 3] = (r() - 0.5) * W * 0.9;
+      pos[i * 3 + 1] = 0.2 + r() * (H - 0.4);
+      pos[i * 3 + 2] = back + 0.3 + r() * (front - back - 0.6);
       seed[i] = r();
     }
-    const geo = new BufferGeometry();
-    geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
-    geo.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
-    const m = new ShaderMaterial({ vertexShader: MOTE_VERT, fragmentShader: MOTE_FRAG, transparent: true, depthWrite: false, blending: AdditiveBlending,
-      uniforms: { uTime: { value: 0 }, uPx: { value: 1 }, uDim: { value: 0 } } });
-    const motes = new Points(geo, m);
-    motes.frustumCulled = false;
-    scene.add(motes);
-    disposables.push(geo, m);
-    moteMat = m;
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    g.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
+    geos.push(g);
+    moteMat = new ShaderMaterial({
+      vertexShader: MOTE_VERT,
+      fragmentShader: MOTE_FRAG,
+      uniforms: { uTime: { value: 0 }, uPx: { value: 10 }, uDim: shared.uDim },
+      transparent: true,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+    scene.add(new Points(g, moteMat));
   }
 
-  /* ---------- the things you carry in */
-  const items: { s: Sprite; glow: Sprite; t: number; shown: boolean }[] = [];
-  const itemGroup = new Group();
-  world.add(itemGroup);
+  /* ---------- stage names above the objects */
+  const labels: { s: Sprite; t: number }[] = [];
+  let lastList: string[] = [];
+  // Canvas text needs its typefaces loaded first; redraw once they are.
+  void Promise.all(['400 84px "Marcellus"', '500 36px "Lexend Variable"'].map((f) => document.fonts.load(f)))
+    .then(() => lastList.length && setItems(lastList))
+    .catch(() => undefined);
   const setItems = (list: string[]) => {
-    for (const it of items) {
-      (it.s.material as SpriteMaterial).map?.dispose();
-      itemGroup.remove(it.s, it.glow);
+    lastList = list;
+    for (const l of labels) {
+      (l.s.material as SpriteMaterial).map?.dispose();
+      scene.remove(l.s);
     }
-    items.length = 0;
+    labels.length = 0;
     list.slice(0, 5).forEach((text, i) => {
-      const st = STATIONS[i + 1];
-      const { tex, aspect } = wordTexture(text, `rests at ${st.name}`);
+      if (!text) return;
+      const { tex, aspect } = labelTexture(text, `Stage ${i + 1}`);
       const s = new Sprite(new SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0 }));
-      const h = 0.9;
+      const h = 0.5;
       s.scale.set(h * aspect, h, 1);
-      s.position.set(st.side * 1.9, ITEM_HEIGHT[i + 1], st.z + 0.6);
-      const glow = sprite(GOLD, 2.4, 0);
-      glow.position.copy(s.position);
-      itemGroup.add(glow, s);
-      items.push({ s, glow, t: 0, shown: false });
+      s.position.copy(NODES[i]).add(new Vector3(0, 0.62, 0));
+      scene.add(s);
+      labels.push({ s, t: i });
     });
   };
 
-  /* ---------- the walk */
-  const camKeys: Vector3[] = [];
-  const lookKeys: Vector3[] = [];
-  STATIONS.forEach((s, i) => {
-    const x = s.side * 1.9;
-    if (i === 0) {
-      camKeys.push(new Vector3(0, 2.4, s.z + 10));
-      lookKeys.push(new Vector3(0, 4.2, 0));
-    } else {
-      // Stand a little off to one side, so the place sits beside the words.
-      camKeys.push(new Vector3(-s.side * 1.1, 2.3, s.z + 8.6));
-      lookKeys.push(new Vector3(x - s.side * 0.4, 2.7, s.z));
-    }
-  });
-  // Rising above the palace at the end, to look back over the whole walk.
-  camKeys.push(new Vector3(9, 30, -118));
-  lookKeys.push(new Vector3(0, 0, -45));
+  /* ---------- the camera's walk */
+  const camKeys = [
+    new Vector3(0.9, 1.75, 8.2),
+    new Vector3(-0.3, 1.65, 3.6),
+    new Vector3(-1.6, 1.8, 1.4),
+    new Vector3(-0.6, 1.7, -0.6),
+    new Vector3(-0.2, 1.65, -0.9),
+    new Vector3(1.1, 1.7, 1.3),
+    new Vector3(2.2, 1.65, 2.1),
+    new Vector3(0.4, 8.2, 8.6),
+  ];
+  const lookAt = (camPos: Vector3, obj: Vector3, side: number) => {
+    // Keep the object to one side of the frame, leaving room for the words.
+    const dir = obj.clone().sub(camPos).setY(0).normalize();
+    const right = new Vector3(-dir.z, 0, dir.x);
+    return obj.clone().addScaledVector(right, -side * 0.95 * (camPos.distanceTo(obj) / 3.4));
+  };
+  const lookKeys = [
+    new Vector3(-0.6, 1.0, -1.6),
+    ...NODES.slice(0, 5).map((n, i) => lookAt(camKeys[i + 1], n.clone().setY(n.y - 0.25), STATIONS[i + 1].side)),
+    NODES[5].clone().setY(1.2),
+    new Vector3(-0.2, 0, -0.8),
+  ];
   const camCurve = new CatmullRomCurve3(camKeys, false, 'centripetal', 0.5);
   const lookCurve = new CatmullRomCurve3(lookKeys, false, 'centripetal', 0.5);
   const last = camKeys.length - 1;
 
   let target = 0, cur = 0, dim = 0, dimT = 0, breath = 0, breathT = 0;
   const mouse = new Vector2();
-  const camPos = new Vector3(), look = new Vector3();
+  const camPos = new Vector3(), look = new Vector3(), head = new Vector3();
   let active = true, raf = 0, prev = performance.now(), time = 0;
 
   const onMove = (e: PointerEvent) => mouse.set((e.clientX / window.innerWidth) * 2 - 1, (e.clientY / window.innerHeight) * 2 - 1);
@@ -605,13 +577,9 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
     const h = canvas.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // Narrow screens stand further back so each place still fits.
-    camera.fov = w / h < 0.8 ? 68 : 52;
+    camera.fov = w / h < 0.8 ? 66 : 50;
     camera.updateProjectionMatrix();
-    const px = h * renderer.getPixelRatio();
-    starMat.uniforms.uPx.value = px / 900;
-    moteMat.uniforms.uPx.value = px * 0.012;
-    fountainUniforms.uPx.value = px * 0.012;
+    moteMat.uniforms.uPx.value = h * renderer.getPixelRatio() * 0.02;
   };
   resize();
   window.addEventListener('resize', resize);
@@ -628,50 +596,61 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
     time += dt;
     if (++frames === 3) readyResolve();
 
-    // Ease the walk; a reduced-motion visitor arrives straight away.
     cur = calm ? target : cur + (target - cur) * Math.min(1, dt * 2.2);
     dim += (dimT - dim) * Math.min(1, dt * 3);
     breath += (breathT - breath) * Math.min(1, dt * 2.5);
 
-    const u = Math.max(0, Math.min(1, cur / last));
-    camCurve.getPointAt(u, camPos);
-    lookCurve.getPointAt(u, look);
-    // A gentle breath of movement, and a little parallax under the pointer.
+    const u = clamp01(cur / last);
+    // getPoint (not getPointAt) so each station lands exactly on its keyframe.
+    camCurve.getPoint(u, camPos);
+    lookCurve.getPoint(u, look);
     const sway = calm ? 0 : 1;
-    camPos.x += (mouse.x * 0.45 + Math.sin(time * 0.21) * 0.12) * sway;
-    camPos.y += (-mouse.y * 0.25 + Math.sin(time * 0.33) * 0.06) * sway;
+    camPos.x += (mouse.x * 0.18 + Math.sin(time * 0.21) * 0.05) * sway;
+    camPos.y += (-mouse.y * 0.1 + Math.sin(time * 0.33) * 0.03) * sway;
     camera.position.copy(camPos);
     camera.lookAt(look);
 
-    skyMat.uniforms.uTime.value = time;
-    skyMat.uniforms.uBreath.value = breath;
-    skyMat.uniforms.uDim.value = dim;
-    starMat.uniforms.uTime.value = time;
-    starMat.uniforms.uDim.value = dim;
-    moteMat.uniforms.uTime.value = time;
-    moteMat.uniforms.uDim.value = dim;
-    floorMat.uniforms.uTime.value = time;
-    floorMat.uniforms.uDim.value = dim;
-    (floorMat.uniforms.uCam.value as Vector3).copy(camPos);
-    fountainUniforms.uTime.value = time;
-    doorUniforms.uTime.value = time;
-    doorUniforms.uOpen.value = smooth(Math.max(0, Math.min(1, cur - 5.3)));
-    const glowK = (1 - dim * 0.55) * (1 + breath * 0.4);
-    for (const g of glowMats) g.m.opacity = g.base * glowK;
-    for (const l of lanterns) l.position.y = (l.userData.base as number) + (calm ? 0 : Math.sin(time * 0.9 + (l.userData.seed as number)) * 0.06);
-    poolMoon.position.y = 2.6 + (calm ? 0 : Math.sin(time * 0.5) * 0.12) + breath * 0.3;
+    // How far the thread has drawn: it reaches object k at station k + 1.
+    const k = cur - 1;
+    let draw: number;
+    if (k <= 0) draw = nodeU[0] * smooth(clamp01(cur));
+    else if (k >= NODES.length - 1) draw = cur >= 6.95 ? 1 : nodeU[NODES.length - 1];
+    else {
+      const i = Math.floor(k);
+      draw = nodeU[i] + (nodeU[i + 1] - nodeU[i]) * smooth(k - i);
+    }
+    if (cur >= 6) draw = nodeU[5] + (1 - nodeU[5]) * clamp01(cur - 6);
+    threadMat.uniforms.uDraw.value = draw;
+    threadMat.uniforms.uTime.value = time;
+    curve.getPointAt(Math.min(0.999, draw), head);
+    shared.uHead.value.copy(head);
+    const moving = draw > 0.002 && draw < 0.998 ? 1 : 0;
+    shared.uHeadOn.value += (moving - shared.uHeadOn.value) * Math.min(1, dt * 4);
+    headGlow.position.copy(head);
+    (headGlow.material as SpriteMaterial).opacity = shared.uHeadOn.value * 0.9 * (1 - dim * 0.5);
 
-    // Each thing you carried in appears as you reach its place, and stays.
-    items.forEach((it, i) => {
-      if (!it.shown && cur > i + 1 - 0.45) it.shown = true;
-      it.t = Math.min(1, it.t + (it.shown ? dt / 1.4 : -dt));
-      const e = smooth(Math.max(0, it.t));
-      const m = it.s.material as SpriteMaterial;
-      m.opacity = e * (1 - dim * 0.4);
-      (it.glow.material as SpriteMaterial).opacity = e * 0.55 * (1 - dim * 0.5);
-      const bob = calm ? 0 : Math.sin(time * 0.8 + i) * 0.08;
-      it.s.position.y = ITEM_HEIGHT[i + 1] + bob + (1 - e) * 1.2;
-      it.glow.position.y = it.s.position.y;
+    const reach = shared.uReach.value;
+    NODES.forEach((_, i) => {
+      reach[i] = smooth(clamp01((draw - nodeU[i]) / 0.02 + 0.0001));
+      if (draw < nodeU[i] - 0.001) reach[i] = 0;
+      const pulse = 1 + (calm ? 0 : Math.sin(time * 1.6 + i) * 0.12) + breath * 0.5;
+      (nodeGlows[i].material as SpriteMaterial).opacity = reach[i] * 0.75 * pulse * (1 - dim * 0.5);
+    });
+    (lampGlow.material as SpriteMaterial).opacity = reach[1] * 0.55 * (1 + breath * 0.4) * (1 - dim * 0.4);
+    shared.uDim.value = dim;
+    shared.uBreath.value = breath;
+    nightMat.uniforms.uTime.value = time;
+    nightMat.uniforms.uDim.value = dim;
+    moteMat.uniforms.uTime.value = time;
+    doorGlow.uniforms.uOpen.value = smooth(clamp01((cur - 5.3) / 0.8));
+
+    // Each stage name rises into view once the thread has reached its object.
+    labels.forEach((l) => {
+      // Only the stage you are at shows its name (all of them in the overview), so names never sit behind the words.
+      const on = reach[l.t] > 0.5 && (Math.abs(cur - 1 - l.t) < 0.7 || cur > 6.5) ? 1 : 0;
+      const m = l.s.material as SpriteMaterial;
+      m.opacity += (on * (1 - dim * 0.5) - m.opacity) * Math.min(1, dt * 3);
+      l.s.position.y = NODES[l.t].y + 0.55 + m.opacity * 0.08 + (calm ? 0 : Math.sin(time * 0.8 + l.t) * 0.02);
     });
 
     renderer.render(scene, camera);

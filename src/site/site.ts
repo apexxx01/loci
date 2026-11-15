@@ -550,7 +550,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     explain.closest('.station')?.classList.add('is-checked');
     result.hidden = false;
     result.innerHTML = `<p class="result__n">${g.hit.length} of ${n}</p>
-      <p class="result__sub">stages explained${g.via === 'offline' ? ', checked on this device because the Architect is unreachable' : ''}</p>
+      <p class="result__sub">stages explained${g.via === 'offline' ? ', graded on this device' : ''}</p>
       <ol class="stages">${concept.items.map((it, i) => `<li data-hit="${g.hit.includes(i)}"><span>${esc(it.cue)}</span></li>`).join('')}</ol>
       ${g.misconception ? `<p class="result__myth">Watch out: ${esc(g.misconception)}</p>` : ''}
       ${g.feedback ? `<p>${esc(g.feedback)}</p>` : ''}
