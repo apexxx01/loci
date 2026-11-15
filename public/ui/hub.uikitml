@@ -4,6 +4,18 @@
 -->
 <style>
   .root { flex-direction: column; width: 480px; padding: 0px; background-color: #120e2a; border-radius: 30px; border-width: 2px; border-color: #5a4630; }
+  .big { height: 64px; }
+  .group { flex-direction: column; gap: 8px; }
+  .key { flex-grow: 1; flex-basis: 0; min-width: 0px; height: 46px; padding-left: 0px; padding-right: 0px; justify-content: center; background-color: #241b4a; }
+  .key:dark { background-color: #241b4a; }
+  .keys { flex-direction: row; gap: 4px; width: 100%; }
+  .chip { flex-grow: 1; height: 40px; justify-content: center; background-color: #2e2358; }
+  .chip:dark { background-color: #2e2358; }
+  .space { flex-grow: 2; justify-content: center; }
+  .go { background-color: #9a6418; }
+  .go:dark { background-color: #9a6418; }
+  .field { padding: 14px; border-radius: 16px; background-color: #0b0820; border-width: 2px; border-color: #6b5434; min-height: 64px; }
+  .field-text { color: #fff4e6; font-size: 20px; line-height: 26px; }
   .skin { flex-direction: column; width: 100%; background-color: #120e2a; border-radius: 30px; border-width: 2px; border-color: #6b5434; }
   .root:dark { background-color: #120e2a; border-color: #5a4630; }
   .head { flex-direction: column; gap: 4px; padding-top: 24px; padding-left: 26px; padding-right: 26px; padding-bottom: 12px; }
@@ -35,55 +47,69 @@
   <div class="head">
     <div class="eyebrow">LOCI</div>
     <div id="hub-heading" class="title">What do you want to understand?</div>
-    <div id="hub-tagline" class="tag">Pinch one. Its stages will land on the furniture around you.</div>
+    <div id="hub-tagline" class="tag">Ask, and its stages will land on the furniture around you.</div>
   </div>
 
   <div id="section-decks" class="section">
-    <div class="row">
-      <Button id="concept-heart" class="btn">
-        <ButtonIcon><Heart></Heart></ButtonIcon>
-        <ButtonLabel>How your heart pumps</ButtonLabel>
-      </Button>
-      <Button id="concept-plants" class="btn">
-        <ButtonIcon><Leaf></Leaf></ButtonIcon>
-        <ButtonLabel>How plants make food</ButtonLabel>
-      </Button>
-    </div>
-    <div class="row">
-      <Button id="concept-seasons" class="btn">
-        <ButtonIcon><Sun></Sun></ButtonIcon>
-        <ButtonLabel>Why we have seasons</ButtonLabel>
-      </Button>
-      <Button id="concept-vaccine" class="btn">
-        <ButtonIcon><ShieldCheck></ShieldCheck></ButtonIcon>
-        <ButtonLabel>How vaccines train you</ButtonLabel>
-      </Button>
-    </div>
-    <div class="row">
-      <Button id="concept-water" class="btn">
-        <ButtonIcon><Droplets></Droplets></ButtonIcon>
-        <ButtonLabel>The water cycle</ButtonLabel>
-      </Button>
-      <Button id="concept-web" class="btn">
-        <ButtonIcon><Globe></Globe></ButtonIcon>
-        <ButtonLabel>How a web page arrives</ButtonLabel>
-      </Button>
-    </div>
-    <div class="label">OR</div>
-    <div class="row">
-      <Button id="deck-phone" class="btn">
-        <ButtonIcon><Sparkles></Sparkles></ButtonIcon>
-        <ButtonLabel id="deck-phone-label">Anything else</ButtonLabel>
-      </Button>
-      <Button id="deck-planets" class="btn">
-        <ButtonIcon><Orbit></Orbit></ButtonIcon>
-        <ButtonLabel>A quick list</ButtonLabel>
-      </Button>
-    </div>
-    <Button id="btn-open" class="btn">
-      <ButtonIcon><Library></Library></ButtonIcon>
-      <ButtonLabel id="btn-open-label">Open a saved palace</ButtonLabel>
+    <Button id="btn-ask" class="btn big">
+      <ButtonIcon><Sparkles></Sparkles></ButtonIcon>
+      <ButtonLabel>Ask about anything</ButtonLabel>
     </Button>
+    <div id="recent-block" class="group">
+      <div class="label">PICK UP WHERE YOU LEFT OFF</div>
+      <Button id="recent-0" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-0-label">Recent</ButtonLabel></Button>
+      <Button id="recent-1" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-1-label">Recent</ButtonLabel></Button>
+      <Button id="recent-2" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-2-label">Recent</ButtonLabel></Button>
+    </div>
+    <div class="row">
+      <Button id="btn-browse" class="btn">
+        <ButtonIcon><BookOpen></BookOpen></ButtonIcon>
+        <ButtonLabel id="btn-browse-label">Ready-made walks</ButtonLabel>
+      </Button>
+      <Button id="btn-open" class="btn">
+        <ButtonIcon><Library></Library></ButtonIcon>
+        <ButtonLabel id="btn-open-label">Saved palaces</ButtonLabel>
+      </Button>
+    </div>
+    <div id="browse-block" class="group">
+      <div class="row">
+        <Button id="concept-heart" class="btn"><ButtonIcon><Heart></Heart></ButtonIcon><ButtonLabel>How your heart pumps</ButtonLabel></Button>
+        <Button id="concept-plants" class="btn"><ButtonIcon><Leaf></Leaf></ButtonIcon><ButtonLabel>How plants make food</ButtonLabel></Button>
+      </div>
+      <div class="row">
+        <Button id="concept-seasons" class="btn"><ButtonIcon><Sun></Sun></ButtonIcon><ButtonLabel>Why we have seasons</ButtonLabel></Button>
+        <Button id="concept-vaccine" class="btn"><ButtonIcon><ShieldCheck></ShieldCheck></ButtonIcon><ButtonLabel>How vaccines train you</ButtonLabel></Button>
+      </div>
+      <div class="row">
+        <Button id="concept-water" class="btn"><ButtonIcon><Droplets></Droplets></ButtonIcon><ButtonLabel>The water cycle</ButtonLabel></Button>
+        <Button id="concept-web" class="btn"><ButtonIcon><Globe></Globe></ButtonIcon><ButtonLabel>How a web page arrives</ButtonLabel></Button>
+      </div>
+      <div class="row">
+        <Button id="deck-planets" class="btn"><ButtonIcon><Orbit></Orbit></ButtonIcon><ButtonLabel>A quick list: the planets</ButtonLabel></Button>
+        <Button id="deck-phone" class="btn"><ButtonIcon><FileText></FileText></ButtonIcon><ButtonLabel id="deck-phone-label">Paste notes on a screen</ButtonLabel></Button>
+      </div>
+    </div>
+  </div>
+
+  <div id="section-ask" class="section">
+    <div class="field"><div id="ask-text" class="field-text">Type with a pinch on each key</div></div>
+    <div class="row">
+      <Button id="pre-how" class="chip"><ButtonLabel>How does</ButtonLabel></Button>
+      <Button id="pre-why" class="chip"><ButtonLabel>Why do</ButtonLabel></Button>
+      <Button id="pre-what" class="chip"><ButtonLabel>What is</ButtonLabel></Button>
+      <Button id="pre-explain" class="chip"><ButtonLabel>Explain</ButtonLabel></Button>
+    </div>
+    <div class="keys"><Button id="key-q" class="key"><ButtonLabel>Q</ButtonLabel></Button><Button id="key-w" class="key"><ButtonLabel>W</ButtonLabel></Button><Button id="key-e" class="key"><ButtonLabel>E</ButtonLabel></Button><Button id="key-r" class="key"><ButtonLabel>R</ButtonLabel></Button><Button id="key-t" class="key"><ButtonLabel>T</ButtonLabel></Button><Button id="key-y" class="key"><ButtonLabel>Y</ButtonLabel></Button><Button id="key-u" class="key"><ButtonLabel>U</ButtonLabel></Button><Button id="key-i" class="key"><ButtonLabel>I</ButtonLabel></Button><Button id="key-o" class="key"><ButtonLabel>O</ButtonLabel></Button><Button id="key-p" class="key"><ButtonLabel>P</ButtonLabel></Button></div>
+    <div class="keys"><Button id="key-a" class="key"><ButtonLabel>A</ButtonLabel></Button><Button id="key-s" class="key"><ButtonLabel>S</ButtonLabel></Button><Button id="key-d" class="key"><ButtonLabel>D</ButtonLabel></Button><Button id="key-f" class="key"><ButtonLabel>F</ButtonLabel></Button><Button id="key-g" class="key"><ButtonLabel>G</ButtonLabel></Button><Button id="key-h" class="key"><ButtonLabel>H</ButtonLabel></Button><Button id="key-j" class="key"><ButtonLabel>J</ButtonLabel></Button><Button id="key-k" class="key"><ButtonLabel>K</ButtonLabel></Button><Button id="key-l" class="key"><ButtonLabel>L</ButtonLabel></Button></div>
+    <div class="keys"><Button id="key-z" class="key"><ButtonLabel>Z</ButtonLabel></Button><Button id="key-x" class="key"><ButtonLabel>X</ButtonLabel></Button><Button id="key-c" class="key"><ButtonLabel>C</ButtonLabel></Button><Button id="key-v" class="key"><ButtonLabel>V</ButtonLabel></Button><Button id="key-b" class="key"><ButtonLabel>B</ButtonLabel></Button><Button id="key-n" class="key"><ButtonLabel>N</ButtonLabel></Button><Button id="key-m" class="key"><ButtonLabel>M</ButtonLabel></Button><Button id="key-q-mark" class="key"><ButtonLabel>?</ButtonLabel></Button></div>
+    <div class="row">
+      <Button id="key-back" class="btn"><ButtonIcon><Delete></Delete></ButtonIcon><ButtonLabel>Delete</ButtonLabel></Button>
+      <Button id="key-space" class="btn space"><ButtonLabel>Space</ButtonLabel></Button>
+    </div>
+    <div class="row">
+      <Button id="ask-cancel" class="btn"><ButtonIcon><X></X></ButtonIcon><ButtonLabel>Back</ButtonLabel></Button>
+      <Button id="ask-go" class="btn go"><ButtonIcon><Sparkles></Sparkles></ButtonIcon><ButtonLabel id="ask-go-label">Teach me</ButtonLabel></Button>
+    </div>
   </div>
 
   <div id="section-palace" class="section" style="display: none">

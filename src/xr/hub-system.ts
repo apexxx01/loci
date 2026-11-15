@@ -4,12 +4,16 @@
  */
 import { createSystem, Vector3, type UIKitMLAsset } from '@iwsdk/core';
 import { conceptById } from '../core/concepts.js';
+import { teachConcept } from '../net/architect-client.js';
+import { DeckSchema } from '../core/schema.js';
+import type { Deck } from '../core/types.js';
 import { findStarterDeck } from '../core/decks.js';
 import { dueIds, mastery, streak } from '../core/scheduler.js';
 import { listPalaces } from '../core/palace.js';
 import { app, bus, getStorage, setStatus } from './app-state.js';
 import { onSettings, settings, toggleSetting, type Settings } from './settings.js';
 import { playClick } from './sound.js';
+import { PalaceSystem } from './palace-system.js';
 
 const ACCESS: { key: keyof Settings; id: string; label: string; on: string; off: string; say: [string, string] }[] = [
   { key: 'dwell', id: 'acc-dwell', label: 'Look to select', on: 'on', off: 'off', say: ['Look at a memory for a moment to flip it; look at a button to rate it.', 'Look to select is off. Pinch and grab as usual.'] },
@@ -33,7 +37,7 @@ const HUB_DROP = 0.22;
 /** Docked: out of the line of sight, like a tray by your left hand. */
 const DOCK_YAW = (-38 * Math.PI) / 180;
 const DOCK_DISTANCE = 0.5;
-const DOCK_DROP = 0.38;
+const DOCK_DROP = 0.42;
 const GLIDE_SPEED = 5;
 
 export class HubSystem extends createSystem({}) {
@@ -45,6 +49,10 @@ export class HubSystem extends createSystem({}) {
   /** Frames to wait before placing the hub (XR camera pose becomes live). */
   private placeIn = -1;
   private docked = false;
+  private asking = false;
+  private browsing = false;
+  private askText = '';
+  private askBusy = false;
   private glideTarget: Vector3 | null = null;
   private glideLook = new Vector3();
   private headAtPlace = new Vector3();
@@ -94,6 +102,46 @@ export class HubSystem extends createSystem({}) {
       if (deck) bus.emit({ type: 'start-deck', deck });
     });
     bind('deck-phone', () => bus.emit({ type: 'own-notes' }));
+
+    // Asking, right here: a keyboard on the panel, so nobody has to leave the room to type.
+    const showAsk = (on: boolean) => {
+      this.asking = on;
+      this.setDisplay('section-ask', on);
+      this.setDisplay('section-decks', !on && !app.palace);
+      if (on) this.paintAsk();
+    };
+    bind('btn-ask', () => showAsk(true));
+    bind('ask-cancel', () => showAsk(false));
+    bind('btn-browse', () => {
+      this.browsing = !this.browsing;
+      this.setDisplay('browse-block', this.browsing);
+      this.setText('btn-browse-label', this.browsing ? 'Hide ready-made walks' : 'Ready-made walks');
+    });
+    const type = (t: string) => {
+      if (this.askBusy || this.askText.length >= 120) return;
+      this.askText += t;
+      this.paintAsk();
+    };
+    for (const c of 'qwertyuiopasdfghjklzxcvbnm') bind(`key-${c}`, () => type(this.askText && !this.askText.endsWith(' ') ? c : this.askText ? c : c.toUpperCase()));
+    bind('key-q-mark', () => type('?'));
+    bind('key-space', () => this.askText && !this.askText.endsWith(' ') && type(' '));
+    bind('key-back', () => {
+      this.askText = this.askText.slice(0, -1);
+      this.paintAsk();
+    });
+    for (const [id, text] of [['pre-how', 'How does '], ['pre-why', 'Why do '], ['pre-what', 'What is '], ['pre-explain', 'Explain ']] as const)
+      bind(id, () => {
+        if (!this.askText) {
+          this.askText = text;
+          this.paintAsk();
+        }
+      });
+    bind('ask-go', () => void this.teach());
+    for (let i = 0; i < 3; i++)
+      bind(`recent-${i}`, () => {
+        const deck = this.recent()[i];
+        if (deck) bus.emit({ type: 'start-deck', deck });
+      });
     bind('btn-refit', () => bus.emit({ type: 'refit' }));
     let accessOpen = false;
     bind('btn-access', () => {
@@ -197,6 +245,44 @@ export class HubSystem extends createSystem({}) {
     }
   }
 
+  private paintAsk(): void {
+    this.setText('ask-text', this.askText ? `${this.askText}|` : 'Type with a pinch on each key');
+    this.setText('ask-go-label', this.askBusy ? 'Thinking' : 'Teach me');
+  }
+
+  /** Concepts asked for before, on any screen (the website keeps the same list). */
+  private recent(): Deck[] {
+    try {
+      const raw = JSON.parse(localStorage.getItem('loci.asked.v1') ?? '[]') as unknown[];
+      return raw.map((d) => DeckSchema.safeParse(d)).filter((r) => r.success).map((r) => r.data as Deck).slice(0, 3);
+    } catch {
+      return [];
+    }
+  }
+
+  private async teach(): Promise<void> {
+    const topic = this.askText.trim();
+    if (this.askBusy) return;
+    if (topic.length < 3) return setStatus('Type a few words first, like "how do tides work".');
+    this.askBusy = true;
+    this.paintAsk();
+    setStatus('The Palace Architect is finding the stages, the reasons and the myths.');
+    const res = await teachConcept(topic, 'adult');
+    this.askBusy = false;
+    this.paintAsk();
+    if (!res.ok) return setStatus(res.error);
+    try {
+      const mine = [res.deck, ...this.recent().filter((d) => d.title !== res.deck.title)].slice(0, 4);
+      localStorage.setItem('loci.asked.v1', JSON.stringify(mine));
+    } catch {
+      /* private browsing */
+    }
+    this.askText = '';
+    this.asking = false;
+    this.setDisplay('section-ask', false);
+    bus.emit({ type: 'start-deck', deck: res.deck });
+  }
+
   /** Glide the hub between centre (choosing) and docked (reviewing). */
   private dock(docked: boolean): void {
     this.docked = docked;
@@ -208,7 +294,7 @@ export class HubSystem extends createSystem({}) {
     this.fwd.y = 0;
     if (this.fwd.lengthSq() < 1e-6) this.fwd.set(0, 0, -1);
     this.fwd.normalize();
-    const yaw = docked ? DOCK_YAW : 0;
+    const yaw = docked ? this.clearYaw() : 0;
     const dist = docked ? DOCK_DISTANCE : HUB_DISTANCE;
     const drop = docked ? DOCK_DROP : HUB_DROP;
     // Rotate forward on the floor plane; negative yaw swings it to the left.
@@ -221,6 +307,28 @@ export class HubSystem extends createSystem({}) {
     this.glideTarget = target;
     this.glideLook.copy(this.tmp);
     this.headAtPlace.copy(this.tmp);
+  }
+
+  /**
+   * Where to dock so the panel never hides a memory: try both sides at two
+   * angles and take the one with the fewest memories in that direction.
+   */
+  private clearYaw(): number {
+    const recs = [...(this.world.getSystem(PalaceSystem)?.records.values() ?? [])];
+    if (!recs.length) return DOCK_YAW;
+    const fwdYaw = Math.atan2(this.fwd.x, -this.fwd.z);
+    const p = new Vector3();
+    const yaws = recs.map((r) => {
+      r.tile.root.getWorldPosition(p);
+      let d = Math.atan2(p.x - this.tmp.x, -(p.z - this.tmp.z)) - fwdYaw;
+      while (d > Math.PI) d -= Math.PI * 2;
+      while (d < -Math.PI) d += Math.PI * 2;
+      // Negative is to the left, matching the dock rotation below.
+      return d;
+    });
+    const options = [DOCK_YAW, (-60 * Math.PI) / 180, -DOCK_YAW, (60 * Math.PI) / 180];
+    const blocked = (y: number) => yaws.filter((t) => Math.abs(t - y) < (20 * Math.PI) / 180).length;
+    return options.reduce((best, y) => (blocked(y) < blocked(best) ? y : best), options[0]);
   }
 
   /** On session start: centred to choose a deck, docked if a palace exists. */
@@ -236,7 +344,13 @@ export class HubSystem extends createSystem({}) {
 
   private refresh(): void {
     const palace = app.palace;
-    this.setDisplay('section-decks', !palace);
+    this.setDisplay('section-decks', !palace && !this.asking);
+    this.setDisplay('section-ask', !palace && this.asking);
+    this.setDisplay('browse-block', this.browsing);
+    const recent = this.recent();
+    this.setDisplay('recent-block', !palace && recent.length > 0);
+    recent.forEach((d, i) => this.setText(`recent-${i}-label`, d.title));
+    for (let i = 0; i < 3; i++) this.setDisplay(`recent-${i}`, i < recent.length);
     this.setDisplay('section-palace', Boolean(palace));
     if (!palace) {
       const store = getStorage();
@@ -244,7 +358,7 @@ export class HubSystem extends createSystem({}) {
       this.setDisplay('btn-open', saved > 0);
       this.setText('btn-open-label', saved === 1 ? 'Open my saved palace' : `Open a saved palace (${saved})`);
       this.setText('hub-heading', 'What do you want to understand?');
-      this.setText('hub-tagline', 'Pinch one. Its stages will land on the furniture around you.');
+      this.setText('hub-tagline', 'Ask, and its stages will land on the furniture around you.');
       return;
     }
     const now = new Date();
