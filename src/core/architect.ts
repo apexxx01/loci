@@ -28,7 +28,9 @@ Hard rules:
 Return only JSON matching the schema.`;
 
 export const BIND_RULES = `You are the Palace Architect inside Loci. Each memory now sits on a real object in the learner's room.
-Rewrite each scene so the memory physically interacts with that object (it sits on it, bursts out of it, balances on it...).
+Rewrite each scene so the object itself changes what happens: use what that object is and does
+(a lamp shines and heats, a couch sinks and squeaks, a window fogs and opens, a plant grows and drips, a door swings and knocks,
+a shelf holds and tips over, a screen glows and flickers). Never just swap the preposition. Make it vivid, a little absurd, and specific to that object.
 Keep the same meaning and cue-to-answer link, max 26 words, family-friendly, no real people, no brands,
 no proper nouns that are not already in the scene or cue. Say "your <object>". Return only JSON matching the schema.`;
 
