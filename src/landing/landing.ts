@@ -22,6 +22,8 @@ import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './amb
 import { mountDemo, span } from './demo.js';
 import { openReview } from './review.js';
 import { createLandingScene, LOCI } from './scene.js';
+import { sigilSVG } from './sigil.js';
+import { curveStars, starField } from './starchart.js';
 
 const DRAFT_KEY = 'loci.draft.v2';
 
@@ -92,30 +94,30 @@ const HTML = `
 <svg class="callouts" aria-hidden="true" data-callouts></svg>
 
 <header class="bar">
-  <a class="wordmark" href="#top" aria-label="Loci, back to the top">loci</a>
+  <a class="wordmark" href="#top" aria-label="Loci, back to the top"><span class="wordmark__sigil" data-wordmark-sigil></span>loci</a>
   <nav class="bar__nav" aria-label="Sections">
-    <a href="#why">Science</a>
-    <a href="#how">How it works</a>
-    <a href="#try">Try it</a>
-    <a href="#start">Build</a>
-    <a href="#library" data-nav-library hidden>Your palaces</a>
+    <a href="#why" data-spy="why">Science</a>
+    <a href="#how" data-spy="how">How it works</a>
+    <a href="#try" data-spy="try">Try it</a>
+    <a href="#start" data-spy="start">Build</a>
+    <a href="#library" data-spy="library" data-nav-library hidden>Your palaces</a>
   </nav>
   <div class="bar__tools">
-    <button class="quiet" type="button" data-ambient aria-pressed="false">Sound</button>
-    <button class="candle candle--small" type="button" data-enter>Enter</button>
+    <button class="sound" type="button" data-ambient aria-pressed="false" aria-label="Sound"><i></i><i></i><i></i><i></i></button>
+    <button class="lumen lumen--small" type="button" data-enter>Enter</button>
   </div>
 </header>
 <div class="thread" aria-hidden="true"><i data-progress></i></div>
 
 <div class="flow" data-flow>
-<section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0.15">
+<section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0.1">
   <div class="hero">
     <h1 id="landing-title"><span class="line"><span>Your room</span></span><span class="line"><span>remembers.</span></span></h1>
     <p class="hero__lede">Loci turns the room you are sitting in into a memory palace. What you want to learn rests on
     your lamp, your shelf, your couch, and comes back to you just before you would forget it.</p>
     <div class="hero__actions">
-      <button class="candle" type="button" data-enter>Enter your palace</button>
-      <button class="quiet quiet--line" type="button" data-breathe-open>Take a breath first</button>
+      <button class="lumen" type="button" data-enter>Enter your palace</button>
+      <button class="lumen lumen--quiet" type="button" data-breathe-open>Take a breath first</button>
     </div>
     <p class="hero__note" data-device-note>Hands only, sitting down. Meta Quest 3 and 3S, right in the browser.</p>
     <p class="hero__note hero__note--warm" data-shared hidden></p>
@@ -134,6 +136,7 @@ const HTML = `
     handle space.</p>
     <figure class="figure">
       <p class="numeral">9<span class="numeral__of">of</span>10</p>
+      <div class="figure__stars" data-field="9,10,10,candle,9 of the 10 champions used the method of loci"></div>
       <figcaption>of the champions they studied used the same old technique.</figcaption>
     </figure>
     <p class="cite"><a href="https://www.nobelprize.org/prizes/medicine/2014/summary/" target="_blank" rel="noopener">Nobel Prize, 2014</a>
@@ -146,13 +149,12 @@ const HTML = `
     <h2>Anyone can learn to use it.</h2>
     <p>It is called the method of loci. You picture a place you know and leave each thing to remember somewhere
     along a walk through it. People have used it for about 2,500 years.</p>
-    <p>In a 2017 study, people with ordinary memory practised it for 30 minutes a day.</p>
-    <figure class="figure">
-      <div class="leap" role="img" aria-label="26 words recalled out of 72 before training, 62 after 40 days">
-        <span class="numeral numeral--dim">26</span><i class="leap__line"></i><span class="numeral">62</span>
-      </div>
-      <figcaption>words recalled out of 72, before and after 40 days. Four months later, with no more practice,
-      they still recalled 22 more than when they began.</figcaption>
+    <p>In a 2017 study, people with ordinary memory practised it for 30 minutes a day, for 40 days.</p>
+    <figure class="figure figure--pair">
+      <div><p class="numeral numeral--mid numeral--dim">26</p><div data-field="26,72,12,lilac,26 of 72 words before training"></div><p class="figure__label">before</p></div>
+      <div><p class="numeral numeral--mid">62</p><div data-field="62,72,12,candle,62 of 72 words after 40 days"></div><p class="figure__label">after 40 days</p></div>
+      <figcaption>words recalled out of 72. Four months later, with no more practice, they still recalled 22 more
+      than when they began.</figcaption>
     </figure>
     <p class="cite"><a href="https://doi.org/10.1016/j.neuron.2017.02.003" target="_blank" rel="noopener">Dresler et al., Neuron, 2017</a></p>
   </div>
@@ -188,72 +190,73 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--wide" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.86">
-  <div class="sheet sheet--open">
-    <h2>Two habits the research agrees on.</h2>
+<section class="s s--open" id="habits" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.92">
+  <div class="open">
+    <h2 class="open__title">Two habits the research agrees on.</h2>
     <div class="duo">
       <article>
         <h3>Recall it, rather than reread it.</h3>
-        <div class="bars" role="img" aria-label="One week later: 61 percent remembered by students who tested themselves, 40 percent by students who reread">
-          <div class="bars__row bars__row--warm"><span>Tested themselves</span><i style="--v:61"></i><b>61%</b></div>
-          <div class="bars__row"><span>Reread four times</span><i style="--v:40"></i><b>40%</b></div>
+        <div class="vs">
+          <div><p class="numeral numeral--small">61<span class="numeral__unit">%</span></p><div data-field="61,100,10,candle,61 in 100 remembered after testing themselves"></div><p class="figure__label">tested themselves</p></div>
+          <div><p class="numeral numeral--small numeral--dim">40<span class="numeral__unit numeral__unit--dim">%</span></p><div data-field="40,100,10,star,40 in 100 remembered after rereading"></div><p class="figure__label">reread four times</p></div>
         </div>
-        <p class="small">of a passage remembered a week later.</p>
-        <p>Pulling a memory out strengthens it more than putting it back in, so Loci always asks you to try before
-        it lets you peek.</p>
+        <p>Of a passage, one week later. Pulling a memory out strengthens it more than putting it back in, so Loci
+        always asks you to try before it lets you peek.</p>
         <p class="cite"><a href="https://doi.org/10.1111/j.1467-9280.2006.01693.x" target="_blank" rel="noopener">Roediger and Karpicke, Psychological Science, 2006</a></p>
       </article>
       <article>
         <h3>Space it out, rather than cram.</h3>
-        <figure class="curve">
-          <svg viewBox="0 0 520 220" role="img" aria-labelledby="curve-title" data-curve><title id="curve-title">Forecast of how much you keep over 60 days</title></svg>
-          <figcaption class="small" data-curve-caption></figcaption>
-        </figure>
+        <figure class="curve" data-curve></figure>
         <p>A review of 317 experiments found that spreading practice out improves retention, and the best gap grows
-        the longer you want to remember. Loci times each review for you.</p>
+        the longer you want to remember. Loci times each recall for you.</p>
         <p class="cite"><a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda et al., Psychological Bulletin, 2006</a></p>
       </article>
     </div>
   </div>
 </section>
 
-<section class="s s--wide" id="try" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.9">
-  <div class="sheet sheet--open">
-    <h2>Try one recall.</h2>
-    <p class="sheet__lede">The same loop you will use in your room, with the real schedule behind it.</p>
+<section class="s s--open" id="try" data-stage="3" data-tiles="1" data-shift="0" data-dim="0.94">
+  <div class="open">
+    <h2 class="open__title">Try one recall.</h2>
+    <p class="open__lede">The same loop you will use in your room, with the real schedule behind it.</p>
     <div class="demo" data-demo></div>
   </div>
 </section>
 
-<section class="s s--wide" id="start" data-stage="3" data-shift="0" data-dim="0.9">
-  <div class="sheet">
-    <h2>What would you like to remember?</h2>
-    <p class="sheet__lede">Bring it in whatever shape you have it. The Palace Architect turns it into memories and
+<section class="s s--open" id="start" data-stage="3" data-shift="0" data-dim="0.94">
+  <div class="open">
+    <h2 class="open__title">What would you like to remember?</h2>
+    <p class="open__lede">Bring it in whatever shape you have it. The Palace Architect turns it into memories and
     teaches them to you in your room.</p>
-    <div class="modes" role="tablist" aria-label="What to remember" data-modes></div>
-    <p class="modes__who" data-who></p>
-    <div class="desk">
-      <label class="desk__help" for="notes" data-help></label>
-      <textarea id="notes" rows="6" spellcheck="true" data-notes data-lenis-prevent></textarea>
-      <div class="desk__row">
-        <button class="candle" type="button" data-build>Build my palace</button>
-        <div class="seg" role="group" aria-label="Who is learning" data-audience>
-          <button type="button" data-aud="child" aria-pressed="false">A child</button>
-          <button type="button" data-aud="teen" aria-pressed="false">A teenager</button>
-          <button type="button" data-aud="adult" aria-pressed="true">An adult</button>
+    <div class="studio">
+      <div class="kinds" role="tablist" aria-label="What to remember" aria-orientation="vertical" data-modes></div>
+      <div class="desk">
+        <label class="desk__help" for="notes" data-help></label>
+        <textarea id="notes" rows="5" spellcheck="true" data-notes data-lenis-prevent></textarea>
+        <div class="desk__line" aria-hidden="true"></div>
+        <div class="desk__meta">
+          <div class="for" role="group" aria-label="Who is learning" data-audience>
+            <span>Written for</span>
+            <button type="button" data-aud="child" aria-pressed="false">a child</button>
+            <button type="button" data-aud="teen" aria-pressed="false">a teenager</button>
+            <button type="button" data-aud="adult" aria-pressed="true">an adult</button>
+          </div>
+          <span class="desk__count" data-count-lines></span>
         </div>
-        <button class="textlink" type="button" data-example>Fill in an example</button>
-        <span class="desk__count" data-count-lines></span>
+        <div class="desk__go">
+          <button class="lumen" type="button" data-build>Build my palace</button>
+          <button class="textlink" type="button" data-example>Fill in an example</button>
+        </div>
+        <p class="desk__status" role="status" aria-live="polite" data-build-status></p>
+        <p class="samples">Or begin with one of ours: <span data-samples></span></p>
       </div>
-      <p class="desk__status" role="status" aria-live="polite" data-build-status></p>
-      <ol class="memories" data-preview-list hidden></ol>
     </div>
-    <p class="samples"><span>Or begin with one of ours:</span> <span data-samples></span></p>
+    <ol class="memories" data-preview-list hidden></ol>
     <div class="ready" data-chosen hidden>
       <p data-chosen-text></p>
-      <div class="hero__actions">
-        <button class="candle" type="button" data-enter>Enter your palace</button>
-        <button class="quiet quiet--line" type="button" data-see-room>See it in a room first</button>
+      <div class="ready__actions">
+        <button class="lumen" type="button" data-enter>Enter your palace</button>
+        <button class="lumen lumen--quiet" type="button" data-see-room>See it in a room first</button>
         <button class="textlink" type="button" data-copy-link>Copy a link for your headset</button>
       </div>
       <p class="small" role="status" aria-live="polite" data-link-status></p>
@@ -261,10 +264,10 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--wide" id="library" data-stage="3" data-shift="0" data-dim="0.9" hidden>
-  <div class="sheet">
-    <h2>Your palaces.</h2>
-    <p class="sheet__lede" data-library-lede></p>
+<section class="s s--open" id="library" data-stage="3" data-shift="0" data-dim="0.94" hidden>
+  <div class="open">
+    <h2 class="open__title">Your palaces.</h2>
+    <p class="open__lede" data-library-lede></p>
     <div class="library" data-library></div>
     <div class="library__foot">
       <label class="textlink" tabindex="0">Restore a palace from a file<input type="file" accept="application/json,.json" data-import hidden /></label>
@@ -273,9 +276,9 @@ const HTML = `
   </div>
 </section>
 
-<section class="s s--wide" id="faq" data-stage="3" data-shift="0" data-dim="0.8">
-  <div class="sheet sheet--open sheet--narrow">
-    <h2>Good to know.</h2>
+<section class="s s--open" id="faq" data-stage="3" data-shift="0" data-dim="0.9">
+  <div class="open open--narrow">
+    <h2 class="open__title">Good to know.</h2>
     <details><summary>What do I need?</summary><p>A Meta Quest 3 or 3S, and this page open in its browser. Nothing
     to install. Run Space Setup once so Loci knows where your furniture is. Without it, memories rest in a gentle
     arc around you instead.</p></details>
@@ -314,7 +317,7 @@ const HTML = `
 <section class="s s--close" data-stage="4" data-shift="0" data-dim="0">
   <div class="close">
     <p class="close__line">Your room is ready when you are.</p>
-    <button class="candle" type="button" data-enter>Enter your palace</button>
+    <button class="lumen" type="button" data-enter>Enter your palace</button>
     <p class="close__foot">Open source under the MIT licence.
     <a href="https://github.com/apexxx01/loci" target="_blank" rel="noopener">Read the code</a></p>
   </div>
@@ -324,7 +327,7 @@ const HTML = `
 <div class="breathe" data-breathe hidden role="dialog" aria-modal="true" aria-label="A minute of breathing">
   <p class="breathe__word" data-breathe-word aria-live="polite">Settle in</p>
   <p class="breathe__count" data-breathe-count></p>
-  <button class="quiet quiet--line" type="button" data-breathe-close>I am ready</button>
+  <button class="lumen lumen--quiet" type="button" data-breathe-close>I am ready</button>
 </div>`;
 
 /** A palace drawn as its own constellation: where each memory rests, the route between them, and how strong each is. */
@@ -399,7 +402,6 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   let labelsOn = 0;
   let litTile = -1;
   let ticking = false;
-  const story = $$('.s--story');
   const onScroll = () => {
     if (ticking) return;
     ticking = true;
@@ -420,11 +422,6 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       const max = root.scrollHeight - vh;
       progressBar.style.transform = `scaleY(${max > 0 ? root.scrollTop / max : 0})`;
       root.classList.toggle('is-scrolled', root.scrollTop > 40);
-      // Words come into focus as they reach the middle of the screen.
-      for (const s of story) {
-        const d = Math.abs(s.offsetTop + s.offsetHeight / 2 - mid) / vh;
-        s.style.setProperty('--f', Math.max(0, Math.min(1, 1.35 - d * 1.5)).toFixed(3));
-      }
     });
   };
   root.addEventListener('scroll', onScroll, { passive: true });
@@ -452,7 +449,20 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   }), { root });
   howIO.observe($('#how'));
   const leapIO = new IntersectionObserver((entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { root, threshold: 0.6 });
-  $$('.leap, .bars').forEach((el) => leapIO.observe(el));
+  $$('[data-field], [data-curve]').forEach((el) => leapIO.observe(el));
+
+  // The nav marks the chapter you are in with a small star.
+  const spyIO = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        const id = (e.target as HTMLElement).id;
+        $$('[data-spy]').forEach((a) => a.toggleAttribute('aria-current', a.dataset.spy === id));
+      }
+    },
+    { root, rootMargin: '-48% 0px -48% 0px' },
+  );
+  $$('section[id]').forEach((s) => spyIO.observe(s));
 
   // Labels drawn like a star chart beside each memory in the room.
   const callouts = $('[data-callouts]') as unknown as SVGSVGElement;
@@ -501,7 +511,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   // A slow ring of light from wherever you click the sky.
   root.addEventListener('pointerdown', (e) => {
     const t = e.target as HTMLElement;
-    if (t.closest('button, a, input, textarea, label, summary, .sheet:not(.sheet--open) , .demo, [data-library]')) return;
+    if (t.closest('button, a, input, textarea, label, summary, .demo, .studio, [data-library]')) return;
     scene?.ripple(e.clientX, e.clientY);
   });
 
@@ -572,26 +582,18 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   $('[data-breathe-close]').addEventListener('click', endBreath);
   breatheEl.addEventListener('keydown', (e) => e.key === 'Escape' && endBreath());
 
-  /* ---------------------------------------------------- forgetting curve */
+  /* ---------------------------------------------------- star charts */
+  $$('[data-field]').forEach((el) => {
+    const [lit, total, cols, tone, ...label] = el.dataset.field!.split(',');
+    el.innerHTML = starField(Number(lit), Number(total), Number(cols), tone as 'candle', label.join(','));
+    el.classList.add('field');
+    if (calm) el.classList.add('in');
+  });
   {
-    const { points, reviews } = forgettingCurves(60, 0.5);
-    const X = (d: number) => 44 + (d / 60) * 460;
-    const Y = (v: number) => 20 + ((1 - Math.max(0.4, v)) / 0.6) * 160;
-    const path = (k: 'once' | 'spaced') => points.map((p, i) => `${i ? 'L' : 'M'}${X(p.day).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join(' ');
-    const last = points[points.length - 1];
-    $('[data-curve]').insertAdjacentHTML(
-      'beforeend',
-      `${[1, 0.8, 0.6].map((v) => `<line class="grid" x1="44" x2="504" y1="${Y(v)}" y2="${Y(v)}"/><text class="tick" x="36" y="${Y(v) + 4}" text-anchor="end">${Math.round(v * 100)}%</text>`).join('')}
-       ${[0, 20, 40, 60].map((d) => `<text class="tick" x="${X(d)}" y="206" text-anchor="middle">${d === 0 ? 'today' : `day ${d}`}</text>`).join('')}
-       <path class="line line--once" d="${path('once')}"/>
-       <path class="line line--spaced" d="${path('spaced')}"/>
-       ${reviews.map((d) => `<circle class="dot" cx="${X(d)}" cy="${Y(points.find((p) => p.day >= d)?.spaced ?? 0.9)}" r="3.5"/>`).join('')}
-       <text class="lab lab--spaced" x="${X(60)}" y="${Y(last.spaced) - 12}" text-anchor="end">recalled on schedule</text>
-       <text class="lab lab--once" x="${X(60)}" y="${Y(last.once) + 20}" text-anchor="end">learned once</text>`,
-    );
-    const floor = Math.min(...points.map((p) => p.spaced));
-    $('[data-curve-caption]').textContent = `Forecast from the scheduling model Loci uses: ${reviews.length} short recalls over 60 days keep a memory above ${Math.floor(floor * 100)}%, against ${Math.round(last.once * 100)}% by day 60 if you learn it once. A model's estimate, not a measurement of you.`;
+    const c = curveStars();
+    $('[data-curve]').innerHTML = `${c.svg}<figcaption class="small">${c.caption}</figcaption>`;
   }
+  $('[data-wordmark-sigil]').innerHTML = sigilSVG('loci', 22);
 
   /* ---------------------------------------------------- state */
   let chosen: Deck | null = null;
@@ -607,7 +609,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     const label = !hasXR
       ? chosen ? `Preview ${chosen.title} here` : 'Preview on this screen'
       : chosen ? `Enter with ${chosen.title}` : palace ? 'Return to your palace' : 'Enter your palace';
-    enterButtons.forEach((b) => (b.textContent = b.classList.contains('candle--small') ? (hasXR ? 'Enter' : 'Preview') : label));
+    enterButtons.forEach((b) => (b.textContent = b.classList.contains('lumen--small') ? (hasXR ? 'Enter' : 'Preview') : label));
     chosenBox.hidden = !chosen;
     if (chosen) {
       $('[data-chosen-text]').textContent = `${chosen.title}: ${chosen.items.length} ${chosen.items.length === 1 ? 'memory' : 'memories'}, ready to be placed around your room. Palaces you already keep stay in your library.`;
@@ -623,7 +625,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   const paintAmbient = () => {
     const on = ambientOn();
     ambientBtn.setAttribute('aria-pressed', String(on));
-    ambientBtn.textContent = on ? 'Sound on' : 'Sound';
+    ambientBtn.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
   };
   const leave = () => {
     stopAmbient();
@@ -657,10 +659,11 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   })();
 
   $('[data-modes]').innerHTML = MODES.map(
-    (m) => `<button type="button" role="tab" class="mode" data-mode="${m.id}" aria-selected="false">${m.label}</button>`,
+    (m) => `<button type="button" role="tab" class="kind" data-mode="${m.id}" aria-selected="false">
+      ${sigilSVG(m.label, 34, 'sigil kind__sigil')}<span class="kind__label">${m.label}</span><span class="kind__who">${m.who}</span></button>`,
   ).join('');
   $('[data-samples]').innerHTML = STARTER_DECKS.map(
-    (d) => `<button type="button" class="chip" data-sample="${d.id}" aria-pressed="false"><span aria-hidden="true">${esc(d.items[0].glyphs[0])}</span> ${esc(d.title)}</button>`,
+    (d) => `<button type="button" class="textlink sample" data-sample="${d.id}" aria-pressed="false">${esc(d.title)}</button>`,
   ).join('');
 
   const paintCount = () => {
@@ -673,10 +676,9 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     const m = MODES.find((x) => x.id === id)!;
     $$('[data-mode]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === id)));
     $('[data-help]').textContent = m.help;
-    $('[data-who]').textContent = m.who.charAt(0).toUpperCase() + m.who.slice(1) + '.';
     notes.placeholder = m.example;
     notes.value = drafts[id] ?? '';
-    notes.rows = id === 'topic' || id === 'number' ? 2 : 6;
+    notes.rows = id === 'topic' || id === 'number' ? 2 : 5;
     buildBtn.textContent = m.cta;
     $('[data-audience]').hidden = id === 'number';
     paintCount();
@@ -689,9 +691,11 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     }
   });
   $('[data-modes]').addEventListener('keydown', (e) => {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const fwd = e.key === 'ArrowDown' || e.key === 'ArrowRight';
+    if (!fwd && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
     const i = MODES.findIndex((m) => m.id === mode);
-    const next = MODES[(i + (e.key === 'ArrowRight' ? 1 : MODES.length - 1)) % MODES.length];
+    const next = MODES[(i + (fwd ? 1 : MODES.length - 1)) % MODES.length];
     setMode(next.id);
     root.querySelector<HTMLElement>(`[data-mode="${next.id}"]`)?.focus();
   });
@@ -732,7 +736,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
     previewList.innerHTML = built.items
       .map(
         (it, i) => `<li style="--i:${i}">
-          <span class="memories__glyphs" aria-hidden="true">${esc(it.glyphs.join(''))}</span>
+          ${sigilSVG(it.cue, 44, 'sigil memories__sigil')}
           <span class="memories__text"><strong>${esc(it.cue)}</strong><span class="memories__answer">${esc(it.answer)}</span>
           <span class="memories__scene">${esc(it.scene)}</span></span>
           <button type="button" class="textlink textlink--quiet" data-remove="${i}" aria-label="Remove ${esc(it.cue)}">Remove</button>
@@ -853,8 +857,8 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
               ${Math.round(mastery(p) * 100)}% mastered${s ? `, ${s} day streak` : ''}.</p>
             <div class="days" role="img" aria-label="Days practised in the last two weeks">${days.map((on) => `<i class="${on ? 'on' : ''}"></i>`).join('')}</div>
             <div class="palace__actions">
-              <button class="candle candle--small" type="button" data-act="recall">${due ? `Recall ${due} now` : 'Practise the weakest'}</button>
-              ${isActive ? '' : '<button class="quiet quiet--line" type="button" data-act="open">Put it in my room</button>'}
+              <button class="lumen lumen--small" type="button" data-act="recall">${due ? `Recall ${due} now` : 'Practise the weakest'}</button>
+              ${isActive ? '' : '<button class="lumen lumen--small lumen--quiet" type="button" data-act="open">Put it in my room</button>'}
               <button class="textlink" type="button" data-act="share">Share</button>
               <button class="textlink" type="button" data-act="remind">Add a reminder</button>
               <button class="textlink" type="button" data-act="download">Save a copy</button>
@@ -873,7 +877,7 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
       returning.innerHTML = `<p class="welcome__line">Welcome back. <b>${esc(active.deck.title)}</b> is in your room. ${
         due ? `${due} ${due === 1 ? 'memory is' : 'memories are'} glowing.` : next ? `Nothing is due; the next returns in ${span(next.getTime() - now.getTime())}.` : ''
       }</p>
-      <div class="welcome__actions">${due ? `<button class="quiet quiet--line" type="button" data-welcome-recall>Recall ${due === 1 ? 'it' : 'them'} here</button>` : ''}
+      <div class="welcome__actions">${due ? `<button class="lumen lumen--small lumen--quiet" type="button" data-welcome-recall>Recall ${due === 1 ? 'it' : 'them'} here</button>` : ''}
       <a class="textlink" href="#library">${all.length > 1 ? `All ${all.length} palaces` : 'See how strong it is'}</a></div>`;
       returning.querySelector('[data-welcome-recall]')?.addEventListener('click', () => recall(active));
     }

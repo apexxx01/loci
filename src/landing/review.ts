@@ -6,6 +6,7 @@
 import { dueIds, nextDue } from '../core/scheduler.js';
 import type { Palace, ReviewEvent } from '../core/types.js';
 import { span } from './demo.js';
+import { sigilSVG } from './sigil.js';
 
 type Rating = ReviewEvent['rating'];
 
@@ -62,7 +63,7 @@ export function openReview(opts: ReviewOptions): () => void {
     const place = where.get(it.id);
     body.innerHTML = `
       <p class="recall__where">${place ? `Resting on ${esc(place.replace(/^the /i, 'the '))} in your room` : `Memory ${it.order + 1} on your walk`}</p>
-      <div class="recall__glyphs" aria-hidden="true">${esc(it.glyphs.join(' '))}</div>
+      <div class="recall__sigil">${sigilSVG(it.cue, 120)}</div>
       <h2 class="recall__cue">${esc(it.cue)}</h2>
       <div class="recall__reveal" data-reveal ${shown ? '' : 'hidden'}>
         <p class="recall__answer">${esc(it.answer)}</p>
@@ -70,10 +71,10 @@ export function openReview(opts: ReviewOptions): () => void {
       </div>
       <div class="recall__actions">
         ${shown
-          ? `<button type="button" class="soft soft--again" data-rate="again">Not yet <kbd>1</kbd></button>
-             <button type="button" class="soft" data-rate="hard">It took a moment <kbd>2</kbd></button>
-             <button type="button" class="soft soft--good" data-rate="good">I knew it <kbd>3</kbd></button>`
-          : `<button type="button" class="soft soft--good" data-show>Show me <kbd>Space</kbd></button>`}
+          ? `<button type="button" class="lumen lumen--rose" data-rate="again">Not yet <kbd>1</kbd></button>
+             <button type="button" class="lumen lumen--quiet" data-rate="hard">It took a moment <kbd>2</kbd></button>
+             <button type="button" class="lumen" data-rate="good">I knew it <kbd>3</kbd></button>`
+          : `<button type="button" class="lumen" data-show>Show me <kbd>Space</kbd></button>`}
       </div>
       <p class="recall__hint">${shown ? 'Be honest. The schedule only works if the rating is true.' : `Picture ${place ? 'that spot' : 'the spot'} first. What was resting there?`}</p>`;
     body.querySelector<HTMLButtonElement>(shown ? '[data-rate="good"]' : '[data-show]')?.focus({ preventScroll: true });
@@ -89,7 +90,7 @@ export function openReview(opts: ReviewOptions): () => void {
         left ? `${left} still glowing.` : next ? `Nothing else is due. The next one comes back in ${span(next.getTime() - Date.now())}.` : ''
       }</p>
       <p class="recall__hint">Saved to this palace. Your headset picks up the same schedule.</p>
-      <div class="recall__actions"><button type="button" class="soft soft--good" data-close>Done</button></div>`;
+      <div class="recall__actions"><button type="button" class="lumen" data-close>Done</button></div>`;
     body.querySelector<HTMLButtonElement>('[data-close]')?.focus({ preventScroll: true });
   };
 

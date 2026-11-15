@@ -29,6 +29,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from '@iwsdk/core';
+import { drawSigil } from './sigil.js';
 
 type V3 = [number, number, number];
 
@@ -317,10 +318,12 @@ const VERT = /* glsl */ `
     gl_Position.xy += normalize(rc + 1e-4) * ring * .035 * gl_Position.w;
     float tw = 0.7 + 0.3 * sin(uTime * (1.2 + aSeed * 2.) + aSeed * 50.);
     // Shallow depth of field: motes off the focal plane grow soft and faint.
-    float coc = clamp(abs(-mv.z - uFocus) * .32, 0., 2.2);
-    gl_PointSize = aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5) * (1. + coc) / -mv.z;
+    float coc = clamp(abs(-mv.z - uFocus) * .16, 0., 1.);
+    // Never let a mote swell into a smear: cap its size, and fade anything that drifts close to the eye.
+    gl_PointSize = min(aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5) * (1. + coc) / -mv.z, uPx * .3);
+    float near = smoothstep(2.2, 4.6, -mv.z);
     vColor = mix(aColor, vec3(1., .86, .62), ring * .8);
-    vAlpha = intro * tw * (1. + ring * 1.4 + uBreath * .25) / (1. + coc * coc * .8);
+    vAlpha = intro * tw * near * (1. + ring * 1.4 + uBreath * .25) / (1. + coc * coc * .8);
   }`;
 const FRAG = /* glsl */ `
   precision mediump float;
@@ -365,35 +368,33 @@ const SKY_FRAG = /* glsl */ `
     vec3 violet = vec3(.24, .16, .52), rose = vec3(.52, .2, .34), blue = vec3(.08, .16, .42), candle = vec3(.62, .36, .14);
     float g = clamp(1. - uStage, 0., 1.), ne = clamp(1. - abs(uStage - 1.), 0., 1.), b = clamp(1. - abs(uStage - 2.), 0., 1.), ro = clamp(uStage - 2., 0., 1.);
     vec3 col = (violet * g + blue * ne + mix(violet, rose, .5) * b + violet * .5 * ro) * cloud * cloud * 1.6;
-    col += rose * g * core * cloud * .9 + candle * ro * exp(-pow(vUv.y + .15, 2.) * 6.) * (.5 + cloud * .5);
-    col *= (.75 + uBreath * .45) * uDim * uIntro;
+    col += rose * g * core * cloud * .35 + candle * ro * exp(-pow(vUv.y + .15, 2.) * 6.) * (.3 + cloud * .3);
+    col *= (.32 + uBreath * .25) * uDim * uIntro;
     gl_FragColor = vec4(col, 1.);
   }`;
 
-function tileTexture(glyph: string, n: number): CanvasTexture {
+function tileTexture(text: string, n: number): CanvasTexture {
+  // A glowing token: the memory's own little constellation, and its place in the walk.
   const c = document.createElement('canvas');
-  c.width = 160;
-  c.height = 200;
+  c.width = 192;
+  c.height = 224;
   const g = c.getContext('2d')!;
-  g.shadowColor = 'rgba(255,201,138,.8)';
-  g.shadowBlur = 22;
+  const halo = g.createRadialGradient(96, 96, 4, 96, 96, 92);
+  halo.addColorStop(0, 'rgba(255,214,160,0.34)');
+  halo.addColorStop(0.45, 'rgba(255,190,120,0.1)');
+  halo.addColorStop(1, 'rgba(255,190,120,0)');
+  g.fillStyle = halo;
+  g.fillRect(0, 0, 192, 192);
+  g.strokeStyle = 'rgba(255,214,160,0.35)';
+  g.lineWidth = 1.5;
   g.beginPath();
-  g.roundRect(16, 16, 128, 168, 30);
-  const grad = g.createLinearGradient(0, 16, 0, 184);
-  grad.addColorStop(0, 'rgba(30,24,52,.97)');
-  grad.addColorStop(1, 'rgba(10,8,20,.97)');
-  g.fillStyle = grad;
-  g.fill();
-  g.shadowBlur = 0;
-  g.lineWidth = 2;
-  g.strokeStyle = 'rgba(255,214,160,.9)';
+  g.arc(96, 96, 62, 0, Math.PI * 2);
   g.stroke();
-  g.font = '72px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
+  drawSigil(g, text, 96, 96, 96);
+  g.fillStyle = 'rgba(255,226,189,0.9)';
+  g.font = '400 22px "Jost Variable", system-ui, sans-serif';
   g.textAlign = 'center';
-  g.fillText(glyph, 80, 124);
-  g.fillStyle = 'rgba(255,214,160,.95)';
-  g.font = '400 24px "Jost Variable", system-ui, sans-serif';
-  g.fillText(String(n), 80, 166);
+  g.fillText(String(n), 96, 214);
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
   return t;
@@ -572,7 +573,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   group.add(route);
 
   const tiles = LOCI.map((l, i) => {
-    const m = new SpriteMaterial({ map: tileTexture(l.glyph, i + 1), transparent: true, depthWrite: false, opacity: 0 });
+    const m = new SpriteMaterial({ map: tileTexture(l.cue, i + 1), transparent: true, depthWrite: false, opacity: 0 });
     const s = new Sprite(m);
     s.position.set(l.p[0], l.p[1], l.p[2]);
     s.scale.set(0.001, 0.001, 1);
@@ -652,7 +653,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const s = (wide ? 1 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25);
     group.scale.setScalar(s);
 
-    const vis = 1 - cur.dim * 0.84;
+    const vis = Math.pow(1 - cur.dim * 0.97, 1.4);
     mat.uniforms.uProgress.value = p;
     (mat.uniforms.uMouse.value as Vector2).set(mx, -my);
     stars.rotation.y = time * 0.006;
@@ -682,7 +683,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
       const quiet = lit >= 0 ? 0.55 + focusGlow[i] * 0.45 : 1;
       const grow = 1 + focusGlow[i] * 0.35;
       t.position.y = LOCI[i].p[1] + bob + (1 - e) * 0.5;
-      t.scale.set((0.44 * e + 0.001) * grow, (0.55 * e + 0.001) * grow, 1);
+      t.scale.set((0.5 * e + 0.001) * grow, (0.58 * e + 0.001) * grow, 1);
       (t.material as SpriteMaterial).opacity = e * vis * quiet;
       t.visible = e > 0.01;
       if (tileCb) {
@@ -730,7 +731,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
       for (let i = 0; i < n; i++) {
         const m = tiles[i].material as SpriteMaterial;
         m.map?.dispose();
-        m.map = tileTexture(items[i].glyph, i + 1);
+        m.map = tileTexture(items[i].cue, i + 1);
         m.needsUpdate = true;
         screen[i].label = items[i].cue;
       }

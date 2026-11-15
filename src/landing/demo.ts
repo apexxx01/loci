@@ -5,6 +5,7 @@
  */
 import { PLANETS } from '../core/decks.js';
 import { newCard, review } from '../core/scheduler.js';
+import { sigilSVG } from './sigil.js';
 
 const CARDS = [
   { item: PLANETS.items[5], where: 'your lamp' },
@@ -44,22 +45,22 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
     <div class="demo__stage">
       <p class="demo__where" data-where></p>
       <div class="demo__card" data-card tabindex="0" role="button" aria-describedby="demo-hint">
-        <div class="demo__glyphs" data-glyphs aria-hidden="true"></div>
-        <div class="demo__title" data-title></div>
-        <div class="demo__body" data-body></div>
-        <div class="demo__face" data-face></div>
+        <div class="demo__halo" aria-hidden="true"></div>
+        <div class="demo__sigil" data-glyphs aria-hidden="true"></div>
       </div>
-      <div class="demo__tether" aria-hidden="true"></div>
+      <p class="demo__title" data-title></p>
+      <p class="demo__face" data-face></p>
+      <p class="demo__body" data-body></p>
     </div>
     <div class="demo__side">
       <p class="demo__hint" id="demo-hint" data-hint aria-live="polite"></p>
       <div class="demo__buttons">
-        <button type="button" class="soft" data-peek>Peek</button>
-        <button type="button" class="soft soft--good" data-good>I knew it</button>
-        <button type="button" class="soft soft--again" data-again>Not yet</button>
+        <button type="button" class="lumen lumen--quiet" data-peek>Peek</button>
+        <button type="button" class="lumen" data-good>I knew it</button>
+        <button type="button" class="lumen lumen--rose" data-again>Not yet</button>
       </div>
       <div class="demo__result" data-result hidden></div>
-      <p class="demo__keys">Keyboard: Space peeks, up arrow means you knew it, down arrow means not yet.</p>
+      <p class="demo__keys">Drag the star up if you knew it, down if you did not. Or use Space, and the up and down arrows.</p>
     </div>`;
 
   const $ = <T extends HTMLElement>(s: string) => host.querySelector<T>(s)!;
@@ -74,10 +75,10 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
   const paint = () => {
     const { item, where } = CARDS[index];
     $('[data-where]').textContent = `Resting on ${where}`;
-    $('[data-glyphs]').textContent = item.glyphs.join(' ');
+    $('[data-glyphs]').innerHTML = sigilSVG(item.cue, 170);
     $('[data-title]').textContent = item.cue;
     $('[data-body]').textContent = face === 0 ? '' : face === 1 ? item.scene : item.answer;
-    $('[data-face]').textContent = face === 0 ? 'What do you remember?' : face === 1 ? 'Your picture hook' : 'The answer';
+    $('[data-face]').textContent = face === 0 ? 'What do you remember about it?' : face === 1 ? 'The picture that holds it' : 'The answer';
     card.dataset.side = FACES[face];
     peekBtn.textContent = face === 0 ? 'Peek at the picture' : face === 1 ? 'Show the answer' : 'Back to the cue';
     hint.textContent =
@@ -85,7 +86,7 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
         ? `Memory ${index + 1} of ${CARDS.length}. Try to recall what you know about ${item.cue}, then peek.`
         : face === 1
           ? 'That odd little scene is the hook. Does it bring the fact back?'
-          : 'Now be honest: drag the card up if you knew it, down if you did not.';
+          : 'Now be honest. Did you know it?';
   };
 
   const flip = () => {
@@ -111,7 +112,7 @@ export function mountDemo(host: HTMLElement, onDone: () => void): void {
         ? `<strong>Locked in.</strong> Loci will bring ${item.cue} back in ${span(s.first)}. Keep knowing it and the gaps grow:
            <span class="demo__chain">${s.chain.map((c) => `<span>${span(c)}</span>`).join('')}</span>`
         : `<strong>No problem.</strong> ${item.cue} comes back in ${span(s.first)} so you get another go while it is fresh.`) +
-      `<button type="button" class="soft soft--next" data-next>${last ? 'Choose what to learn' : 'Next memory'}</button>`;
+      `<button type="button" class="lumen lumen--next" data-next>${last ? 'Choose what to learn' : 'Next memory'}</button>`;
     hint.textContent = 'That rating just set the schedule. This is the same maths the headset uses.';
     result.querySelector<HTMLButtonElement>('[data-next]')!.addEventListener('click', () => {
       if (last) return onDone();
