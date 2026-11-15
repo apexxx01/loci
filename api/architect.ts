@@ -1,7 +1,10 @@
 /**
  * POST /api/architect
- *   { mode: "build", notes }                     -> { deck, repaired, model, ms }
- *   { mode: "bind",  items:[{cue,scene,label}] } -> { scenes, repaired, model, ms }
+ *   { mode: "build", notes, kind, audience }        -> { deck, repaired, model, ms }
+ *   { mode: "teach", topic, audience }              -> { deck (kind: concept), repaired, model, ms }
+ *   { mode: "bind",  items:[{cue,scene,label}] }    -> { scenes, repaired, model, ms }
+ *   { mode: "grade", title, stages:[{cue,answer}], explanation } -> { hit, missed, misconception, feedback, model, ms }
+ *   { mode: "reimagine", item:{cue,answer,scene,label} }         -> { scene, model, ms }
  *
  * Serverless function (Vercel). Keeps the Gemini key off the client, enforces
  * size limits and a per-instance rate limit, and never returns unvetted text.
@@ -15,8 +18,15 @@ import {
   type Audience,
   type Kind,
   bindPrompt,
+  CONCEPT_RESPONSE_SCHEMA,
+  GRADE_RESPONSE_SCHEMA,
+  gradePrompt,
+  reimaginePrompt,
+  teachPrompt,
   vetArchitectOutput,
   vetBoundScenes,
+  vetConceptOutput,
+  vetGrade,
 } from '../src/core/architect.js';
 
 const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
@@ -157,7 +167,10 @@ export async function POST(request: Request): Promise<Response> {
 
   const raw = await request.text();
   if (raw.length > MAX_BODY) return json(413, { error: 'Notes are too long. Keep it under about 4,000 characters.' });
-  let body: { mode?: string; notes?: unknown; items?: unknown; kind?: unknown; audience?: unknown };
+  let body: {
+    mode?: string; notes?: unknown; items?: unknown; kind?: unknown; audience?: unknown;
+    topic?: unknown; title?: unknown; stages?: unknown; explanation?: unknown; item?: unknown;
+  };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -178,6 +191,42 @@ export async function POST(request: Request): Promise<Response> {
       const out = await gemini(bindPrompt(items), BIND_RESPONSE_SCHEMA);
       const vetted = vetBoundScenes(out, items, items.map((i) => `${i.cue} ${i.scene}`).join(' '));
       return json(200, { ...vetted, model: lastModel, ms: Date.now() - started });
+    }
+
+    const audienceOf = (a: unknown): Audience => (AUDIENCES.includes(a as Audience) ? (a as Audience) : 'adult');
+    const str = (v: unknown, n: number) => String(v ?? '').slice(0, n);
+
+    if (body.mode === 'teach') {
+      const topic = typeof body.topic === 'string' ? body.topic : '';
+      if (topic.trim().length < 3) return json(400, { error: 'Name something to understand first.' });
+      const id = `cx_${Date.now().toString(36)}`;
+      const prompt = teachPrompt(topic, audienceOf(body.audience));
+      let vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
+      if (!vetted) vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
+      if (!vetted) return json(502, { error: 'The Architect could not explain that one. Try naming it a little differently.' });
+      return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: lastModel, ms: Date.now() - started });
+    }
+
+    if (body.mode === 'grade') {
+      const stages = Array.isArray(body.stages)
+        ? body.stages.slice(0, 12).map((st: Record<string, unknown>) => ({ cue: str(st?.cue, 80), answer: str(st?.answer, 200) }))
+        : [];
+      const explanation = str(body.explanation, 3000);
+      if (!stages.length) return json(400, { error: 'Nothing to grade against.' });
+      if (explanation.trim().length < 12) return json(400, { error: 'Write a sentence or two first.' });
+      const graded = vetGrade(await gemini(gradePrompt(str(body.title, 80), stages, explanation), GRADE_RESPONSE_SCHEMA), stages, explanation);
+      if (!graded) return json(502, { error: 'The Architect could not grade that. Try again.' });
+      return json(200, { ...graded, model: lastModel, ms: Date.now() - started });
+    }
+
+    if (body.mode === 'reimagine') {
+      const it = (body.item ?? {}) as Record<string, unknown>;
+      const item = { cue: str(it.cue, 80), answer: str(it.answer, 200), scene: str(it.scene, 240), label: str(it.label, 30) };
+      if (!item.cue || !item.answer) return json(400, { error: 'No memory to re-imagine.' });
+      const out = await gemini(reimaginePrompt(item), BIND_RESPONSE_SCHEMA);
+      const vetted = vetBoundScenes(out, [item], `${item.cue} ${item.answer} ${item.scene}`);
+      // A repaired result is just the old scene re-bound: report it as unchanged.
+      return json(200, { scene: vetted.repaired ? null : vetted.scenes[0], model: lastModel, ms: Date.now() - started });
     }
 
     const notes = typeof body.notes === 'string' ? body.notes : '';
