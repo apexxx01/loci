@@ -16,6 +16,10 @@ export const MemoryItemSchema = z.object({
   baseScene: z.string().max(240).optional(),
   glyphs: z.array(z.string().min(1).max(16)).min(1).max(3),
   order: z.number().int().min(0).max(999),
+  why: z.string().max(240).optional(),
+  check: z.object({ wrong: z.string().min(1).max(200), right: z.string().min(1).max(200) }).optional(),
+  link: z.string().max(120).optional(),
+  remade: z.number().int().min(0).max(99).optional(),
 });
 
 export const DeckSchema = z.object({
@@ -23,7 +27,8 @@ export const DeckSchema = z.object({
   title: z.string().min(1).max(60),
   subtitle: z.string().max(120),
   ordered: z.boolean(),
-  source: z.enum(['starter', 'handoff', 'architect', 'shared']),
+  source: z.enum(['starter', 'handoff', 'architect', 'shared', 'concept']),
+  kind: z.enum(['list', 'concept']).optional(),
   items: z.array(MemoryItemSchema).min(1).max(24),
 });
 
@@ -77,3 +82,28 @@ export const ArchitectDeckSchema = z.object({
 });
 
 export type ArchitectDeck = z.infer<typeof ArchitectDeckSchema>;
+
+/** A concept stage as the Architect writes it in teach mode. */
+export const ArchitectStageSchema = ArchitectItemSchema.extend({
+  why: z.string().min(4).max(240),
+  wrong: z.string().min(4).max(200),
+  right: z.string().min(4).max(200),
+  link: z.string().max(120),
+});
+
+export const ArchitectConceptSchema = z.object({
+  title: z.string().min(1).max(60),
+  stages: z.array(ArchitectStageSchema).min(3).max(8),
+});
+
+export type ArchitectConcept = z.infer<typeof ArchitectConceptSchema>;
+
+/** The Architect's grade of a learner's explanation, by stage index. */
+export const ArchitectGradeSchema = z.object({
+  hit: z.array(z.number().int().min(0).max(23)).max(24),
+  missed: z.array(z.number().int().min(0).max(23)).max(24),
+  misconception: z.string().max(240),
+  feedback: z.string().max(400),
+});
+
+export type ArchitectGrade = z.infer<typeof ArchitectGradeSchema>;

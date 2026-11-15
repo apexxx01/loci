@@ -4,6 +4,7 @@
  */
 import { deterministicBind, type Audience, type Kind } from '../core/architect.js';
 import { deckFromNotes } from '../core/notes.js';
+import { gradeOffline } from '../core/grade.js';
 import { DeckSchema } from '../core/schema.js';
 import type { Deck } from '../core/types.js';
 
@@ -69,4 +70,56 @@ export async function bindScenes(items: BindInput[]): Promise<{ scenes: string[]
     /* fall through */
   }
   return { scenes: items.map(deterministicBind), via: 'offline' };
+}
+
+/* ------------------------------------------------------------------ teach, grade, re-imagine */
+export type TeachResult = { ok: true; deck: Deck; ms: number; repaired: number } | { ok: false; error: string };
+
+export async function teachConcept(topic: string, audience: Audience = 'adult'): Promise<TeachResult> {
+  if (topic.trim().length < 3) return { ok: false, error: 'Name something to understand first.' };
+  try {
+    const { status, data } = await post({ mode: 'teach', topic, audience });
+    const parsed = DeckSchema.safeParse(data.deck);
+    if (status === 200 && parsed.success) return { ok: true, deck: parsed.data as Deck, ms: Number(data.ms) || 0, repaired: Number(data.repaired) || 0 };
+    return { ok: false, error: String(data.error ?? 'The Palace Architect is unavailable right now. Try one of the ready-made topics.') };
+  } catch (e) {
+    return { ok: false, error: (e as Error).name === 'AbortError' ? 'The Architect took too long. Try again, or pick a ready-made topic.' : 'Could not reach the Palace Architect. Try a ready-made topic instead.' };
+  }
+}
+
+export interface Grade {
+  hit: number[];
+  missed: number[];
+  misconception: string;
+  feedback: string;
+  via: 'architect' | 'offline';
+  ms?: number;
+}
+
+export async function gradeExplanation(title: string, stages: { cue: string; answer: string }[], explanation: string): Promise<Grade> {
+  try {
+    const { status, data } = await post({ mode: 'grade', title, stages, explanation });
+    if (status === 200 && Array.isArray(data.hit) && Array.isArray(data.missed)) {
+      return {
+        hit: (data.hit as number[]).filter(Number.isInteger),
+        missed: (data.missed as number[]).filter(Number.isInteger),
+        misconception: String(data.misconception ?? ''),
+        feedback: String(data.feedback ?? ''),
+        via: 'architect',
+        ms: Number(data.ms) || 0,
+      };
+    }
+  } catch {
+    /* fall through */
+  }
+  return { ...gradeOffline(stages, explanation), via: 'offline' };
+}
+
+export async function reimagineScene(item: { cue: string; answer: string; scene: string; label: string }): Promise<string | null> {
+  try {
+    const { status, data } = await post({ mode: 'reimagine', item });
+    return status === 200 && typeof data.scene === 'string' && data.scene ? data.scene : null;
+  } catch {
+    return null;
+  }
 }

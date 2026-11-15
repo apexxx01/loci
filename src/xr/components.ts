@@ -1,7 +1,7 @@
 import { createComponent, Types } from '@iwsdk/core';
 
 /** Learn = first meeting: everything shown at once, to study before testing. */
-export const TileFace = { Cue: 0, Hint: 1, Answer: 2, Learn: 3 } as const;
+export const TileFace = { Cue: 0, Hint: 1, Answer: 2, Learn: 3, Check: 4 } as const;
 
 /** One memory living on a real surface. */
 export const MemoryTile = createComponent('MemoryTile', {
@@ -15,4 +15,10 @@ export const MemoryTile = createComponent('MemoryTile', {
   flashKind: { type: Types.Int8, default: 0 },
   /** Seconds until the arrival animation finishes (0 = settled). */
   arrive: { type: Types.Float32, default: 0 },
+});
+
+/** One of the two answer buttons under a concept stage's myth check. */
+export const ChoiceButton = createComponent('ChoiceButton', {
+  /** 0 = left (A), 1 = right (B). */
+  slot: { type: Types.Int8, default: 0 },
 });

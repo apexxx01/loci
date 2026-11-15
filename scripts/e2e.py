@@ -104,69 +104,74 @@ def grab_and_move(pos, dy):
 
 
 # ------------------------------------------------------------------ run
-check('XR session active', ensure_xr())
-time.sleep(6)  # sessionstart restores any saved palace
+def main():
+    check('XR session active', ensure_xr())
+    time.sleep(6)  # sessionstart restores any saved palace
 
-for _ in range(3):
-    if not state().get('palace'):
-        break
+    for _ in range(3):
+        if not state().get('palace'):
+            break
+        t = targets()
+        if 'btn-new' in t:
+            aim_select(t['btn-new']['position'])
+        wait_for(lambda: not state().get('palace'), 8)
+    time.sleep(2.5)  # the hub glides back in front before its buttons settle
+    ev("localStorage.removeItem('loci.library.v2'); return 1")  # a clean library, so the pick builds from scratch
+
     t = targets()
-    if 'btn-new' in t:
-        aim_select(t['btn-new']['position'])
-    wait_for(lambda: not state().get('palace'), 8)
-time.sleep(2.5)  # the hub glides back in front before its buttons settle
-ev("localStorage.removeItem('loci.library.v2'); return 1")  # a clean library, so the pick builds from scratch
+    check('deck picker on the hub', 'deck-planets' in t)
+    t0 = time.time()
+    aim_select(t['deck-planets']['position'])
+    s = wait_for(lambda: (lambda st: st if st.get('n') == 8 else None)(state()), 60) or state()
+    check('8 memories placed and saved', s.get('n') == 8, f"{s.get('n')} placements, frame={s.get('frame')}")
+    labels = s.get('labels', [])
+    check('spread across distinct real objects', len(set(labels)) >= 6 and '' not in labels, ', '.join(labels))
+    check('saved relative to the persistent anchor', s.get('frame') == 'anchor')
+    print(f'   pick -> palace saved in {time.time() - t0:.1f}s wall-clock (emulator, headless)')
+    print(f"   status: {s.get('status')}")
 
-t = targets()
-check('deck picker on the hub', 'deck-planets' in t)
-t0 = time.time()
-aim_select(t['deck-planets']['position'])
-s = wait_for(lambda: (lambda st: st if st.get('n') == 8 else None)(state()), 60) or state()
-check('8 memories placed and saved', s.get('n') == 8, f"{s.get('n')} placements, frame={s.get('frame')}")
-labels = s.get('labels', [])
-check('spread across distinct real objects', len(set(labels)) >= 6 and '' not in labels, ', '.join(labels))
-check('saved relative to the persistent anchor', s.get('frame') == 'anchor')
-print(f'   pick -> palace saved in {time.time() - t0:.1f}s wall-clock (emulator, headless)')
-print(f"   status: {s.get('status')}")
+    t = targets()
+    tile = t.get('tile:planets:3')
+    check('tile is an interaction target', tile is not None)
+    p = tile['position']
 
-t = targets()
-tile = t.get('tile:planets:3')
-check('tile is an interaction target', tile is not None)
-p = tile['position']
+    xr('look-at', {'device': 'controller-right', 'target': p})
+    time.sleep(2.5)
+    xr('set-select-value', {'device': 'controller-right', 'value': 1})
+    time.sleep(2.0)
+    xr('set-select-value', {'device': 'controller-right', 'value': 0})
+    time.sleep(2.5)
+    check('pinch flips the tile', (state().get('last') or {}).get('result') == 'tap', str(state().get('last')))
 
-xr('look-at', {'device': 'controller-right', 'target': p})
-time.sleep(2.5)
-xr('set-select-value', {'device': 'controller-right', 'value': 1})
-time.sleep(2.0)
-xr('set-select-value', {'device': 'controller-right', 'value': 0})
-time.sleep(2.5)
-check('pinch flips the tile', (state().get('last') or {}).get('result') == 'tap', str(state().get('last')))
+    before = state()
+    grab_and_move(p, 0.35)
+    after = state()
+    check('raising it records a recall', after.get('history') == before.get('history') + 1 and after.get('due') == before.get('due') - 1,
+          f"history {before.get('history')}->{after.get('history')}, due {before.get('due')}->{after.get('due')}, {after.get('last')}")
 
-before = state()
-grab_and_move(p, 0.35)
-after = state()
-check('raising it records a recall', after.get('history') == before.get('history') + 1 and after.get('due') == before.get('due') - 1,
-      f"history {before.get('history')}->{after.get('history')}, due {before.get('due')}->{after.get('due')}, {after.get('last')}")
+    p2 = t['tile:planets:5']['position']
+    before = state()
+    grab_and_move(p2, -0.35)
+    after = state()
+    again = ev("""const p = window.__loci.app.palace; const last = p.history[p.history.length - 1];
+      return { rating: last.rating, mins: (new Date(p.cards[last.memoryId].due) - Date.now()) / 60000 }""")
+    check('lowering it brings the memory back within minutes', after.get('history') == before.get('history') + 1
+          and again.get('rating') == 'again' and again.get('mins', 99) <= 10, str(again))
 
-p2 = t['tile:planets:5']['position']
-before = state()
-grab_and_move(p2, -0.35)
-after = state()
-again = ev("""const p = window.__loci.app.palace; const last = p.history[p.history.length - 1];
-  return { rating: last.rating, mins: (new Date(p.cards[last.memoryId].due) - Date.now()) / 60000 }""")
-check('lowering it brings the memory back within minutes', after.get('history') == before.get('history') + 1
-      and again.get('rating') == 'again' and again.get('mins', 99) <= 10, str(again))
+    poses_before = ev("return window.__loci.app.palace.placements.map(p => p.pose.p)")
+    xr('exit')
+    time.sleep(3)
+    ensure_xr()
+    restored = wait_for(lambda: 'Welcome back' in (state().get('status') or '') or None, 30)
+    time.sleep(2)
+    poses_after = ev("return window.__loci.app.palace.placements.map(p => p.pose.p)")
+    drift = max((math.dist(a, b) for a, b in zip(poses_before, poses_after)), default=99)
+    check('palace restored in place after re-entering', restored and drift < 0.01, f'max drift {drift:.4f} m; "{state().get("status")}"')
 
-poses_before = ev("return window.__loci.app.palace.placements.map(p => p.pose.p)")
-xr('exit')
-time.sleep(3)
-ensure_xr()
-restored = wait_for(lambda: 'Welcome back' in (state().get('status') or '') or None, 30)
-time.sleep(2)
-poses_after = ev("return window.__loci.app.palace.placements.map(p => p.pose.p)")
-drift = max((math.dist(a, b) for a, b in zip(poses_before, poses_after)), default=99)
-check('palace restored in place after re-entering', restored and drift < 0.01, f'max drift {drift:.4f} m; "{state().get("status")}"')
+    passed = sum(ok for _, ok in results)
+    print(f'\n{passed}/{len(results)} checks passed')
+    sys.exit(0 if passed == len(results) else 1)
 
-passed = sum(ok for _, ok in results)
-print(f'\n{passed}/{len(results)} checks passed')
-sys.exit(0 if passed == len(results) else 1)
+
+if __name__ == '__main__':
+    main()

@@ -44,11 +44,15 @@ export interface TileRecord {
   /** Arrival flight: start offset in root-local space. */
   from?: Vector3;
   delay: number;
+  /** Concept stages: the last myth-check result, shown on the answer face. */
+  lastCheck?: 'right' | 'wrong';
+  /** Concept stages: true when the wrong statement is drawn on the left (A). */
+  wrongFirst?: boolean;
 }
 
 type Phase = 'idle' | 'scanning' | 'building' | 'restoring' | 'ready';
 
-const FACE_NAMES: FaceKind[] = ['cue', 'hint', 'answer', 'learn'];
+const FACE_NAMES: FaceKind[] = ['cue', 'hint', 'answer', 'learn', 'check'];
 
 export class PalaceSystem extends createSystem({
   tiles: { required: [MemoryTile] },
@@ -380,6 +384,7 @@ export class PalaceSystem extends createSystem({
         if (this.sessionActive) this.persist();
         this.refreshDue();
         bus.emit({ type: 'palace-changed' });
+        bus.emit({ type: 'palace-ready', restored: false });
         if (this.needsBind) {
           this.needsBind = false;
           void this.weaveRoom();
@@ -419,6 +424,7 @@ export class PalaceSystem extends createSystem({
       this.verifyFor = 5;
       setStatus(this.welcomeBackText());
       bus.emit({ type: 'palace-changed' });
+      bus.emit({ type: 'palace-ready', restored: true });
       return;
     }
     if (this.phaseTime > ATTACH_TIMEOUT_SECONDS) {
@@ -562,6 +568,10 @@ export class PalaceSystem extends createSystem({
       dwell: settings.dwell,
       mastered: Boolean(card && card.state === 2 && card.stability >= 3),
       blind: Boolean(due && card && card.state === 2 && card.stability >= 3),
+      concept: palace?.deck.kind === 'concept',
+      lastCheck: rec.lastCheck,
+      wrongFirst: rec.wrongFirst,
+      next: palace?.deck.kind === 'concept' ? palace.deck.items.find((i) => i.order === rec.item.order + 1)?.cue : undefined,
     });
     rec.tile.setHaloStrength(due ? 0.9 : 0.15);
   }

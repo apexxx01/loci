@@ -3,6 +3,7 @@
  * hub comfortably in front of a seated user when mixed reality starts.
  */
 import { createSystem, Vector3, type UIKitMLAsset } from '@iwsdk/core';
+import { conceptById } from '../core/concepts.js';
 import { findStarterDeck } from '../core/decks.js';
 import { dueIds, mastery, streak } from '../core/scheduler.js';
 import { listPalaces } from '../core/palace.js';
@@ -82,12 +83,16 @@ export class HubSystem extends createSystem({}) {
       );
     };
 
-    for (const id of ['planets', 'elements', 'spanish']) {
-      bind(`deck-${id}`, () => {
-        const deck = findStarterDeck(id);
+    for (const id of ['heart', 'plants', 'seasons', 'vaccine', 'water', 'web']) {
+      bind(`concept-${id}`, () => {
+        const deck = conceptById(`concept-${id}`);
         if (deck) bus.emit({ type: 'start-deck', deck });
       });
     }
+    bind('deck-planets', () => {
+      const deck = findStarterDeck('planets');
+      if (deck) bus.emit({ type: 'start-deck', deck });
+    });
     bind('deck-phone', () => bus.emit({ type: 'own-notes' }));
     bind('btn-refit', () => bus.emit({ type: 'refit' }));
     let accessOpen = false;
@@ -154,6 +159,21 @@ export class HubSystem extends createSystem({}) {
   private coachStep = -1;
   private coach(e: { type: string; face?: number; rating?: string }): void {
     const firstTime = (app.palace?.history.length ?? 0) === 0;
+    if (app.palace?.deck.kind === 'concept') {
+      if (e.type === 'palace-changed' && firstTime && this.coachStep < 0 && app.palace.placements.length) {
+        this.coachStep = 0;
+        const first = app.palace.placements.find((p) => p.memoryId.endsWith(':0')) ?? app.palace.placements[0];
+        setStatus(`Start at stage 1${first?.label ? ` on your ${first.label}` : ''} and follow the light.`);
+        this.setText('palace-howto', 'Read each stage where it sits. When you are ready, pinch one to test yourself.');
+      } else if (e.type === 'flipped' && e.face === 4 && this.coachStep >= 0 && this.coachStep < 2) {
+        this.coachStep = 2;
+        this.setText('palace-howto', 'One of these is a common myth. Pinch the true one.');
+      } else if (e.type === 'rated' && this.coachStep >= 0 && this.coachStep < 4) {
+        this.coachStep = 4;
+        this.setText('palace-howto', 'That is the loop. Stages glow when they are due, and the ones you miss come back sooner.');
+      }
+      return;
+    }
     if (e.type === 'palace-changed' && firstTime && this.coachStep < 0 && app.palace?.placements.length) {
       this.coachStep = 0;
       const first = app.palace.placements.find((p) => p.memoryId.endsWith(':0')) ?? app.palace.placements[0];
@@ -223,11 +243,13 @@ export class HubSystem extends createSystem({}) {
       const saved = store ? listPalaces(store).length : 0;
       this.setDisplay('btn-open', saved > 0);
       this.setText('btn-open-label', saved === 1 ? 'Open my saved palace' : `Open a saved palace (${saved})`);
-      this.setText('hub-tagline', 'Pick something to learn. I will place it on the furniture around you.');
+      this.setText('hub-heading', 'What do you want to understand?');
+      this.setText('hub-tagline', 'Pinch one. Its stages will land on the furniture around you.');
       return;
     }
     const now = new Date();
-    this.setText('hub-tagline', `${palace.deck.title}: ${palace.deck.subtitle}.`);
+    this.setText('hub-heading', palace.deck.title);
+    this.setText('hub-tagline', palace.deck.kind === 'concept' ? 'Follow the light from stage to stage.' : `${palace.deck.subtitle}.`);
     this.setText('palace-title', palace.deck.title.toUpperCase());
     this.setText('stat-due', String(dueIds(palace, now).length));
     this.setText('stat-mastery', `${Math.round(mastery(palace) * 100)}%`);

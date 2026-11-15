@@ -11,6 +11,10 @@ export type AppEvent =
   | { type: 'new-palace' }
   | { type: 'switch-palace' }
   | { type: 'palace-changed' }
+  /** Every memory has landed (built) or found its place again (restored). */
+  | { type: 'palace-ready'; restored: boolean }
+  /** A concept stage was answered on recall: lights or dims its thread. */
+  | { type: 'stage-checked'; memoryId: string; correct: boolean }
   | { type: 'status'; text: string }
   | { type: 'own-notes' }
   | { type: 'flipped'; face: number; label: string }

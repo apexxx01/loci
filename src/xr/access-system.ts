@@ -17,6 +17,7 @@ import { app } from './app-state.js';
 import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
 import { RecallSystem } from './recall-system.js';
+import { CheckSystem } from './check-system.js';
 import { onSettings, settings } from './settings.js';
 import { setMuted } from './sound.js';
 import { TILE_SIZE } from './tile.js';
@@ -24,11 +25,12 @@ import { TILE_SIZE } from './tile.js';
 const DWELL_SECONDS = 1.1;
 const RING_SEGMENTS = 40;
 
-type Target = { rec: TileRecord; kind: 'card' | 'good' | 'again'; obj: Object3D };
+type Target = { rec: TileRecord; kind: 'card' | 'good' | 'again' | 'a' | 'b'; obj: Object3D };
 
 export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile] } }) {
   private palaceSys!: PalaceSystem;
   private recall!: RecallSystem;
+  private checks: CheckSystem | undefined;
   private ray = new Ray();
   private origin = new Vector3();
   private dir = new Vector3();
@@ -47,6 +49,7 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
   init(): void {
     this.palaceSys = this.world.getSystem(PalaceSystem)!;
     this.recall = this.world.getSystem(RecallSystem)!;
+    this.checks = this.world.getSystem(CheckSystem);
     this.ringGeo = new RingGeometry(0.016, 0.024, RING_SEGMENTS, 1);
     this.ring = new Mesh(
       this.ringGeo,
@@ -73,7 +76,7 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
   update(delta: number): void {
     // Rating buttons follow the answer face in look-to-select mode.
     for (const rec of this.palaceSys.records.values()) {
-      const showButtons = settings.dwell && rec.entity.getValue(MemoryTile, 'face') === TileFace.Answer;
+      const showButtons = settings.dwell && rec.entity.getValue(MemoryTile, 'face') === TileFace.Answer && app.palace?.deck.kind !== 'concept';
       if (showButtons || rec.tile.rateButtons) rec.tile.showRateButtons(showButtons);
     }
 
@@ -122,7 +125,11 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
         this.cooldownObj = t.obj;
       }
       if (t.kind === 'card') return;
-      else this.recall.rate(t.rec, t.kind === 'good' ? (t.rec.entity.getValue(MemoryTile, 'usedHint') ? 'hard' : 'good') : 'again');
+      if (t.kind === 'a' || t.kind === 'b') {
+        this.checks?.choose(t.kind === 'a' ? 0 : 1);
+        return;
+      }
+      this.recall.rate(t.rec, t.kind === 'good' ? (t.rec.entity.getValue(MemoryTile, 'usedHint') ? 'hard' : 'good') : 'again');
     }
   }
 
@@ -145,6 +152,10 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
       ];
       if (btns?.good.visible) {
         candidates.push([btns.good, 'good', 0.092, 0.05], [btns.again, 'again', 0.092, 0.05]);
+      }
+      if (this.checks?.active === rec) {
+        const [a, b] = this.checks.buttons;
+        if (a?.mesh.visible) candidates.push([a.mesh, 'a', 0.094, 0.056], [b.mesh, 'b', 0.094, 0.056]);
       }
       for (const [obj, kind, w, h] of candidates) {
         const d = this.hitRect(obj, w, h);

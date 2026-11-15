@@ -6,7 +6,7 @@
 import { glyphsFor } from './glyphs.js';
 import { MAX_ITEMS } from './notes.js';
 import { checkMnemonic, sanitizeUserText } from './safety.js';
-import { ArchitectDeckSchema, type ArchitectDeck } from './schema.js';
+import { ArchitectConceptSchema, ArchitectDeckSchema, ArchitectGradeSchema, type ArchitectDeck, type ArchitectGrade } from './schema.js';
 import type { Deck, MemoryItem } from './types.js';
 
 export const ARCHITECT_RULES = `You are the Palace Architect inside Loci, a mixed-reality memory palace.
@@ -196,5 +196,186 @@ function clampShape(raw: unknown): unknown {
           glyphs: Array.isArray(it?.glyphs) ? (it.glyphs as unknown[]).filter((g) => typeof g === 'string').slice(0, 3) : ['✨'],
         }))
       : items,
+  };
+}
+
+/* ------------------------------------------------------------------ teach mode
+ * Not a list of facts: how something WORKS, as 4 to 7 linked stages. Each stage
+ * lands on one object in the room and a thread of light joins it to the next,
+ * so walking the room is walking the mechanism.
+ */
+export const MAX_STAGES = 7;
+
+export const TEACH_RULES = `You are the Palace Architect inside Loci, a mixed-reality memory palace.
+The learner wants to UNDERSTAND how something works, not memorise a list. Explain it as a chain of ${4} to ${MAX_STAGES} linked stages,
+in causal or chronological order, where each stage leads to the next. Each stage will sit on a different object in the learner's room,
+joined to the next by a thread of light, so walking around the room is walking through the mechanism.
+
+For each stage produce:
+- cue: the stage's name, 2 to 5 words (e.g. "Right atrium fills").
+- answer: the core claim, one plain sentence, max 22 words.
+- why: why that is true or why it matters, one sentence, max 24 words. Teach the reason, not a restatement.
+- scene: ONE vivid, concrete, slightly absurd picture (max 24 words) that makes the claim memorable.
+- glyphs: 1 to 3 emoji that depict the scene.
+- wrong: ONE common misconception about this stage that real learners hold, stated confidently as if true (max 18 words).
+- right: the accurate statement that corrects it, in the same shape (max 18 words).
+- link: how this stage causes or leads into the next one, a short verb phrase (max 10 words). Empty string for the last stage.
+
+Hard rules:
+- Only well-established, uncontroversial facts you are highly confident about. If the topic is contested or unsafe, explain only the settled parts.
+- Simple language; define any technical word the first time it appears.
+- Family-friendly (ages 10+): no gore, violence, alcohol, drugs, weapons or adult content.
+- No real people, celebrities or characters, and no brands, products or logos.
+- Title: 2 to 6 words naming the concept (e.g. "How the heart pumps blood").
+Return only JSON matching the schema.`;
+
+export const CONCEPT_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string' },
+    stages: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          cue: { type: 'string' },
+          answer: { type: 'string' },
+          why: { type: 'string' },
+          scene: { type: 'string' },
+          glyphs: { type: 'array', items: { type: 'string' } },
+          wrong: { type: 'string' },
+          right: { type: 'string' },
+          link: { type: 'string' },
+        },
+        required: ['cue', 'answer', 'why', 'scene', 'glyphs', 'wrong', 'right', 'link'],
+      },
+    },
+  },
+  required: ['title', 'stages'],
+} as const;
+
+export function teachPrompt(topic: string, audience: Audience = 'adult'): string {
+  return `${TEACH_RULES}\n${AUDIENCE_RULES[audience]}\n\nWhat the learner wants to understand (a topic, a question, or their own notes to explain):\n"""\n${sanitizeUserText(topic, 4000)}\n"""`;
+}
+
+/** Validate and clean a concept. Unsafe scenes are replaced; an unsafe myth check is dropped. */
+export function vetConceptOutput(raw: unknown, topic: string, id: string): VetResult | null {
+  const parsed = ArchitectConceptSchema.safeParse(clampConcept(raw));
+  if (!parsed.success) return null;
+  let repaired = 0;
+  const stages = parsed.data.stages.slice(0, MAX_STAGES);
+  const items: MemoryItem[] = stages.map((st, order) => {
+    const source = `${topic} ${st.cue} ${st.answer} ${st.why}`;
+    let scene = st.scene.trim();
+    if (!checkMnemonic(scene, source).ok) {
+      repaired++;
+      scene = `Picture ${st.cue.toLowerCase()} happening right in front of you, glowing as it goes.`;
+    }
+    const checkOk = [st.wrong, st.right].every((t) => checkMnemonic(t, source).ok) && norm(st.wrong) !== norm(st.right);
+    const glyphs = st.glyphs.filter(isEmojiish).slice(0, 3);
+    const last = order === stages.length - 1;
+    return {
+      id: `${id}:${order}`,
+      cue: st.cue.trim().slice(0, 80),
+      answer: st.answer.trim().slice(0, 200),
+      why: st.why.trim().slice(0, 240),
+      scene,
+      glyphs: glyphs.length ? glyphs : glyphsFor(`${st.cue} ${st.answer}`),
+      order,
+      ...(checkOk ? { check: { wrong: st.wrong.trim().slice(0, 200), right: st.right.trim().slice(0, 200) } } : {}),
+      ...(!last && st.link.trim() ? { link: st.link.trim().slice(0, 120) } : {}),
+    };
+  });
+  if (items.length < 3) return null;
+  return {
+    deck: {
+      id,
+      title: parsed.data.title.trim().slice(0, 60) || 'How it works',
+      subtitle: `${items.length} linked stages, taught by the Palace Architect`,
+      ordered: true,
+      source: 'architect',
+      kind: 'concept',
+      items,
+    },
+    repaired,
+  };
+}
+
+/* ------------------------------------------------------------------ explain-back grading */
+export const GRADE_RULES = `You are the Palace Architect inside Loci, grading a learner who explained a concept in their own words.
+You get the concept's stages (numbered from 0) and the learner's explanation. Decide, for each stage, whether the explanation
+shows they understand its key idea. Be fair: paraphrase, simpler words and a different order all count; a stage counts as hit
+only if its key idea is actually present, not just its name. Put each stage index in exactly one of "hit" or "missed".
+If the explanation states something false about the concept, name the misconception in one short sentence in "misconception",
+otherwise return an empty string. "feedback": two short, warm, specific sentences: what they got right, then the most important
+thing to add. Address the learner as "you". Return only JSON matching the schema.`;
+
+export const GRADE_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    hit: { type: 'array', items: { type: 'integer' } },
+    missed: { type: 'array', items: { type: 'integer' } },
+    misconception: { type: 'string' },
+    feedback: { type: 'string' },
+  },
+  required: ['hit', 'missed', 'misconception', 'feedback'],
+} as const;
+
+export interface GradeStage {
+  cue: string;
+  answer: string;
+}
+
+export function gradePrompt(title: string, stages: GradeStage[], explanation: string): string {
+  const lines = stages.map((s, i) => `${i}. ${s.cue}: ${s.answer}`).join('\n');
+  return `${GRADE_RULES}\n\nConcept: ${sanitizeUserText(title, 80)}\nStages:\n${lines}\n\nLearner's explanation:\n"""\n${sanitizeUserText(explanation, 3000)}\n"""`;
+}
+
+/** Make the model's grade consistent: every stage exactly once, text vetted. */
+export function vetGrade(raw: unknown, stages: GradeStage[], explanation: string): ArchitectGrade | null {
+  const n = stages.length;
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const ints = (v: unknown) => (Array.isArray(v) ? v.filter((i) => Number.isInteger(i) && i >= 0 && i < n).slice(0, 24) : v);
+  const parsed = ArchitectGradeSchema.safeParse({ ...r, hit: ints(r.hit), missed: ints(r.missed) });
+  if (!parsed.success) return null;
+  const hit = [...new Set(parsed.data.hit.filter((i) => i >= 0 && i < n))].sort((a, b) => a - b);
+  const missed = Array.from({ length: n }, (_, i) => i).filter((i) => !hit.includes(i));
+  const source = `${explanation} ${stages.map((s) => `${s.cue} ${s.answer}`).join(' ')}`;
+  const clean = (t: string) => (t && checkMnemonic(t, source).ok ? t.trim() : '');
+  return { hit, missed, misconception: clean(parsed.data.misconception).slice(0, 240), feedback: clean(parsed.data.feedback).slice(0, 400) };
+}
+
+/* ------------------------------------------------------------------ rescue: re-imagine a memory that keeps slipping */
+export const REIMAGINE_RULES = `You are the Palace Architect inside Loci. The learner has missed this memory more than once, so its picture is not working.
+Invent a COMPLETELY DIFFERENT picture for the same fact: a new image, new action and new sense (sound, smell, heat or touch),
+bound to the object it sits on (use what that object is and does). Make the link between cue and answer impossible to miss.
+Max 26 words, family-friendly, no real people, no brands, say "your <object>". Return only JSON matching the schema.`;
+
+export function reimaginePrompt(it: { cue: string; answer: string; scene: string; label: string }): string {
+  return `${REIMAGINE_RULES}\n\nobject: ${it.label || 'the space in front of you'}\ncue: ${sanitizeUserText(it.cue, 80)}\nanswer: ${sanitizeUserText(it.answer, 200)}\nthe picture that did not work: ${sanitizeUserText(it.scene, 240)}\n\nReturn {"scenes": [one new scene]}.`;
+}
+
+function norm(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function clampConcept(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return raw;
+  const r = raw as { title?: unknown; stages?: unknown };
+  const cut = (v: unknown, n: number) => (typeof v === 'string' ? v.slice(0, n) : v);
+  return {
+    title: cut(r.title, 60),
+    stages: Array.isArray(r.stages)
+      ? r.stages.slice(0, 8).map((st: Record<string, unknown>) => ({
+          cue: cut(st?.cue, 80),
+          answer: cut(st?.answer, 200),
+          why: cut(st?.why, 240),
+          scene: cut(st?.scene, 240),
+          glyphs: Array.isArray(st?.glyphs) ? (st.glyphs as unknown[]).filter((g) => typeof g === 'string').slice(0, 3) : ['✨'],
+          wrong: cut(st?.wrong, 200),
+          right: cut(st?.right, 200),
+          link: typeof st?.link === 'string' ? st.link.slice(0, 120) : '',
+        }))
+      : r.stages,
   };
 }

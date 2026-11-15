@@ -21,9 +21,25 @@ export interface MemoryItem {
   glyphs: string[];
   /** Position in an ordered list (0-based). */
   order: number;
+  /** Concept stages only: why the claim is true, in one line. */
+  why?: string;
+  /** Concept stages only: a common misconception and its correction, asked on recall. */
+  check?: MythCheck;
+  /** Concept stages only: how this stage leads to the next ("pushes it into the lungs"). */
+  link?: string;
+  /** Times the Architect has re-imagined this memory after repeated misses. */
+  remade?: number;
 }
 
-export type DeckSource = 'starter' | 'handoff' | 'architect' | 'shared';
+/** Two statements about one stage: the learner picks the true one. */
+export interface MythCheck {
+  /** A common, plausible misconception. */
+  wrong: string;
+  /** The accurate statement it gets confused with. */
+  right: string;
+}
+
+export type DeckSource = 'starter' | 'handoff' | 'architect' | 'shared' | 'concept';
 
 export interface Deck {
   id: string;
@@ -32,6 +48,8 @@ export interface Deck {
   /** Ordered decks get a walk route; unordered decks are placed by fit. */
   ordered: boolean;
   source: DeckSource;
+  /** 'concept' decks are linked stages of how something works, joined by threads in the room. */
+  kind?: 'list' | 'concept';
   items: MemoryItem[];
 }
 

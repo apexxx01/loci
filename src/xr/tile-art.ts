@@ -6,7 +6,7 @@ import type { MemoryItem } from '../core/types.js';
 
 export const TILE_PX = { w: 512, h: 640 } as const;
 
-export type FaceKind = 'cue' | 'hint' | 'answer' | 'learn';
+export type FaceKind = 'cue' | 'hint' | 'answer' | 'learn' | 'check';
 
 export interface FaceStyle {
   due: boolean;
@@ -24,10 +24,19 @@ export interface FaceStyle {
   mastered?: boolean;
   /** Mastered memories hide their cue: only the place prompts you. */
   blind?: boolean;
+  /** A stage of a concept: drawn as teaching, with a myth check on recall. */
+  concept?: boolean;
+  /** Result of the last myth check, shown on the answer face. */
+  lastCheck?: 'right' | 'wrong';
+  /** Wrong statement drawn as A (left). */
+  wrongFirst?: boolean;
+  /** Name of the next stage, for the thread line at the bottom. */
+  next?: string;
 }
 
 const EMOJI_FONT = '"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
-const UI_FONT = '"Inter","Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif';
+const UI_FONT = '"Lexend Variable","Lexend","Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif';
+const DISPLAY_FONT = '"Marcellus","Georgia",serif';
 
 const C = {
   ink: '#f6f4ff',
@@ -61,9 +70,10 @@ function fitText(
   startPx: number,
   minPx: number,
   weight: number,
+  family: string = UI_FONT,
 ): { lines: string[]; px: number } {
   for (let px = startPx; px >= minPx; px -= 2) {
-    ctx.font = `${weight} ${px}px ${UI_FONT}`;
+    ctx.font = `${weight} ${px}px ${family}`;
     const words = text.split(/\s+/).filter(Boolean);
     const lines: string[] = [];
     let line = '';
@@ -80,7 +90,7 @@ function fitText(
       return { lines, px };
     }
   }
-  ctx.font = `${weight} ${minPx}px ${UI_FONT}`;
+  ctx.font = `${weight} ${minPx}px ${family}`;
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = '';
@@ -183,6 +193,11 @@ export function drawTile(
     ctx.fillText(label, w - pad - 24 - tw / 2, 84);
   }
 
+  if (style.concept) {
+    drawConcept(ctx, item, face, style, { ink, inkSoft, accent });
+    return;
+  }
+
   if (face === 'cue') {
     // Glyphs.
     const glyphs = item.glyphs.slice(0, 3);
@@ -250,4 +265,115 @@ export function drawTile(
     ctx.font = `600 23px ${UI_FONT}`;
     ctx.fillText(style.dwell ? 'look at a button below to rate' : 'grab it: raise UP = knew it · DOWN = again', cx, h - 58);
   }
+}
+
+/* ------------------------------------------------------------------ concept stages */
+const LILAC = '#cdbfff';
+const ROSE = '#ff9ec4';
+
+function drawConcept(
+  ctx: CanvasRenderingContext2D,
+  item: MemoryItem,
+  face: FaceKind,
+  style: FaceStyle,
+  pal: { ink: string; inkSoft: string; accent: string },
+): void {
+  const { w, h } = TILE_PX;
+  const cx = w / 2;
+  const left = 54;
+  const maxW = w - left * 2;
+  const footer = (text: string, color = pal.accent) => {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.font = `500 22px ${UI_FONT}`;
+    ctx.fillText(text, cx, h - 56);
+  };
+  const stageLine = (y: number) => {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = pal.accent;
+    ctx.font = `500 22px ${UI_FONT}`;
+    ctx.fillText(`Stage ${item.order + 1}`, left, y);
+  };
+  const block = (text: string, y: number, px: number, min: number, lines: number, color: string, weight = 400, family = UI_FONT) => {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = color;
+    const f = fitText(ctx, text, maxW, lines, px, min, weight, family);
+    f.lines.forEach((l, i) => ctx.fillText(l, left, y + f.px + i * f.px * 1.25));
+    return y + f.px * 1.25 * f.lines.length + 8;
+  };
+
+  if (face === 'learn' || face === 'hint') {
+    stageLine(150);
+    let y = block(item.cue, 160, 46, 30, 2, pal.ink, 400, DISPLAY_FONT);
+    y = block(item.answer, y + 4, 29, 22, 4, pal.ink, 400);
+    if (item.why) y = block(`Why: ${item.why}`, y + 6, 24, 19, 3, style.contrast ? '#ffffff' : LILAC, 400);
+    if (y < h - 170) block(item.scene, y + 6, 22, 18, Math.max(1, Math.floor((h - 150 - y) / 30)), pal.inkSoft, 300);
+    footer(item.link && style.next ? `${item.link.charAt(0).toUpperCase()}${item.link.slice(1)} \u2192 ${style.next}` : style.dwell ? 'look here to test yourself' : 'pinch to test yourself');
+    return;
+  }
+
+  if (face === 'cue') {
+    // A large stage medallion: the place and the number are the cue.
+    ctx.textAlign = 'center';
+    ctx.beginPath();
+    ctx.arc(cx, 250, 92, 0, Math.PI * 2);
+    ctx.strokeStyle = style.due ? pal.accent : 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.fillStyle = style.due ? pal.accent : pal.inkSoft;
+    ctx.font = `400 104px ${DISPLAY_FONT}`;
+    ctx.fillText(String(item.order + 1), cx, 286);
+    ctx.fillStyle = pal.ink;
+    const text = style.blind ? `Which stage lives ${style.surfaceLabel ? `on your ${style.surfaceLabel}` : 'here'}?` : item.cue;
+    const f = fitText(ctx, text, w - 90, 2, 46, 28, 400, DISPLAY_FONT);
+    f.lines.forEach((l, i) => ctx.fillText(l, cx, 420 + i * f.px * 1.2));
+    footer(style.due ? (style.dwell ? 'what happens here? look to check' : 'what happens here? pinch to check') : `rested, back ${style.restLabel}`, style.due ? pal.accent : C.inkDim);
+    return;
+  }
+
+  if (face === 'check') {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = pal.ink;
+    ctx.font = `400 40px ${DISPLAY_FONT}`;
+    ctx.fillText('Which is true?', cx, 160);
+    const check = item.check;
+    if (!check) {
+      footer('pinch to see the answer');
+      return;
+    }
+    const [a, b] = style.wrongFirst ? [check.wrong, check.right] : [check.right, check.wrong];
+    const card = (label: string, text: string, y: number) => {
+      roundRect(ctx, 40, y, w - 80, 170, 26);
+      ctx.fillStyle = style.contrast ? '#000' : 'rgba(205,191,255,0.10)';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = style.contrast ? '#fff' : 'rgba(205,191,255,0.45)';
+      ctx.stroke();
+      ctx.textAlign = 'left';
+      ctx.fillStyle = pal.accent;
+      ctx.font = `400 40px ${DISPLAY_FONT}`;
+      ctx.fillText(label, 62, y + 56);
+      ctx.fillStyle = pal.ink;
+      const f = fitText(ctx, text, w - 190, 4, 27, 19, 400);
+      const top = y + 85 - (f.lines.length * f.px * 1.22) / 2;
+      f.lines.forEach((l, i) => ctx.fillText(l, 116, top + f.px + i * f.px * 1.22 - 8));
+    };
+    card('A', a, 200);
+    card('B', b, 390);
+    footer(style.dwell ? 'look at A or B below' : 'pinch A or B below');
+    return;
+  }
+
+  // Answer: the verdict, the correction if needed, then the claim and why.
+  const right = style.lastCheck === 'right';
+  const verdictColor = style.lastCheck ? (right ? C.mint : ROSE) : pal.accent;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = verdictColor;
+  ctx.font = `400 46px ${DISPLAY_FONT}`;
+  ctx.fillText(style.lastCheck ? (right ? 'Right.' : 'Not quite.') : item.cue, left, 150);
+  let y = 166;
+  if (style.lastCheck === 'wrong' && item.check) y = block(item.check.right, y, 27, 20, 3, pal.ink, 500);
+  y = block(item.answer, y + 6, 26, 20, 4, style.lastCheck === 'wrong' ? pal.inkSoft : pal.ink, 400);
+  if (item.why) block(`Why: ${item.why}`, y + 6, 23, 18, 3, style.contrast ? '#ffffff' : LILAC, 400);
+  footer(style.lastCheck === 'wrong' ? 'it will come back sooner' : style.dwell ? 'look away to rest it' : 'pinch to rest it');
 }

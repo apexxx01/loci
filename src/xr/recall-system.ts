@@ -18,6 +18,9 @@ import { classifyToss, rateToss, releaseVelocity, SampleRing } from '../core/tos
 import { app, bus, getStorage, setStatus } from './app-state.js';
 import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
+import { CheckSystem } from './check-system.js';
+import { reimagineScene } from '../net/architect-client.js';
+import { replaceItem } from '../core/palace.js';
 import { settings, speak } from './settings.js';
 import { playAgain, playFlip, playSuccess, updateListener } from './sound.js';
 
@@ -58,10 +61,21 @@ export class RecallSystem extends createSystem({
   private q = new Quaternion();
   private palaceSys!: PalaceSystem;
   private grabSys: GrabSystem | undefined;
+  private checks: CheckSystem | undefined;
+  /** Memories the Architect is re-imagining right now (one request each). */
+  private remaking = new Set<string>();
 
   init(): void {
     this.palaceSys = this.world.getSystem(PalaceSystem)!;
     this.grabSys = this.world.getSystem(GrabSystem);
+    this.checks = this.world.getSystem(CheckSystem);
+    this.checks?.setAnswerHandler((rec, correct) => {
+      this.rate(rec, correct ? (rec.entity.getValue(MemoryTile, 'usedHint') ? 'hard' : 'good') : 'again');
+      // Stay on the verdict: right or not, the learner sees the claim and why.
+      rec.entity.setValue(MemoryTile, 'face', TileFace.Answer);
+      this.palaceSys.renderTile(rec);
+      speak(correct ? `Right. ${rec.item.why ?? rec.item.answer}` : `Not quite. ${rec.item.check?.right ?? ''} ${rec.item.answer}`);
+    });
 
     this.cleanupFuncs.push(
       this.queries.grabbed.subscribe('qualify', (e) => this.onGrab(e)),
@@ -203,6 +217,32 @@ export class RecallSystem extends createSystem({
   flip(rec: TileRecord): void {
     const e = rec.entity;
     const face = e.getValue(MemoryTile, 'face') ?? TileFace.Cue;
+    // Concept stages: cue -> myth check (answered with A/B) -> verdict -> cue.
+    if (app.palace?.deck.kind === 'concept') {
+      if (face === TileFace.Check) {
+        setStatus('Pick A or B under the card.');
+        return;
+      }
+      if (face === TileFace.Cue && rec.item.check && this.checks) {
+        this.checks.open(rec);
+        rec.tile.root.getWorldPosition(this.tmp);
+        playFlip(this.tmp);
+        bus.emit({ type: 'flipped', face: TileFace.Check, label: rec.label });
+        return;
+      }
+      const next = face === TileFace.Cue ? TileFace.Answer : TileFace.Cue;
+      if (next === TileFace.Cue) rec.lastCheck = undefined;
+      e.setValue(MemoryTile, 'face', next);
+      if (next === TileFace.Answer) {
+        e.setValue(MemoryTile, 'usedHint', true);
+        speak(`${rec.item.answer} ${rec.item.why ?? ''}`);
+      }
+      this.palaceSys.renderTile(rec);
+      rec.tile.root.getWorldPosition(this.tmp);
+      playFlip(this.tmp);
+      bus.emit({ type: 'flipped', face: next, label: rec.label });
+      return;
+    }
     // Learn -> Cue (now test yourself) -> Hint -> Answer -> Cue
     const next = face === TileFace.Cue ? TileFace.Hint : face === TileFace.Hint ? TileFace.Answer : TileFace.Cue;
     e.setValue(MemoryTile, 'face', next);
@@ -242,6 +282,33 @@ export class RecallSystem extends createSystem({
     setStatus(left ? `${verdict} ${left} still glowing.` : `${verdict} All done for now. See you next session.`);
     bus.emit({ type: 'palace-changed' });
     bus.emit({ type: 'rated', rating });
+    if (rating === 'again') void this.rescue(rec);
+  }
+
+  /**
+   * The Architect's rescue: a memory missed twice gets a completely new
+   * picture, bound to the object it sits on. Offline, nothing changes.
+   */
+  private async rescue(rec: TileRecord): Promise<void> {
+    const palace = app.palace;
+    const card = palace?.cards[rec.item.id];
+    if (!palace || !card || card.lapses < 2 || (rec.item.remade ?? 0) >= 2 || this.remaking.has(rec.item.id)) return;
+    this.remaking.add(rec.item.id);
+    try {
+      const scene = await reimagineScene({ cue: rec.item.cue, answer: rec.item.answer, scene: rec.item.scene, label: rec.label });
+      const current = app.palace;
+      if (!scene || !current || current.id !== palace.id) return;
+      const item = { ...rec.item, scene, baseScene: rec.item.baseScene ?? rec.item.scene, remade: (rec.item.remade ?? 0) + 1 };
+      app.palace = replaceItem(current, item);
+      const store = getStorage();
+      if (store) savePalace(store, app.palace);
+      rec.item = item;
+      rec.tile.setItem(item);
+      this.palaceSys.renderTile(rec);
+      setStatus(`"${item.cue}" kept slipping, so the Architect drew it a new picture on your ${rec.label || 'wall'}.`);
+    } finally {
+      this.remaking.delete(rec.item.id);
+    }
   }
 
   private recordFor(entity: Entity): TileRecord | undefined {

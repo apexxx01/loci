@@ -5,7 +5,7 @@
  */
 import { PalaceSchema } from './schema.js';
 import { newCard, review, type RecallRating } from './scheduler.js';
-import type { Deck, Palace, Placement } from './types.js';
+import type { Deck, MemoryItem, Palace, Placement } from './types.js';
 
 export interface KeyValue {
   getItem(key: string): string | null;
@@ -199,4 +199,12 @@ export class MemoryStore implements KeyValue {
   removeItem(k: string) {
     this.map.delete(k);
   }
+}
+
+/** Swap one memory's content (e.g. a re-imagined picture), keeping its schedule. */
+export function replaceItem(palace: Palace, item: MemoryItem): Palace {
+  return {
+    ...palace,
+    deck: { ...palace.deck, items: palace.deck.items.map((it) => (it.id === item.id ? item : it)) },
+  };
 }

@@ -3,55 +3,79 @@
   element id; every id below is addressed in src/xr/hub-system.ts.
 -->
 <style>
-  .root { flex-direction: column; width: 460px; padding: 0px; }
+  .root { flex-direction: column; width: 480px; padding: 0px; background-color: #120e2a; border-radius: 30px; }
   .head { flex-direction: column; gap: 4px; padding-top: 24px; padding-left: 26px; padding-right: 26px; padding-bottom: 12px; }
-  .eyebrow { color: #b8842a; font-size: 11.5px; font-weight: 700; letter-spacing: 2.2px; }
+  .eyebrow { color: #ffcf7a; font-size: 11.5px; font-weight: 700; letter-spacing: 2.2px; }
   .eyebrow:dark { color: #ffcf7a; }
-  .title { color: #121216; font-size: 34px; font-weight: 700; line-height: 39px; }
+  .title { color: #fff4e6; font-size: 31px; font-weight: 600; line-height: 37px; }
   .title:dark { color: #f6f4ff; }
-  .tag { color: #4a4a55; font-size: 15.5px; line-height: 21px; }
+  .tag { color: #d9d2f2; font-size: 15.5px; line-height: 21px; }
   .tag:dark { color: #c9c6d8; }
   .section { flex-direction: column; gap: 9px; padding-left: 26px; padding-right: 26px; padding-bottom: 24px; }
-  .label { color: #4a4a55; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 8px; }
+  .label { color: #b9b0dc; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 8px; }
   .label:dark { color: #a7a3bd; }
   .row { flex-direction: row; gap: 9px; }
-  .btn { flex-grow: 1; justify-content: flex-start; }
-  .stat { flex-direction: column; flex-grow: 1; padding: 10px; border-radius: 12px; background-color: #ecebf5; }
+  .btn { flex-grow: 1; flex-basis: 0; justify-content: flex-start; }
+  .stat { flex-direction: column; flex-grow: 1; padding: 10px; border-radius: 14px; background-color: #221a45; }
   .stat:dark { background-color: #23222e; }
-  .stat-num { color: #121216; font-size: 26px; font-weight: 700; }
+  .stat-num { color: #ffcf7a; font-size: 26px; font-weight: 700; }
   .stat-num:dark { color: #ffffff; }
-  .stat-cap { color: #5d5a6e; font-size: 10.5px; }
+  .stat-cap { color: #b9b0dc; font-size: 10.5px; }
   .stat-cap:dark { color: #a7a3bd; }
-  .status { color: #3d3a4c; font-size: 13.5px; line-height: 19px; }
+  .status { color: #efe9ff; font-size: 13.5px; line-height: 19px; }
   .status:dark { color: #d9d5ee; }
-  .hint { color: #5d5a6e; font-size: 12px; line-height: 17px; }
+  .hint { color: #b9b0dc; font-size: 12px; line-height: 17px; }
   .hint:dark { color: #a7a3bd; }
 </style>
 <Panel id="hub-root" class="root">
   <div class="head">
     <div class="eyebrow">LOCI</div>
-    <div class="title">Your room remembers.</div>
-    <div id="hub-tagline" class="tag">Pick something to learn. I will place it on the furniture around you.</div>
+    <div id="hub-heading" class="title">What do you want to understand?</div>
+    <div id="hub-tagline" class="tag">Pinch one. Its stages will land on the furniture around you.</div>
   </div>
 
   <div id="section-decks" class="section">
-    <div class="label">START A PALACE</div>
-    <Button id="deck-planets" class="btn">
-      <ButtonIcon><Orbit></Orbit></ButtonIcon>
-      <ButtonLabel>The Planets, in order</ButtonLabel>
-    </Button>
-    <Button id="deck-elements" class="btn">
-      <ButtonIcon><FlaskConical></FlaskConical></ButtonIcon>
-      <ButtonLabel>First 10 Elements</ButtonLabel>
-    </Button>
-    <Button id="deck-spanish" class="btn">
-      <ButtonIcon><Languages></Languages></ButtonIcon>
-      <ButtonLabel>Spanish Survival Phrases</ButtonLabel>
-    </Button>
-    <Button id="deck-phone" class="btn">
-      <ButtonIcon><NotebookPen></NotebookPen></ButtonIcon>
-      <ButtonLabel id="deck-phone-label">Learn anything: my notes, a topic, a speech</ButtonLabel>
-    </Button>
+    <div class="row">
+      <Button id="concept-heart" class="btn">
+        <ButtonIcon><Heart></Heart></ButtonIcon>
+        <ButtonLabel>How your heart pumps</ButtonLabel>
+      </Button>
+      <Button id="concept-plants" class="btn">
+        <ButtonIcon><Leaf></Leaf></ButtonIcon>
+        <ButtonLabel>How plants make food</ButtonLabel>
+      </Button>
+    </div>
+    <div class="row">
+      <Button id="concept-seasons" class="btn">
+        <ButtonIcon><Sun></Sun></ButtonIcon>
+        <ButtonLabel>Why we have seasons</ButtonLabel>
+      </Button>
+      <Button id="concept-vaccine" class="btn">
+        <ButtonIcon><ShieldCheck></ShieldCheck></ButtonIcon>
+        <ButtonLabel>How vaccines train you</ButtonLabel>
+      </Button>
+    </div>
+    <div class="row">
+      <Button id="concept-water" class="btn">
+        <ButtonIcon><Droplets></Droplets></ButtonIcon>
+        <ButtonLabel>The water cycle</ButtonLabel>
+      </Button>
+      <Button id="concept-web" class="btn">
+        <ButtonIcon><Globe></Globe></ButtonIcon>
+        <ButtonLabel>How a web page arrives</ButtonLabel>
+      </Button>
+    </div>
+    <div class="label">OR</div>
+    <div class="row">
+      <Button id="deck-phone" class="btn" variant="secondary">
+        <ButtonIcon><Sparkles></Sparkles></ButtonIcon>
+        <ButtonLabel id="deck-phone-label">Anything else</ButtonLabel>
+      </Button>
+      <Button id="deck-planets" class="btn" variant="secondary">
+        <ButtonIcon><Orbit></Orbit></ButtonIcon>
+        <ButtonLabel>A quick list</ButtonLabel>
+      </Button>
+    </div>
     <Button id="btn-open" class="btn" variant="secondary">
       <ButtonIcon><Library></Library></ButtonIcon>
       <ButtonLabel id="btn-open-label">Open a saved palace</ButtonLabel>
@@ -74,7 +98,7 @@
         <div class="stat-cap">day streak</div>
       </div>
     </div>
-    <div id="palace-howto" class="hint">New memories show everything: study them, then pinch to hide. Later, recall first, pinch to peek, then raise it UP if you knew it or lower it DOWN.</div>
+    <div id="palace-howto" class="hint">Pinch a memory to turn it over.</div>
     <div class="row">
       <Button id="btn-refit" class="btn">
         <ButtonIcon><RefreshCw></RefreshCw></ButtonIcon>

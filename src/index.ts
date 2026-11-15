@@ -6,8 +6,11 @@ import { AccessSystem } from './xr/access-system.js';
 import { GuideSystem } from './xr/guide-system.js';
 import { HubSystem } from './xr/hub-system.js';
 import { PalaceSystem } from './xr/palace-system.js';
+import { MemoryTile } from './xr/components.js';
 import { RecallSystem } from './xr/recall-system.js';
 import { RoomSystem } from './xr/room-system.js';
+import { ThreadSystem } from './xr/thread-system.js';
+import { CheckSystem } from './xr/check-system.js';
 import { mountSite } from './site/site.js';
 
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
@@ -15,11 +18,17 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
     world
       .registerSystem(RoomSystem)
       .registerSystem(PalaceSystem)
+      .registerSystem(ThreadSystem)
+      .registerSystem(CheckSystem)
       .registerSystem(RecallSystem)
       .registerSystem(GuideSystem)
       .registerSystem(AccessSystem)
       .registerSystem(HubSystem);
     const palaces = world.getSystem(PalaceSystem)!;
+    // Tiles are drawn on canvases: make sure their typefaces are ready, then redraw.
+    void Promise.all(['400 40px "Marcellus"', '400 30px "Lexend Variable"', '500 22px "Lexend Variable"'].map((f) => document.fonts.load(f)))
+      .then(() => palaces.records.forEach((r) => palaces.renderTile(r)))
+      .catch(() => undefined);
     const landing = mountSite({
       launchXR: () => world.launchXR(),
       onDeckReady: (deck) => (app.pendingDeck = deck),
@@ -65,6 +74,20 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
     });
 
     // Read-only debugging/test handle (used by the emulator e2e suite).
-    (window as unknown as { __loci?: unknown }).__loci = { world, app, bus };
+    (window as unknown as { __loci?: unknown }).__loci = {
+      world,
+      app,
+      bus,
+      debug: {
+        records: () =>
+          [...palaces.records.values()].map((r) => ({
+            id: r.item.id,
+            face: r.entity.getValue(MemoryTile, 'face'),
+            wrongFirst: r.wrongFirst,
+            lastCheck: r.lastCheck,
+            label: r.label,
+          })),
+      },
+    };
   },
 );
