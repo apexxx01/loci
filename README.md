@@ -21,7 +21,7 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 > **On a Quest 3 or 3S**
 > 1. Run **Space Setup** once (Settings > Environment setup > Space Setup) so the headset knows where your table, couch and shelves are. Loci still works without it, but then stages float in an arc in front of you instead of sitting on your furniture.
 > 2. Open the **Quest Browser** and go to **https://loci-vr.vercel.app**. Press **Enter your room** and allow the room permissions.
-> 3. Sit down. On the panel in front of you, **pinch** a ready-made walk such as *How your heart pumps*, or pinch **Ask about anything** and type a topic with a pinch on each key, then **Teach me**.
+> 3. Sit down. On the panel in front of you, pinch **Ask about anything**, type what you want to understand (starter words like *How does* save typing), then pinch **Teach me**. Ready-made walks are there too if you just want to see it work.
 > 4. Follow the gold thread. **Pinch** a stage to turn it over, pick the true statement in its myth check, then hold it and **raise** it if you knew it or **lower** it to see it again soon.
 >
 > **On any screen (laptop, phone)**

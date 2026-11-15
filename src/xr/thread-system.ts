@@ -117,7 +117,8 @@ export class ThreadSystem extends createSystem({}) {
     });
     this.mesh = new Mesh(this.geo, this.mat);
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = 2;
+    // Drawn before panels and cards, so anything nearer (the hub, a label) covers it.
+    this.mesh.renderOrder = -1;
     this.world.scene.add(this.mesh);
     for (let i = 0; i < MAX_NODES; i++) this.nodes.push(new Vector3());
 

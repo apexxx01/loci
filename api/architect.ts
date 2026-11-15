@@ -29,13 +29,18 @@ import {
   vetGrade,
 } from '../src/core/architect.js';
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+/**
+ * Measured 16 Nov: gemini-3.8-flash lost every race to gemini-3.5-flash-lite
+ * (20/20 eval topics, and even a two-word probe waited ~4 s on it), so the fast
+ * model leads and the larger ones back it up. GEMINI_PRIMARY overrides.
+ */
+const MODEL = process.env.GEMINI_PRIMARY || 'gemini-3.5-flash-lite';
 /**
  * Fallback chain: a single overloaded model (503/429) or a slow response must
  * not break the experience. Each hop gets its own short timeout so the whole
  * chain fits inside the function's 30 s budget.
  */
-const MODELS = [MODEL, ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.5-flash-lite,gemini-3.6-flash').split(',')]
+const MODELS = [MODEL, process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.6-flash').split(',')]
   .map((m) => m.trim())
   .filter((m, i, a) => m && a.indexOf(m) === i);
 const ENDPOINT = (model: string) =>
@@ -68,7 +73,7 @@ function json(status: number, body: unknown): Response {
 let lastModel = MODEL;
 
 /** Start the next model in the chain if the current ones haven't answered by then. */
-const HEDGE_AFTER_MS = 3_500;
+const HEDGE_AFTER_MS = 2_500;
 
 /**
  * Hedged requests: launch the primary model, and every HEDGE_AFTER_MS without
