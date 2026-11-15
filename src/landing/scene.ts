@@ -18,10 +18,12 @@ import {
   PerspectiveCamera,
   Points,
   Scene,
+  PointsMaterial,
   ShaderMaterial,
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
+  Vector2,
   WebGLRenderer,
 } from '@iwsdk/core';
 
@@ -225,7 +227,8 @@ function buildRoom(): [V3, V3][] {
 const VERT = /* glsl */ `
   attribute vec3 a1; attribute vec3 a2; attribute vec3 a3;
   attribute vec3 aColor; attribute float aSeed; attribute float aSize;
-  uniform float uProgress, uTime, uIntro, uPx, uCalm;
+  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect;
+  uniform vec2 uMouse;
   varying vec3 vColor; varying float vAlpha;
   float st(float t){ t = clamp(t*1.5 - aSeed*0.5, 0., 1.); return t*t*(3.-2.*t); }
   void main(){
@@ -236,12 +239,19 @@ const VERT = /* glsl */ `
     float moving = sin(3.14159 * st(fract(min(p, 2.999)))) * (1. - uCalm);
     pos += vec3(sin(aSeed*91.+uTime), cos(aSeed*57.+uTime*1.3), sin(aSeed*33.-uTime)) * 0.4 * moving;
     pos += vec3(sin(uTime*.6+aSeed*40.), cos(uTime*.5+aSeed*70.), sin(uTime*.4+aSeed*20.)) * 0.02 * (1. - uCalm);
-    float intro = 1. - pow(1. - uIntro, 3.);
-    pos *= mix(3.2, 1., intro);
+    // Big bang: everything bursts out of one point, overshoots, and settles.
+    float it = clamp(uIntro * 1.25 - aSeed * 0.25, 0., 1.);
+    float intro = 1. - pow(1. - it, 4.);
+    pos *= intro * (1. + 0.35 * sin(it * 3.14159));
     vec4 mv = modelViewMatrix * vec4(pos, 1.);
     gl_Position = projectionMatrix * mv;
-    float tw = 0.75 + 0.25 * sin(uTime * (1.2 + aSeed * 2.) + aSeed * 50.);
-    gl_PointSize = aSize * uPx * tw * (1. + moving * .6) / -mv.z;
+    // Particles part gently around the pointer, like a hand through dust.
+    vec2 away = gl_Position.xy / gl_Position.w - uMouse;
+    away.x *= uAspect;
+    float push = smoothstep(.3, 0., length(away)) * (1. - uCalm);
+    gl_Position.xy += normalize(away + 1e-4) * push * .07 * gl_Position.w;
+    float tw = 0.7 + 0.3 * sin(uTime * (1.2 + aSeed * 2.) + aSeed * 50.);
+    gl_PointSize = aSize * uPx * tw * (1. + moving * .6 + push * .8) / -mv.z;
     vColor = aColor;
     vAlpha = intro * tw;
   }`;
@@ -250,9 +260,10 @@ const FRAG = /* glsl */ `
   varying vec3 vColor; varying float vAlpha; uniform float uDim;
   void main(){
     float d = length(gl_PointCoord - .5);
-    float a = smoothstep(.5, .0, d);
-    a = a * a + smoothstep(.12, .0, d) * .6;
-    gl_FragColor = vec4(vColor, a * vAlpha * uDim);
+    float halo = smoothstep(.5, .0, d);
+    float core = smoothstep(.14, .0, d);
+    vec3 c = mix(vColor, vec3(1.), core * .7);
+    gl_FragColor = vec4(c, (halo * halo * .9 + core) * vAlpha * uDim);
   }`;
 const LINE_VERT = /* glsl */ `
   attribute float aDist; varying float vD;
@@ -305,7 +316,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   }
   const lowPower = /OculusBrowser|Quest|Android|iPhone/i.test(navigator.userAgent);
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const COUNT = lowPower ? 1500 : 3200;
+  const COUNT = lowPower ? 1800 : 5600;
   const dpr = Math.min(window.devicePixelRatio || 1, lowPower ? 1.25 : 2);
   renderer.setPixelRatio(dpr);
   renderer.setClearColor(0x000000, 0);
@@ -359,7 +370,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
 
   const a0 = new Float32Array(COUNT * 3), a1 = new Float32Array(COUNT * 3), a2 = new Float32Array(COUNT * 3), a3 = new Float32Array(COUNT * 3);
   const col = new Float32Array(COUNT * 3), seed = new Float32Array(COUNT), size = new Float32Array(COUNT);
-  const palette: V3[] = [[1, 0.96, 0.88], [1, 0.84, 0.55], [1, 0.7, 0.8], [0.78, 0.72, 1], [0.6, 0.95, 0.85]];
+  const palette: V3[] = [[1, 0.97, 0.9], [1, 0.78, 0.42], [1, 0.5, 0.72], [0.66, 0.56, 1], [0.45, 0.86, 1]];
   for (let i = 0; i < COUNT; i++) {
     const room = roomPoint();
     a0.set(galaxyPoint(r), i * 3);
@@ -367,10 +378,10 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     a2.set(brainPoint(r), i * 3);
     a3.set(room.p, i * 3);
     const k = r();
-    const c = room.warm ? palette[1] : palette[k < 0.4 ? 0 : k < 0.62 ? 1 : k < 0.8 ? 3 : k < 0.94 ? 2 : 4];
+    const c = room.warm ? palette[1] : palette[k < 0.34 ? 0 : k < 0.58 ? 1 : k < 0.76 ? 3 : k < 0.9 ? 4 : 2];
     col.set(c, i * 3);
     seed[i] = r();
-    size[i] = (r() < 0.06 ? 2.6 : 0.8 + r() * 0.9) * (room.warm ? 1.25 : 1);
+    size[i] = (r() < 0.05 ? 3.4 : 0.9 + r() * 1.1) * (room.warm ? 1.3 : 1);
   }
   const geo = new BufferGeometry();
   geo.setAttribute('position', new Float32BufferAttribute(a0, 3));
@@ -386,11 +397,23 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     transparent: true,
     depthWrite: false,
     blending: AdditiveBlending,
-    uniforms: { uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 }, uCalm: { value: calm ? 1 : 0 } },
+    uniforms: { uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 }, uCalm: { value: calm ? 1 : 0 }, uAspect: { value: 1 }, uMouse: { value: new Vector2(9, 9) } },
   });
   const points = new Points(geo, mat);
   points.frustumCulled = false;
   group.add(points);
+
+  // A deep field of faint stars that never morphs: depth behind the story.
+  const far = new Float32Array((lowPower ? 500 : 1400) * 3);
+  for (let i = 0; i < far.length; i += 3) {
+    const d = randDir(r);
+    const m = 14 + r() * 12;
+    far.set([d[0] * m, d[1] * m, d[2] * m], i);
+  }
+  const farGeo = new BufferGeometry();
+  farGeo.setAttribute('position', new Float32BufferAttribute(far, 3));
+  const stars = new Points(farGeo, new PointsMaterial({ color: 0xcfd6ff, size: 0.055, transparent: true, opacity: 0.75, depthWrite: false }));
+  scene.add(stars);
 
   // Synapses: the dendrites themselves, with pulses travelling outward.
   const lp: number[] = [], ld: number[] = [];
@@ -418,7 +441,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   for (const [a, b] of roomEdges) rp.push(...a, ...b);
   const roomGeo = new BufferGeometry();
   roomGeo.setAttribute('position', new Float32BufferAttribute(rp, 3));
-  const roomMat = new LineBasicMaterial({ color: 0xcfc4ff, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending });
+  const roomMat = new LineBasicMaterial({ color: 0xb9c4ff, transparent: true, opacity: 0, depthWrite: false, blending: AdditiveBlending });
   const roomLines = new LineSegments(roomGeo, roomMat);
   group.add(roomLines);
 
@@ -440,7 +463,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   /* ---------------------------------------------------------- loop */
   const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0 };
   const cur: SceneTargets = { ...target };
-  let mx = 0, my = 0, yaw = 0, active = true, raf = 0, last = performance.now(), time = 0, intro = calm ? 1 : 0;
+  let mx = 9, my = 9, yaw = 0, active = true, raf = 0, last = performance.now(), time = 0, intro = calm ? 1 : 0;
   const ROOM_YAW = -0.52;
   const BRAIN_YAW = 1.05;
 
@@ -454,7 +477,8 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    mat.uniforms.uPx.value = h * dpr * 0.075;
+    mat.uniforms.uPx.value = h * dpr * 0.085;
+    mat.uniforms.uAspect.value = w / h;
   };
   window.addEventListener('pointermove', onMove, { passive: true });
   window.addEventListener('resize', resize);
@@ -465,7 +489,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     time += dt;
-    intro = Math.min(1, intro + dt / 2.6);
+    intro = Math.min(1, intro + dt / 3.4);
     const k = calm ? 1 : Math.min(1, dt * 3.2);
     cur.progress += (target.progress - cur.progress) * k;
     cur.tiles += (target.tiles - cur.tiles) * k;
@@ -485,8 +509,10 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
       yaw += d * Math.min(1, dt * 2.4 * posed + (calm ? 1 : 0));
     }
     const wide = camera.aspect > 1.15;
-    group.rotation.y = yaw + mx * 0.1;
-    group.rotation.x = roomness * 0.3 + my * 0.06;
+    const px = Math.abs(mx) > 1 ? 0 : mx;
+    const py = Math.abs(my) > 1 ? 0 : my;
+    group.rotation.y = yaw + px * 0.1;
+    group.rotation.x = roomness * 0.3 + py * 0.06;
     group.position.x = wide ? cur.shift * 1.9 : 0;
     group.position.y = wide ? 0 : 0.4;
     const s = (wide ? 1 : 0.62) * (1 - roomness * 0.12);
@@ -494,6 +520,8 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
 
     const vis = 1 - cur.dim * 0.78;
     mat.uniforms.uProgress.value = p;
+    (mat.uniforms.uMouse.value as Vector2).set(mx, -my);
+    stars.rotation.y = time * 0.006;
     mat.uniforms.uTime.value = time;
     mat.uniforms.uIntro.value = intro;
     mat.uniforms.uDim.value = vis;

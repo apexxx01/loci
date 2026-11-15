@@ -9,7 +9,11 @@
 import {
   ARCHITECT_RESPONSE_SCHEMA,
   BIND_RESPONSE_SCHEMA,
+  AUDIENCES,
+  KINDS,
   architectPrompt,
+  type Audience,
+  type Kind,
   bindPrompt,
   vetArchitectOutput,
   vetBoundScenes,
@@ -153,7 +157,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const raw = await request.text();
   if (raw.length > MAX_BODY) return json(413, { error: 'Notes are too long. Keep it under about 4,000 characters.' });
-  let body: { mode?: string; notes?: unknown; items?: unknown };
+  let body: { mode?: string; notes?: unknown; items?: unknown; kind?: unknown; audience?: unknown };
   try {
     body = JSON.parse(raw);
   } catch {
@@ -179,10 +183,12 @@ export async function POST(request: Request): Promise<Response> {
     const notes = typeof body.notes === 'string' ? body.notes : '';
     if (notes.trim().length < 3) return json(400, { error: 'Add a few notes first.' });
     const id = `ai_${Date.now().toString(36)}`;
-    let vetted = vetArchitectOutput(await gemini(architectPrompt(notes), ARCHITECT_RESPONSE_SCHEMA), notes, id);
+    const kind: Kind = KINDS.includes(body.kind as Kind) ? (body.kind as Kind) : 'notes';
+    const audience: Audience = AUDIENCES.includes(body.audience as Audience) ? (body.audience as Audience) : 'adult';
+    let vetted = vetArchitectOutput(await gemini(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
     if (!vetted) {
       // One retry: structured output occasionally truncates long lists.
-      vetted = vetArchitectOutput(await gemini(architectPrompt(notes), ARCHITECT_RESPONSE_SCHEMA), notes, id);
+      vetted = vetArchitectOutput(await gemini(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
     }
     if (!vetted) return json(502, { error: 'The Architect returned something unusable. Try again or shorten your notes.' });
     return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: lastModel, ms: Date.now() - started });

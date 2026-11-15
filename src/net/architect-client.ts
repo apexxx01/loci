@@ -2,7 +2,7 @@
  * Client for the Palace Architect. Every call has a deterministic fallback, so
  * a dead network or a missing key degrades the experience instead of breaking it.
  */
-import { deterministicBind } from '../core/architect.js';
+import { deterministicBind, type Audience, type Kind } from '../core/architect.js';
 import { deckFromNotes } from '../core/notes.js';
 import { DeckSchema } from '../core/schema.js';
 import type { Deck } from '../core/types.js';
@@ -32,18 +32,22 @@ async function post(body: unknown): Promise<{ status: number; data: Record<strin
   }
 }
 
-export async function buildDeck(notes: string): Promise<BuildResult> {
-  const offline = deckFromNotes(notes);
-  if (!offline) return { ok: false, error: 'Add at least one line to remember.' };
+export async function buildDeck(notes: string, kind: Kind = 'notes', audience: Audience = 'adult'): Promise<BuildResult> {
+  // A topic has no lines to fall back on; everything else can be built offline.
+  const offline = kind === 'topic' ? null : deckFromNotes(notes);
+  if (!notes.trim()) return { ok: false, error: 'Type something to remember first.' };
+  if (!offline && kind !== 'topic') return { ok: false, error: 'Add at least one line to remember.' };
   try {
-    const { status, data } = await post({ mode: 'build', notes });
+    const { status, data } = await post({ mode: 'build', notes, kind, audience });
     const parsed = DeckSchema.safeParse(data.deck);
     if (status === 200 && parsed.success) {
       return { ok: true, deck: parsed.data as Deck, via: 'architect', ms: Number(data.ms) || 0, repaired: Number(data.repaired) || 0 };
     }
+    if (!offline) return { ok: false, error: 'The Palace Architect is unavailable right now, and a topic needs it. Try again in a moment, or paste your own notes.' };
     return { ok: true, deck: offline, via: 'offline', reason: String(data.error ?? `HTTP ${status}`) };
   } catch (e) {
     const err = e as Error;
+    if (!offline) return { ok: false, error: 'Could not reach the Palace Architect. Check your connection, or paste your own notes.' };
     return { ok: true, deck: offline, via: 'offline', reason: err.name === 'AbortError' ? 'timed out' : 'offline' };
   }
 }

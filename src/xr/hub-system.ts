@@ -5,7 +5,8 @@
 import { createSystem, Vector3, type UIKitMLAsset } from '@iwsdk/core';
 import { findStarterDeck } from '../core/decks.js';
 import { dueIds, mastery, streak } from '../core/scheduler.js';
-import { app, bus, setStatus } from './app-state.js';
+import { listPalaces } from '../core/palace.js';
+import { app, bus, getStorage, setStatus } from './app-state.js';
 import { onSettings, settings, toggleSetting, type Settings } from './settings.js';
 import { playClick } from './sound.js';
 
@@ -14,6 +15,7 @@ const ACCESS: { key: keyof Settings; id: string; label: string; on: string; off:
   { key: 'contrast', id: 'acc-contrast', label: 'High contrast', on: 'on', off: 'off', say: ['High contrast on: black cards, white text, yellow edges.', 'High contrast off.'] },
   { key: 'large', id: 'acc-large', label: 'Larger tiles', on: 'on', off: 'off', say: ['Memories are 35% larger.', 'Memories back to normal size.'] },
   { key: 'calm', id: 'acc-calm', label: 'Calm motion', on: 'on', off: 'off', say: ['Calm motion: no flights, hops or shakes.', 'Motion effects back on.'] },
+  { key: 'speak', id: 'acc-speak', label: 'Read aloud', on: 'on', off: 'off', say: ['Answers are read aloud when you reveal them.', 'Read aloud is off.'] },
   { key: 'sound', id: 'acc-sound', label: 'Sound', on: 'on', off: 'off', say: ['Sound cues on.', 'Sound cues off. Every cue also shows as colour and text.'] },
 ];
 
@@ -24,7 +26,6 @@ type El = {
 };
 
 /** Press-and-release on the same button, independent of timing. */
-const PRESS_WINDOW_MS = 2500;
 
 const HUB_DISTANCE = 0.55;
 const HUB_DROP = 0.22;
@@ -60,12 +61,13 @@ export class HubSystem extends createSystem({}) {
       if (!el) return;
       // pmndrs pointer-events drops 'click' when a press outlasts its click
       // threshold, which happens with slow pinches and dropped frames. Treat a
-      // down + up on the same button as activation instead.
+      // down + up on the same button as activation instead, however long the
+      // press is held: slow, deliberate hands should never be timed out.
       let downAt = 0;
       const onDown = () => (downAt = performance.now());
       const onLeave = () => (downAt = 0);
       const onUp = () => {
-        if (!downAt || performance.now() - downAt > PRESS_WINDOW_MS) return;
+        if (!downAt) return;
         downAt = 0;
         playClick();
         fn();
@@ -106,6 +108,8 @@ export class HubSystem extends createSystem({}) {
     paintAccess();
     this.cleanupFuncs.push(onSettings(paintAccess));
     bind('btn-new', () => bus.emit({ type: 'new-palace' }));
+    bind('btn-switch', () => bus.emit({ type: 'switch-palace' }));
+    bind('btn-open', () => bus.emit({ type: 'switch-palace' }));
 
     this.cleanupFuncs.push(
       bus.on((e) => {
@@ -154,19 +158,22 @@ export class HubSystem extends createSystem({}) {
       this.coachStep = 0;
       const first = app.palace.placements.find((p) => p.memoryId.endsWith(':0')) ?? app.palace.placements[0];
       const where = first?.label ? ` on your ${first.label}` : '';
-      setStatus(`Find memory 1${where}: it pulses. Read the cue and try to recall the answer.`);
-      this.setText('palace-howto', 'Step 1 of 3: look at the pulsing memory and try to remember.');
-    } else if (e.type === 'flipped' && this.coachStep === 0) {
+      setStatus(`Start with memory 1${where}. Read it and picture the scene happening right there.`);
+      this.setText('palace-howto', 'Step 1 of 4: study each new memory where it sits. Pinch one to hide it and test yourself.');
+    } else if (e.type === 'flipped' && this.coachStep === 0 && e.face === 0) {
       this.coachStep = 1;
-      this.setText('palace-howto', 'Step 2 of 3: that picture is your hook. Pinch again to check the answer.');
-    } else if (e.type === 'flipped' && this.coachStep === 1 && e.face === 2) {
+      this.setText('palace-howto', 'Step 2 of 4: what was it? Say it in your head, then pinch to peek at the picture.');
+    } else if (e.type === 'flipped' && this.coachStep === 1 && e.face === 1) {
       this.coachStep = 2;
-      this.setText('palace-howto', settings.dwell
-        ? 'Step 3 of 3: look at "Knew it" or "Again" under the card.'
-        : 'Step 3 of 3: grab it and raise it if you knew it, lower it if not.');
-    } else if (e.type === 'rated' && this.coachStep >= 0 && this.coachStep < 3) {
+      this.setText('palace-howto', 'Step 3 of 4: that picture is your hook. Pinch again to check the answer.');
+    } else if (e.type === 'flipped' && this.coachStep === 2 && e.face === 2) {
       this.coachStep = 3;
-      this.setText('palace-howto', 'That is the whole loop. Memories glow when they are due; come back tomorrow to keep them.');
+      this.setText('palace-howto', settings.dwell
+        ? 'Step 4 of 4: look at "Knew it" or "Again" under the card.'
+        : 'Step 4 of 4: grab it and raise it if you knew it, lower it if not.');
+    } else if (e.type === 'rated' && this.coachStep >= 0 && this.coachStep < 4) {
+      this.coachStep = 4;
+      this.setText('palace-howto', 'That is the whole loop. Memories glow when they are due. Come back tomorrow to keep them.');
     }
   }
 
@@ -212,6 +219,10 @@ export class HubSystem extends createSystem({}) {
     this.setDisplay('section-decks', !palace);
     this.setDisplay('section-palace', Boolean(palace));
     if (!palace) {
+      const store = getStorage();
+      const saved = store ? listPalaces(store).length : 0;
+      this.setDisplay('btn-open', saved > 0);
+      this.setText('btn-open-label', saved === 1 ? 'Open my saved palace' : `Open a saved palace (${saved})`);
       this.setText('hub-tagline', 'Pick something to learn. I will place it on the furniture around you.');
       return;
     }
@@ -221,6 +232,10 @@ export class HubSystem extends createSystem({}) {
     this.setText('stat-due', String(dueIds(palace, now).length));
     this.setText('stat-mastery', `${Math.round(mastery(palace) * 100)}%`);
     this.setText('stat-streak', String(streak(palace.history, now)));
+    const store = getStorage();
+    const count = store ? listPalaces(store).length : 1;
+    this.setDisplay('btn-switch', count > 1);
+    this.setText('btn-switch-label', `Switch palace (${count} saved)`);
   }
 
   private el(id: string): El | null {

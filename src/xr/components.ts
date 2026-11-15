@@ -1,6 +1,7 @@
 import { createComponent, Types } from '@iwsdk/core';
 
-export const TileFace = { Cue: 0, Hint: 1, Answer: 2 } as const;
+/** Learn = first meeting: everything shown at once, to study before testing. */
+export const TileFace = { Cue: 0, Hint: 1, Answer: 2, Learn: 3 } as const;
 
 /** One memory living on a real surface. */
 export const MemoryTile = createComponent('MemoryTile', {

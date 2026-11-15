@@ -13,10 +13,12 @@ export interface Settings {
   calm: boolean;
   /** Spatial sound cues. */
   sound: boolean;
+  /** Read answers aloud when they are revealed. */
+  speak: boolean;
 }
 
 const KEY = 'loci.settings.v1';
-const DEFAULTS: Settings = { dwell: false, contrast: false, large: false, calm: false, sound: true };
+const DEFAULTS: Settings = { dwell: false, contrast: false, large: false, calm: false, sound: true, speak: false };
 
 function load(): Settings {
   try {
@@ -48,4 +50,19 @@ export function toggleSetting(key: keyof Settings): boolean {
   }
   for (const fn of listeners) fn(settings, key);
   return settings[key];
+}
+
+/** Speak a line with the browser's speech synthesis, where it exists. */
+export function speak(text: string): void {
+  if (!settings.speak) return;
+  try {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95;
+    synth.speak(u);
+  } catch {
+    /* unsupported: stay silent */
+  }
 }

@@ -14,7 +14,7 @@ import {
   type Entity,
 } from '@iwsdk/core';
 import { PLACEMENT, planPlacement, semanticAgreement, tileScale } from '../core/placement.js';
-import { createPalace, loadPalace, savePalace, withPlacements } from '../core/palace.js';
+import { createPalace, listPalaces, loadPalace, savePalace, setActivePalace, withPlacements } from '../core/palace.js';
 import { dueIds, nextDue } from '../core/scheduler.js';
 import type { Deck, MemoryItem, Palace, Placement, Slot } from '../core/types.js';
 import { app, bus, getStorage, setStatus } from './app-state.js';
@@ -48,7 +48,7 @@ export interface TileRecord {
 
 type Phase = 'idle' | 'scanning' | 'building' | 'restoring' | 'ready';
 
-const FACE_NAMES: FaceKind[] = ['cue', 'hint', 'answer'];
+const FACE_NAMES: FaceKind[] = ['cue', 'hint', 'answer', 'learn'];
 
 export class PalaceSystem extends createSystem({
   tiles: { required: [MemoryTile] },
@@ -90,6 +90,7 @@ export class PalaceSystem extends createSystem({
         if (e.type === 'start-deck') this.beginBuild(e.deck);
         else if (e.type === 'refit') this.refit('Re-fitting your palace to this room...');
         else if (e.type === 'new-palace') this.clearPalace();
+        else if (e.type === 'switch-palace') this.switchPalace();
       }),
     );
 
@@ -130,6 +131,15 @@ export class PalaceSystem extends createSystem({
   /* ------------------------------------------------------------------ build */
 
   private beginBuild(deck: Deck): void {
+    // Picking something you already keep resumes it with its progress intact,
+    // rather than stacking a second copy in the library.
+    const store = getStorage();
+    const kept = store ? listPalaces(store).find((p) => p.deck.id === deck.id && p.deck.items.length === deck.items.length) : undefined;
+    if (kept) {
+      this.activate(kept.id);
+      setStatus(`Picked up "${kept.deck.title}" where you left it.`);
+      return;
+    }
     this.disposeTiles();
     this.pendingDeck = deck;
     this.phase = 'scanning';
@@ -200,7 +210,7 @@ export class PalaceSystem extends createSystem({
     tile.setDrop(slot.onTop ? (PLACEMENT.hoverHeight + (scale - 1) * 0.125) / scale : 0);
 
     const entity = this.world.createTransformEntity(root);
-    entity.addComponent(MemoryTile, { memoryId: item.id, face: TileFace.Cue, due: true, arrive: flyFrom ? ARRIVE_SECONDS + delay : 0 });
+    entity.addComponent(MemoryTile, { memoryId: item.id, face: this.firstFace(item.id), due: true, arrive: flyFrom ? ARRIVE_SECONDS + delay : 0 });
     entity.addComponent(RayInteractable);
     entity.addComponent(DistanceGrabbable, {
       movementMode: MovementMode.MoveFromTarget,
@@ -238,7 +248,7 @@ export class PalaceSystem extends createSystem({
       if (!item) continue;
       const tile = createTile(item);
       const entity = this.world.createTransformEntity(tile.root);
-      entity.addComponent(MemoryTile, { memoryId: item.id, face: TileFace.Cue, due: true, arrive: 0.6 });
+      entity.addComponent(MemoryTile, { memoryId: item.id, face: this.firstFace(item.id), due: true, arrive: 0.6 });
       entity.addComponent(RayInteractable);
       entity.addComponent(DistanceGrabbable, {
         movementMode: MovementMode.MoveFromTarget,
@@ -277,15 +287,51 @@ export class PalaceSystem extends createSystem({
     this.spawnFromPlan(palace, true);
   }
 
+  /** A memory you have never recalled starts on its study face. */
+  private firstFace(memoryId: string): number {
+    return (app.palace?.cards[memoryId]?.reps ?? 0) === 0 ? TileFace.Learn : TileFace.Cue;
+  }
+
+  /** Put the current palace away (it stays in the library) and show the picker. */
   private clearPalace(): void {
+    this.persist();
     this.disposeTiles();
     app.palace = null;
     const store = getStorage();
-    store?.removeItem('loci.palace.v1');
-    store?.removeItem('loci.frame');
+    if (store) setActivePalace(store, null);
     bus.emit({ type: 'palace-changed' });
-    setStatus('Pick something new to learn.');
+    setStatus('Your palace is saved. Pick something new to learn.');
     this.phase = 'idle';
+  }
+
+  /** Cycle to the next saved palace in the library. */
+  private switchPalace(): void {
+    const store = getStorage();
+    if (!store) return;
+    this.persist();
+    const all = listPalaces(store);
+    if (all.length < 2 && app.palace) {
+      setStatus('This is your only palace. Start another from the picker.');
+      return;
+    }
+    if (!all.length) return;
+    const i = all.findIndex((p) => p.id === app.palace?.id);
+    const next = all[(i + 1) % all.length];
+    this.activate(next.id);
+  }
+
+  /** Make a saved palace the one in the room. */
+  activate(id: string): void {
+    const store = getStorage();
+    if (!store) return;
+    const palace = setActivePalace(store, id);
+    if (!palace) return;
+    this.disposeTiles();
+    app.palace = palace;
+    if (this.sessionActive) this.beginRestore();
+    else this.spawnFromPlan(palace, false);
+    bus.emit({ type: 'palace-changed' });
+    setStatus(`Now in the room: ${palace.deck.title}.`);
   }
 
   /* ----------------------------------------------------------------- update */
@@ -515,6 +561,7 @@ export class PalaceSystem extends createSystem({
       contrast: settings.contrast,
       dwell: settings.dwell,
       mastered: Boolean(card && card.state === 2 && card.stability >= 3),
+      blind: Boolean(due && card && card.state === 2 && card.stability >= 3),
     });
     rec.tile.setHaloStrength(due ? 0.9 : 0.15);
   }

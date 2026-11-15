@@ -6,7 +6,7 @@ import type { MemoryItem } from '../core/types.js';
 
 export const TILE_PX = { w: 512, h: 640 } as const;
 
-export type FaceKind = 'cue' | 'hint' | 'answer';
+export type FaceKind = 'cue' | 'hint' | 'answer' | 'learn';
 
 export interface FaceStyle {
   due: boolean;
@@ -22,6 +22,8 @@ export interface FaceStyle {
   dwell?: boolean;
   /** Stable in long-term memory (FSRS stability of several days). */
   mastered?: boolean;
+  /** Mastered memories hide their cue: only the place prompts you. */
+  blind?: boolean;
 }
 
 const EMOJI_FONT = '"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -31,11 +33,11 @@ const C = {
   ink: '#f6f4ff',
   inkSoft: '#cfc9ea',
   inkDim: '#9c96b8',
-  violet: '#8b6cff',
-  violetHi: '#c2b3ff',
-  mint: '#5ee3b0',
-  glassTop: 'rgba(30, 26, 52, 0.94)',
-  glassBot: 'rgba(14, 12, 26, 0.94)',
+  violet: '#ffcf7a',
+  violetHi: '#ffe3ae',
+  mint: '#7ef0c4',
+  glassTop: 'rgba(22, 19, 40, 0.95)',
+  glassBot: 'rgba(7, 6, 16, 0.95)',
   restTop: 'rgba(36, 36, 44, 0.86)',
   restBot: 'rgba(20, 20, 26, 0.86)',
 };
@@ -113,7 +115,7 @@ export function drawTile(
   // Outer glow ring when due.
   if (style.due) {
     ctx.save();
-    ctx.shadowColor = 'rgba(139, 108, 255, 0.85)';
+    ctx.shadowColor = 'rgba(255, 207, 122, 0.85)';
     ctx.shadowBlur = 28;
     roundRect(ctx, pad, pad, w - pad * 2, h - pad * 2, r);
     ctx.strokeStyle = C.violet;
@@ -191,7 +193,8 @@ export function drawTile(
     glyphs.forEach((gl, i) => ctx.fillText(gl, startX + i * gap, 300));
 
     ctx.fillStyle = ink;
-    const cue = fitText(ctx, item.cue, w - 90, 2, 58, 34, 800);
+    const cueText = style.blind ? `What lives ${style.surfaceLabel ? `on your ${style.surfaceLabel}` : 'here'}?` : item.cue;
+    const cue = fitText(ctx, cueText, w - 90, 2, style.blind ? 44 : 58, 30, 800);
     drawLines(ctx, cue.lines, cue.px, cx, 430);
 
     ctx.fillStyle = style.due ? accent : C.inkDim;
@@ -204,6 +207,22 @@ export function drawTile(
       cx,
       h - 58,
     );
+  } else if (face === 'learn') {
+    // First meeting: cue, answer and picture together, to study before testing.
+    ctx.font = `96px ${EMOJI_FONT}`;
+    ctx.fillText(item.glyphs.slice(0, 3).join(''), cx, 200);
+    ctx.fillStyle = ink;
+    const cue = fitText(ctx, item.cue, w - 90, 1, 46, 28, 800);
+    drawLines(ctx, cue.lines, cue.px, cx, 268);
+    ctx.fillStyle = style.contrast ? '#ffffff' : C.mint;
+    const ans = fitText(ctx, item.answer, w - 80, 3, 32, 24, 700);
+    drawLines(ctx, ans.lines, ans.px, cx, 318);
+    ctx.fillStyle = inkSoft;
+    const scene = fitText(ctx, item.scene, w - 90, 4, 26, 21, 500);
+    drawLines(ctx, scene.lines, scene.px, cx, 318 + ans.lines.length * ans.px * 1.22 + 26);
+    ctx.fillStyle = accent;
+    ctx.font = `600 23px ${UI_FONT}`;
+    ctx.fillText(style.dwell ? 'new: picture it here, then look to hide' : 'new: picture it here, then pinch to hide', cx, h - 58);
   } else if (face === 'hint') {
     ctx.font = `110px ${EMOJI_FONT}`;
     ctx.fillText(item.glyphs.slice(0, 3).join(''), cx, 230);

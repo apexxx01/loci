@@ -50,9 +50,62 @@ export function withPlacements(palace: Palace, placements: Placement[]): Palace 
   return { ...palace, placements };
 }
 
-export function savePalace(store: KeyValue, palace: Palace): boolean {
+/* ------------------------------------------------------------------ library
+ * A learner keeps several palaces (a speech, a vocabulary set, a number...).
+ * They share the room's persistent anchor; one is active at a time.
+ */
+export const LIBRARY_KEY = 'loci.library.v2';
+export const MAX_PALACES = 12;
+
+export interface Library {
+  version: 2;
+  activeId: string | null;
+  palaces: Record<string, Palace>;
+}
+
+const emptyLibrary = (): Library => ({ version: 2, activeId: null, palaces: {} });
+
+/** Read the library, migrating a single v1 palace if that is all there is. */
+export function loadLibrary(store: KeyValue): { library: Library; corrupt: string | null } {
+  let raw: string | null = null;
+  let legacy: string | null = null;
   try {
-    store.setItem(STORAGE_KEY, JSON.stringify(palace));
+    raw = store.getItem(LIBRARY_KEY);
+    legacy = store.getItem(STORAGE_KEY);
+  } catch {
+    return { library: emptyLibrary(), corrupt: null };
+  }
+  if (raw) {
+    try {
+      const data = JSON.parse(raw) as Library;
+      const lib = emptyLibrary();
+      for (const [id, p] of Object.entries(data.palaces ?? {})) {
+        const parsed = PalaceSchema.safeParse(p);
+        if (parsed.success) lib.palaces[id] = parsed.data as Palace;
+      }
+      lib.activeId = data.activeId && lib.palaces[data.activeId] ? data.activeId : null;
+      return { library: lib, corrupt: null };
+    } catch (e) {
+      return { library: emptyLibrary(), corrupt: (e as Error).message };
+    }
+  }
+  if (legacy) {
+    try {
+      const parsed = PalaceSchema.safeParse(JSON.parse(legacy));
+      if (!parsed.success) return { library: emptyLibrary(), corrupt: parsed.error.issues[0]?.message ?? 'invalid' };
+      const palace = parsed.data as Palace;
+      return { library: { version: 2, activeId: palace.id, palaces: { [palace.id]: palace } }, corrupt: null };
+    } catch (e) {
+      return { library: emptyLibrary(), corrupt: (e as Error).message };
+    }
+  }
+  return { library: emptyLibrary(), corrupt: null };
+}
+
+export function saveLibrary(store: KeyValue, library: Library): boolean {
+  try {
+    store.setItem(LIBRARY_KEY, JSON.stringify(library));
+    store.removeItem(STORAGE_KEY);
     return true;
   } catch {
     // Quota exceeded or storage disabled (private mode). The session keeps
@@ -61,31 +114,56 @@ export function savePalace(store: KeyValue, palace: Palace): boolean {
   }
 }
 
+/** Save a palace and make it the active one. Oldest palaces drop off past the cap. */
+export function savePalace(store: KeyValue, palace: Palace): boolean {
+  const { library } = loadLibrary(store);
+  library.palaces[palace.id] = palace;
+  library.activeId = palace.id;
+  const ids = Object.keys(library.palaces);
+  if (ids.length > MAX_PALACES) {
+    const oldest = ids
+      .filter((id) => id !== palace.id)
+      .sort((x, y) => library.palaces[x].createdAt.localeCompare(library.palaces[y].createdAt))[0];
+    delete library.palaces[oldest];
+  }
+  return saveLibrary(store, library);
+}
+
 export type LoadResult =
   | { status: 'empty' }
   | { status: 'ok'; palace: Palace }
   | { status: 'corrupt'; error: string };
 
+/** The active palace, if any. */
 export function loadPalace(store: KeyValue): LoadResult {
-  let raw: string | null;
-  try {
-    raw = store.getItem(STORAGE_KEY);
-  } catch {
-    return { status: 'empty' };
-  }
-  if (!raw) return { status: 'empty' };
-  try {
-    const parsed = PalaceSchema.safeParse(JSON.parse(raw));
-    if (!parsed.success) return { status: 'corrupt', error: parsed.error.issues[0]?.message ?? 'invalid' };
-    return { status: 'ok', palace: parsed.data as Palace };
-  } catch (e) {
-    return { status: 'corrupt', error: (e as Error).message };
-  }
+  const { library, corrupt } = loadLibrary(store);
+  if (corrupt) return { status: 'corrupt', error: corrupt };
+  const palace = library.activeId ? library.palaces[library.activeId] : undefined;
+  return palace ? { status: 'ok', palace } : { status: 'empty' };
+}
+
+export function listPalaces(store: KeyValue): Palace[] {
+  return Object.values(loadLibrary(store).library.palaces).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export function setActivePalace(store: KeyValue, id: string | null): Palace | null {
+  const { library } = loadLibrary(store);
+  library.activeId = id && library.palaces[id] ? id : null;
+  saveLibrary(store, library);
+  return library.activeId ? library.palaces[library.activeId] : null;
+}
+
+export function deletePalace(store: KeyValue, id: string): void {
+  const { library } = loadLibrary(store);
+  delete library.palaces[id];
+  if (library.activeId === id) library.activeId = null;
+  saveLibrary(store, library);
 }
 
 export function clearPalace(store: KeyValue): void {
   try {
     store.removeItem(STORAGE_KEY);
+    store.removeItem(LIBRARY_KEY);
   } catch {
     /* ignore */
   }

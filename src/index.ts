@@ -1,6 +1,7 @@
 import { VisibilityState, World } from '@iwsdk/core';
 import projectOptions from 'virtual:iwsdk-project';
-import { app, bus } from './xr/app-state.js';
+import { deletePalace, listPalaces, savePalace } from './core/palace.js';
+import { app, bus, getStorage } from './xr/app-state.js';
 import { AccessSystem } from './xr/access-system.js';
 import { GuideSystem } from './xr/guide-system.js';
 import { HubSystem } from './xr/hub-system.js';
@@ -18,6 +19,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(GuideSystem)
       .registerSystem(AccessSystem)
       .registerSystem(HubSystem);
+    const palaces = world.getSystem(PalaceSystem)!;
     const landing = mountLanding({
       launchXR: () => world.launchXR(),
       onDeckReady: (deck) => (app.pendingDeck = deck),
@@ -25,6 +27,25 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
         if (deck) bus.emit({ type: 'start-deck', deck });
       },
       getPalace: () => app.palace,
+      library: {
+        list: () => {
+          const store = getStorage();
+          return store ? listPalaces(store) : app.palace ? [app.palace] : [];
+        },
+        activate: (id) => palaces.activate(id),
+        remove: (id) => {
+          const store = getStorage();
+          if (!store) return;
+          if (app.palace?.id === id) bus.emit({ type: 'new-palace' }); // puts it away first
+          deletePalace(store, id);
+        },
+        restore: (palace) => {
+          const store = getStorage();
+          if (!store || !savePalace(store, palace)) return false;
+          palaces.activate(palace.id);
+          return true;
+        },
+      },
     });
     bus.on((e) => {
       if (e.type !== 'own-notes') return;

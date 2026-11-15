@@ -5,8 +5,8 @@
 <style>
   .root { flex-direction: column; width: 460px; padding: 0px; }
   .head { flex-direction: column; gap: 4px; padding-top: 24px; padding-left: 26px; padding-right: 26px; padding-bottom: 12px; }
-  .eyebrow { color: #7c5cff; font-size: 11.5px; font-weight: 700; letter-spacing: 2.2px; }
-  .eyebrow:dark { color: #b9a6ff; }
+  .eyebrow { color: #b8842a; font-size: 11.5px; font-weight: 700; letter-spacing: 2.2px; }
+  .eyebrow:dark { color: #ffcf7a; }
   .title { color: #121216; font-size: 34px; font-weight: 700; line-height: 39px; }
   .title:dark { color: #f6f4ff; }
   .tag { color: #4a4a55; font-size: 15.5px; line-height: 21px; }
@@ -50,7 +50,11 @@
     </Button>
     <Button id="deck-phone" class="btn">
       <ButtonIcon><NotebookPen></NotebookPen></ButtonIcon>
-      <ButtonLabel id="deck-phone-label">Use my own notes (opens the page)</ButtonLabel>
+      <ButtonLabel id="deck-phone-label">Learn anything: my notes, a topic, a speech</ButtonLabel>
+    </Button>
+    <Button id="btn-open" class="btn" variant="secondary">
+      <ButtonIcon><Library></Library></ButtonIcon>
+      <ButtonLabel id="btn-open-label">Open a saved palace</ButtonLabel>
     </Button>
   </div>
 
@@ -70,7 +74,7 @@
         <div class="stat-cap">day streak</div>
       </div>
     </div>
-    <div id="palace-howto" class="hint">Look at a glowing memory and recall it. Pinch to peek. Grab it and raise it UP if you remembered, lower it DOWN if you did not.</div>
+    <div id="palace-howto" class="hint">New memories show everything: study them, then pinch to hide. Later, recall first, pinch to peek, then raise it UP if you knew it or lower it DOWN.</div>
     <div class="row">
       <Button id="btn-refit" class="btn">
         <ButtonIcon><RefreshCw></RefreshCw></ButtonIcon>
@@ -79,6 +83,12 @@
       <Button id="btn-new" class="btn">
         <ButtonIcon><Plus></Plus></ButtonIcon>
         <ButtonLabel>New palace</ButtonLabel>
+      </Button>
+    </div>
+    <div class="row">
+      <Button id="btn-switch" class="btn" variant="secondary">
+        <ButtonIcon><Library></Library></ButtonIcon>
+        <ButtonLabel id="btn-switch-label">Switch palace</ButtonLabel>
       </Button>
     </div>
   </div>
@@ -111,6 +121,10 @@
       </Button>
     </div>
     <div class="row">
+      <Button id="acc-speak" class="btn" variant="secondary">
+        <ButtonIcon><Speech></Speech></ButtonIcon>
+        <ButtonLabel id="acc-speak-label">Read aloud: off</ButtonLabel>
+      </Button>
       <Button id="acc-sound" class="btn" variant="secondary">
         <ButtonIcon><Volume2></Volume2></ButtonIcon>
         <ButtonLabel id="acc-sound-label">Sound: on</ButtonLabel>

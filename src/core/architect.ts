@@ -63,8 +63,29 @@ export const BIND_RESPONSE_SCHEMA = {
   required: ['scenes'],
 } as const;
 
-export function architectPrompt(notes: string): string {
-  return `${ARCHITECT_RULES}\n\nLearner's notes:\n"""\n${sanitizeUserText(notes, 4000)}\n"""`;
+export const KINDS = ['notes', 'topic', 'sequence', 'vocab', 'names'] as const;
+export type Kind = (typeof KINDS)[number];
+export const AUDIENCES = ['child', 'teen', 'adult'] as const;
+export type Audience = (typeof AUDIENCES)[number];
+
+const KIND_RULES: Record<Kind, string> = {
+  notes: 'The input is the learner\'s own notes. Pick out each distinct thing worth memorising.',
+  topic: `The input is a TOPIC or a passage, not a list. Teach it: choose the most important, well-established facts a learner should know
+(at most ${MAX_ITEMS}), ordered from foundational to detailed. Only include facts you are highly confident are correct and uncontroversial.
+The cue is a short question or term; the answer is the fact. In this mode you may use proper nouns that belong to the topic.`,
+  sequence: 'The input is a speech, process or routine. Each item is one step or talking point, in order. Always set "ordered" true. The cue is "Step N" or a 2-4 word handle; the answer is what to say or do.',
+  vocab: 'The input is vocabulary (word and meaning, possibly another language). The cue is the word, the answer is its meaning. Build each scene with the keyword method: something the word SOUNDS like in English, acting out the meaning.',
+  names: 'The input is a list of people the learner needs to remember (name plus a detail such as role or where they met). The cue is the detail; the answer is the name. Build the scene from what the name sounds like, never from how a person looks.',
+};
+
+const AUDIENCE_RULES: Record<Audience, string> = {
+  child: 'The learner is a child of about 7 to 10: use very simple words, short sentences, and playful, gentle images (animals, toys, food).',
+  teen: 'The learner is a teenager: keep it quick, funny and concrete.',
+  adult: 'The learner is an adult: keep it concise and vivid.',
+};
+
+export function architectPrompt(notes: string, kind: Kind = 'notes', audience: Audience = 'adult'): string {
+  return `${ARCHITECT_RULES}\n\n${KIND_RULES[kind]}\n${AUDIENCE_RULES[audience]}\n\nLearner's input:\n"""\n${sanitizeUserText(notes, 4000)}\n"""`;
 }
 
 export function bindPrompt(items: { cue: string; scene: string; label: string }[]): string {
@@ -90,7 +111,9 @@ export function vetArchitectOutput(raw: unknown, notes: string, id: string): Vet
   const out: ArchitectDeck = parsed.data;
   let repaired = 0;
   const items: MemoryItem[] = out.items.slice(0, MAX_ITEMS).map((it, order) => {
-    const source = `${notes}`;
+    // Cue and answer count as sourced text: in topic mode the facts (and their
+    // proper nouns) come from the Architect, and the scene may refer to them.
+    const source = `${notes} ${it.cue} ${it.answer}`;
     let scene = it.scene.trim();
     const verdict = checkMnemonic(scene, source);
     if (!verdict.ok) {

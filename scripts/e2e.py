@@ -56,11 +56,16 @@ def targets():
     return {t['name']: t for t in r.get('targets', [])}
 
 
-def aim_select(pos, duration=0.15):
+def aim_select(pos, duration=0.4):
     # Use the hand on the same side, like a person would (the hub docks left).
     dev = 'controller-left' if pos['x'] < -0.05 else 'controller-right'
+    if abs(pos['z']) < 1.0:
+        # Near panels: back the hand off so the ray meets the panel face-on,
+        # the way a person would reach for it, rather than grazing it from above.
+        xr('animate-to', {'device': dev, 'position': {'x': pos['x'] * 0.6, 'y': pos['y'] + 0.12, 'z': pos['z'] + 0.4}, 'duration': 0.2})
+        time.sleep(1.5)
     xr('look-at', {'device': dev, 'target': pos})
-    time.sleep(0.8)  # let the pointer register a hover before pressing
+    time.sleep(2.5)  # let the pointer register a hover before pressing
     xr('select', {'device': dev, 'duration': duration})
 
 
@@ -102,11 +107,15 @@ def grab_and_move(pos, dy):
 check('XR session active', ensure_xr())
 time.sleep(6)  # sessionstart restores any saved palace
 
-if state().get('palace'):
+for _ in range(3):
+    if not state().get('palace'):
+        break
     t = targets()
     if 'btn-new' in t:
         aim_select(t['btn-new']['position'])
-    wait_for(lambda: not state().get('palace'), 15)
+    wait_for(lambda: not state().get('palace'), 8)
+time.sleep(2.5)  # the hub glides back in front before its buttons settle
+ev("localStorage.removeItem('loci.library.v2'); return 1")  # a clean library, so the pick builds from scratch
 
 t = targets()
 check('deck picker on the hub', 'deck-planets' in t)
@@ -125,8 +134,12 @@ tile = t.get('tile:planets:3')
 check('tile is an interaction target', tile is not None)
 p = tile['position']
 
-aim_select(p, duration=0.05)
-time.sleep(1.5)
+xr('look-at', {'device': 'controller-right', 'target': p})
+time.sleep(2.5)
+xr('set-select-value', {'device': 'controller-right', 'value': 1})
+time.sleep(2.0)
+xr('set-select-value', {'device': 'controller-right', 'value': 0})
+time.sleep(2.5)
 check('pinch flips the tile', (state().get('last') or {}).get('result') == 'tap', str(state().get('last')))
 
 before = state()

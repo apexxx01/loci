@@ -9,6 +9,7 @@ export type AppEvent =
   | { type: 'start-deck'; deck: Deck }
   | { type: 'refit' }
   | { type: 'new-palace' }
+  | { type: 'switch-palace' }
   | { type: 'palace-changed' }
   | { type: 'status'; text: string }
   | { type: 'own-notes' }

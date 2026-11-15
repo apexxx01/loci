@@ -18,11 +18,10 @@ import { classifyToss, rateToss, releaseVelocity, SampleRing } from '../core/tos
 import { app, bus, getStorage, setStatus } from './app-state.js';
 import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
-import { settings } from './settings.js';
+import { settings, speak } from './settings.js';
 import { playAgain, playFlip, playSuccess, updateListener } from './sound.js';
 
 /** A grab shorter than this (wall-clock), that barely moves, is a tap. */
-const TAP_SECONDS = 2.5;
 const TAP_TRAVEL = 0.035;
 const FLASH_SECONDS = 0.9;
 /**
@@ -185,7 +184,8 @@ export class RecallSystem extends createSystem({
     const travel = this.tmp.distanceTo(g.origin);
 
     const v = releaseVelocity(g.ring.toArray());
-    const isTap = held < TAP_SECONDS && travel < TAP_TRAVEL;
+    // A still pinch flips the tile however long it is held; only movement rates.
+    const isTap = travel < TAP_TRAVEL;
     const result = isTap ? 'tap' : classifyToss(v);
     app.lastRelease = { held, travel, v, result };
     if (result === 'tap') {
@@ -203,9 +203,12 @@ export class RecallSystem extends createSystem({
   flip(rec: TileRecord): void {
     const e = rec.entity;
     const face = e.getValue(MemoryTile, 'face') ?? TileFace.Cue;
+    // Learn -> Cue (now test yourself) -> Hint -> Answer -> Cue
     const next = face === TileFace.Cue ? TileFace.Hint : face === TileFace.Hint ? TileFace.Answer : TileFace.Cue;
     e.setValue(MemoryTile, 'face', next);
     if (next !== TileFace.Cue) e.setValue(MemoryTile, 'usedHint', true);
+    if (next === TileFace.Answer) speak(rec.item.answer);
+    else if (next === TileFace.Hint) speak(rec.item.scene);
     this.palaceSys.renderTile(rec);
     rec.tile.root.getWorldPosition(this.tmp);
     playFlip(this.tmp);

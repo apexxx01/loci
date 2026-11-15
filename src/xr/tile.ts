@@ -56,9 +56,9 @@ function haloTexture(): CanvasTexture {
   c.width = c.height = 128;
   const g = c.getContext('2d')!;
   const grad = g.createRadialGradient(64, 64, 4, 64, 64, 64);
-  grad.addColorStop(0, 'rgba(139,108,255,0.55)');
-  grad.addColorStop(0.5, 'rgba(139,108,255,0.18)');
-  grad.addColorStop(1, 'rgba(139,108,255,0)');
+  grad.addColorStop(0, 'rgba(255,207,122,0.55)');
+  grad.addColorStop(0.5, 'rgba(255,207,122,0.18)');
+  grad.addColorStop(1, 'rgba(255,207,122,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
   const t = new CanvasTexture(c);
@@ -120,7 +120,7 @@ export function createTile(initial: MemoryItem): TileHandle {
   halo.renderOrder = 1;
   halo.raycast = () => {}; // never steals hover from the card
 
-  const footMat = new MeshBasicMaterial({ color: 0x8b6cff, transparent: true, opacity: 0.9, toneMapped: false, depthWrite: false });
+  const footMat = new MeshBasicMaterial({ color: 0xffcf7a, transparent: true, opacity: 0.9, toneMapped: false, depthWrite: false });
   const foot = new Group();
   const ring = new Mesh(footGeometry, footMat);
   ring.rotation.x = -Math.PI / 2;
@@ -133,7 +133,7 @@ export function createTile(initial: MemoryItem): TileHandle {
   tetherGeo.setAttribute('position', new Float32BufferAttribute([0, 0, 0, 0, -0.1, 0], 3));
   const tether = new Line(
     tetherGeo,
-    new LineBasicMaterial({ color: 0xb9a6ff, transparent: true, opacity: 0.55, toneMapped: false }),
+    new LineBasicMaterial({ color: 0xffe3ae, transparent: true, opacity: 0.55, toneMapped: false }),
   );
   tether.raycast = () => {};
 
