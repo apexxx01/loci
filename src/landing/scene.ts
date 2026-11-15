@@ -62,6 +62,10 @@ export interface LandingScene {
   ripple(x: number, y: number): void;
   /** Called after each frame with each memory tile's screen position. */
   onTiles(cb: ((tiles: TileScreen[]) => void) | null): void;
+  /** Gather the whole sky into these words (one or two lines). */
+  write(text: string): boolean;
+  /** Let the words go back to the story. */
+  release(): void;
   /** Rest these memories on the furniture instead (up to eight), and replay their landing. */
   showDeck(items: { glyph: string; cue: string }[]): void;
   /** Resolves once the opening has played. */
@@ -200,29 +204,54 @@ export const LOCI: { p: V3; glyph: string; label: string; cue: string }[] = [
   { p: [2.1, F + 2.12, 0.9], glyph: '🔱', label: 'the lamp', cue: 'Neptune' },
 ];
 
-/** Points that spell a word, sampled from the page's own typeface. */
-function wordPoints(word: string, n: number, r: () => number): Float32Array | null {
-  const W = 900, H = 320;
+/** Points that spell one or two lines of text, sampled from the page's own typeface. */
+function wordPoints(text: string, n: number, r: () => number, width = 7.6): Float32Array | null {
+  const W = 1200, H = 520;
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const g = c.getContext('2d', { willReadFrequently: true });
   if (!g) return null;
+  const words = text.trim().split(/\s+/);
+  // Two balanced lines when the text is long, one when it is short.
+  let lines = [text.trim()];
+  if (text.trim().length > 12 && words.length > 1) {
+    let best = 1, diff = 1e9;
+    for (let k = 1; k < words.length; k++) {
+      const d = Math.abs(words.slice(0, k).join(' ').length - words.slice(k).join(' ').length);
+      if (d < diff) [best, diff] = [k, d];
+    }
+    lines = [words.slice(0, best).join(' '), words.slice(best).join(' ')];
+  }
   g.fillStyle = '#fff';
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.font = 'italic 500 300px "Cormorant Variable", "Cormorant", Garamond, serif';
-  g.fillText(word, W / 2, H / 2 + 10);
+  (g as CanvasRenderingContext2D & { fontStretch?: string }).fontStretch = 'expanded';
+  let size = 240;
+  const fam = '"Mona Sans Variable", "Mona Sans", system-ui, sans-serif';
+  const fit = () => {
+    g.font = `800 ${size}px ${fam}`;
+    return Math.max(...lines.map((l) => g.measureText(l).width));
+  };
+  while (fit() > W * 0.92 && size > 40) size -= 8;
+  while (lines.length * size * 1.05 > H * 0.92 && size > 40) size -= 8;
+  g.font = `800 ${size}px ${fam}`;
+  lines.forEach((l, i) => g.fillText(l, W / 2, H / 2 + (i - (lines.length - 1) / 2) * size * 1.05));
   const data = g.getImageData(0, 0, W, H).data;
   const inside: number[] = [];
   for (let y = 0; y < H; y += 2)
     for (let x = 0; x < W; x += 2) if (data[(y * W + x) * 4 + 3] > 128) inside.push(x, y);
   if (inside.length < 20) return null;
+  let minX = W, maxX = 0;
+  for (let i = 0; i < inside.length; i += 2) {
+    minX = Math.min(minX, inside[i]);
+    maxX = Math.max(maxX, inside[i]);
+  }
+  const scale = width / Math.max(W * 0.5, maxX - minX);
   const out = new Float32Array(n * 3);
-  const scale = 7.6 / W;
   for (let i = 0; i < n; i++) {
     // Most particles trace the letters; a quiet tenth drift around them as dust.
-    if (r() < 0.1) {
+    if (r() < 0.06) {
       const d = randDir(r);
       const m = 3 + r() * 5;
       out.set([d[0] * m, d[1] * m * 0.6, d[2] * m - 2], i * 3);
@@ -283,9 +312,9 @@ function buildRoom(): [V3, V3][] {
 
 /* ------------------------------------------------------------ shaders */
 const VERT = /* glsl */ `
-  attribute vec3 a1; attribute vec3 a2; attribute vec3 a3; attribute vec3 a4;
-  attribute vec3 aColor; attribute float aSeed; attribute float aSize;
-  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect, uBreath, uFocus;
+  attribute vec3 a1; attribute vec3 a2; attribute vec3 a3; attribute vec3 a4; attribute vec3 aW;
+  attribute vec3 aColor; attribute float aSeed; attribute float aSize; attribute float aNd;
+  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect, uBreath, uFocus, uWord;
   uniform vec2 uMouse; uniform vec3 uRipple;
   varying vec3 vColor; varying float vAlpha;
   float st(float t){ t = clamp(t*1.5 - aSeed*0.5, 0., 1.); return t*t*(3.-2.*t); }
@@ -295,6 +324,15 @@ const VERT = /* glsl */ `
     pos = mix(pos, a2, st(clamp(p-1.,0.,1.)));
     pos = mix(pos, a3, st(clamp(p-2.,0.,1.)));
     pos = mix(pos, a4, st(clamp(p-3.,0.,1.)));
+    // A thought written in stars: the visitor's own words, from anywhere in the story.
+    float wsel = st(clamp(uWord * 1.4 - aSeed * .4, 0., 1.));
+    pos = mix(pos, aW, wsel);
+    // Neurons fire: a pulse of light runs out along each dendrite, the same one the threads carry.
+    float neuron = clamp(1. - abs(p - 1.), 0., 1.) * (1. - wsel);
+    float fire = smoothstep(.86, 1., fract(aNd * .55 - uTime * .55)) * neuron;
+    // The brain sparkles: each mote flashes now and then, like a synapse.
+    float brain = clamp(1. - abs(p - 2.), 0., 1.) * (1. - wsel);
+    float spark = smoothstep(.965, 1., fract(uTime * (.11 + aSeed * .09) + aSeed * 13.)) * brain;
     float moving = sin(3.14159 * st(fract(min(p, 3.999)))) * (1. - uCalm);
     // Breathing: the whole cloud swells on the in-breath, each mote a little late.
     pos *= 1. + uBreath * (0.13 + aSeed * 0.05);
@@ -320,10 +358,11 @@ const VERT = /* glsl */ `
     // Shallow depth of field: motes off the focal plane grow soft and faint.
     float coc = clamp(abs(-mv.z - uFocus) * .16, 0., 1.);
     // Never let a mote swell into a smear: cap its size, and fade anything that drifts close to the eye.
-    gl_PointSize = min(aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5) * (1. + coc) / -mv.z, uPx * .3);
+    // Words need crisp, small stars to stay legible.
+    gl_PointSize = min(aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5 + fire * 1.6 + spark * 2.2) * (1. + coc) * mix(1., .5, wsel) / -mv.z, uPx * .3);
     float near = smoothstep(2.2, 4.6, -mv.z);
-    vColor = mix(aColor, vec3(1., .86, .62), ring * .8);
-    vAlpha = intro * tw * near * (1. + ring * 1.4 + uBreath * .25) / (1. + coc * coc * .8);
+    vColor = mix(mix(aColor, vec3(1., .86, .62), max(ring * .8, fire * .9)), vec3(.9, .94, 1.), spark);
+    vAlpha = intro * tw * near * (1. + ring * 1.4 + uBreath * .25 + fire * 2.2 + spark * 3.) / (1. + coc * coc * .8);
   }`;
 const FRAG = /* glsl */ `
   precision mediump float;
@@ -433,17 +472,18 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     for (let i = 0; i < weights.length; i++) if ((t -= weights[i]) <= 0) return i;
     return weights.length - 1;
   };
-  const neuronPoint = (): V3 => {
+  const neuronPoint = (): { p: V3; d: number } => {
     if (r() < 0.13) {
       const s = neurons.somas[Math.floor(r() * neurons.somas.length)];
       const d = randDir(r);
       const m = Math.cbrt(r()) * 0.17;
-      return [s[0] + d[0] * m, s[1] + d[1] * m, s[2] + d[2] * m];
+      return { p: [s[0] + d[0] * m, s[1] + d[1] * m, s[2] + d[2] * m], d: 0 };
     }
     const l = neurons.lines[pickWeighted(neurons.lines.map((x) => x.len), lineTotal)];
     const i = Math.floor(r() * (l.pts.length - 1));
-    const p = lerp3(l.pts[i], l.pts[i + 1], r());
-    return [p[0] + gauss(r) * 0.018, p[1] + gauss(r) * 0.018, p[2] + gauss(r) * 0.018];
+    const t = r();
+    const p = lerp3(l.pts[i], l.pts[i + 1], t);
+    return { p: [p[0] + gauss(r) * 0.018, p[1] + gauss(r) * 0.018, p[2] + gauss(r) * 0.018], d: l.d[i] + (l.d[i + 1] - l.d[i]) * t };
   };
   const roomPoint = (): { p: V3; warm: boolean } => {
     const k = r();
@@ -463,16 +503,20 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   };
 
   const a0 = new Float32Array(COUNT * 3), a1 = new Float32Array(COUNT * 3), a2 = new Float32Array(COUNT * 3), a3 = new Float32Array(COUNT * 3), a4 = new Float32Array(COUNT * 3);
-  const col = new Float32Array(COUNT * 3), seed = new Float32Array(COUNT), size = new Float32Array(COUNT);
+  const col = new Float32Array(COUNT * 3), seed = new Float32Array(COUNT), size = new Float32Array(COUNT), nd = new Float32Array(COUNT);
+  const aw = new Float32Array(COUNT * 3);
   // Starlight, candle, dusk rose, lilac, and a little cold blue.
   const palette: V3[] = [[0.96, 0.95, 1], [1, 0.79, 0.54], [1, 0.58, 0.7], [0.72, 0.68, 1], [0.55, 0.78, 1]];
   for (let i = 0; i < COUNT; i++) {
     const room = roomPoint();
     a0.set(galaxyPoint(r), i * 3);
-    a1.set(neuronPoint(), i * 3);
+    const np = neuronPoint();
+    a1.set(np.p, i * 3);
+    nd[i] = np.d;
     a2.set(brainPoint(r), i * 3);
     a3.set(room.p, i * 3);
     a4.set(galaxyPoint(r), i * 3); // replaced by the word once the typeface has loaded
+    aw.set(a4.subarray(i * 3, i * 3 + 3), i * 3);
     const k = r();
     const c = room.warm ? palette[1] : palette[k < 0.34 ? 0 : k < 0.58 ? 1 : k < 0.76 ? 3 : k < 0.9 ? 4 : 2];
     col.set(c, i * 3);
@@ -486,8 +530,11 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   geo.setAttribute('a3', new Float32BufferAttribute(a3, 3));
   const a4Attr = new Float32BufferAttribute(a4, 3);
   geo.setAttribute('a4', a4Attr);
-  void document.fonts?.load('italic 500 300px "Cormorant Variable"').then(() => {
-    const word = wordPoints('loci', COUNT, rng(7));
+  const awAttr = new Float32BufferAttribute(aw, 3);
+  geo.setAttribute('aW', awAttr);
+  geo.setAttribute('aNd', new Float32BufferAttribute(nd, 1));
+  void document.fonts?.load('700 240px "Mona Sans Variable"').then(() => {
+    const word = wordPoints('loci', COUNT, rng(7), 6.4);
     if (!word) return;
     a4Attr.copyArray(word);
     a4Attr.needsUpdate = true;
@@ -504,7 +551,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     uniforms: {
       uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 },
       uCalm: { value: calm ? 1 : 0 }, uAspect: { value: 1 }, uMouse: { value: new Vector2(9, 9) }, uBreath: { value: 0 },
-      uFocus: { value: 7.4 }, uRipple: { value: new Vector3(0, 0, -99) },
+      uFocus: { value: 7.4 }, uRipple: { value: new Vector3(0, 0, -99) }, uWord: { value: 0 },
     },
   });
   const skyMat = new ShaderMaterial({
@@ -535,6 +582,52 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   farGeo.setAttribute('position', new Float32BufferAttribute(far, 3));
   const stars = new Points(farGeo, new PointsMaterial({ color: 0xcfd6ff, size: 0.055, transparent: true, opacity: 0.75, depthWrite: false }));
   scene.add(stars);
+
+  // Shooting stars: a few slow streaks across the far sky, never more than three at once.
+  const COMETS = 3;
+  const cPos = new Float32Array(COMETS * 2 * 3);
+  const cT = new Float32Array(COMETS * 2);
+  const cLife = new Float32Array(COMETS * 2);
+  for (let i = 0; i < COMETS; i++) [cT[i * 2], cT[i * 2 + 1]] = [0, 1];
+  const comets = Array.from({ length: COMETS }, () => ({ x: 0, y: 0, z: -9, vx: 0, vy: 0, age: 99, life: 1, next: 2 + Math.random() * 6 }));
+  const cGeo = new BufferGeometry();
+  const cPosAttr = new Float32BufferAttribute(cPos, 3);
+  const cLifeAttr = new Float32BufferAttribute(cLife, 1);
+  cGeo.setAttribute('position', cPosAttr);
+  cGeo.setAttribute('aT', new Float32BufferAttribute(cT, 1));
+  cGeo.setAttribute('aLife', cLifeAttr);
+  const cometMat = new ShaderMaterial({
+    vertexShader: 'attribute float aT; attribute float aLife; varying float vA; void main(){ vA = aT * aLife; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+    fragmentShader: 'precision mediump float; varying float vA; uniform float uOpacity; void main(){ gl_FragColor = vec4(vec3(1., .93, .82), vA * vA * uOpacity); }',
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    uniforms: { uOpacity: { value: 1 } },
+  });
+  const cometLines = new LineSegments(cGeo, cometMat);
+  cometLines.frustumCulled = false;
+  cometLines.visible = !calm;
+  scene.add(cometLines);
+
+  // The galaxy's heart: a soft glow that only the first chapter carries.
+  const coreTex = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const g = c.getContext('2d')!;
+    const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,236,210,0.9)');
+    gr.addColorStop(0.18, 'rgba(255,190,150,0.35)');
+    gr.addColorStop(0.5, 'rgba(160,130,255,0.08)');
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr;
+    g.fillRect(0, 0, 128, 128);
+    const t = new CanvasTexture(c);
+    t.colorSpace = SRGBColorSpace;
+    return t;
+  })();
+  const core = new Sprite(new SpriteMaterial({ map: coreTex, transparent: true, depthWrite: false, blending: AdditiveBlending, opacity: 0 }));
+  core.scale.set(3.4, 3.4, 1);
+  group.add(core);
 
   // Synapses: the dendrites themselves, with pulses travelling outward.
   const lp: number[] = [], ld: number[] = [];
@@ -583,7 +676,8 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
 
   /* ---------------------------------------------------------- loop */
   const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0, breath: 0, focus: -1 };
-  const cur: SceneTargets = { ...target };
+  let wordTarget = 0;
+  const cur = { ...target, word: 0 };
   let mx = 9, my = 9, yaw = 0, active = true, raf = 0, last = performance.now(), time = 0, intro = calm ? 1 : 0;
   let tileCb: ((t: TileScreen[]) => void) | null = null;
   let readyResolve: () => void = () => {};
@@ -631,7 +725,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     cur.breath += (target.breath - cur.breath) * Math.min(1, dt * 2.2);
 
     const p = cur.progress;
-    const wordness = Math.max(0, Math.min(1, p - 3));
+    const wordness = Math.max(Math.max(0, Math.min(1, p - 3)), cur.word);
     const roomness = Math.max(0, Math.min(1, (p - 2.15) / 0.85)) * (1 - wordness);
     // The brain reads best in three-quarter profile, the room from its open corner.
     const brainness = Math.max(0, 1 - Math.abs(p - 2) * 1.7);
@@ -660,6 +754,41 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     mat.uniforms.uTime.value = time;
     mat.uniforms.uIntro.value = intro;
     mat.uniforms.uDim.value = vis;
+    cur.word += (wordTarget - cur.word) * Math.min(1, dt * (wordTarget > cur.word ? 1.1 : 1.6));
+    mat.uniforms.uWord.value = cur.word;
+    const galaxyness = Math.max(0, 1 - p) * (1 - cur.word);
+    (core.material as SpriteMaterial).opacity = galaxyness * 0.6 * vis * intro;
+    const skyness = Math.max(0, 1 - Math.max(0, p - 1.5)) * vis;
+    cometMat.uniforms.uOpacity.value = skyness;
+    if (!calm) {
+      for (let i = 0; i < COMETS; i++) {
+        const c = comets[i];
+        c.age += dt;
+        if (c.age > c.life) {
+          c.next -= dt;
+          if (c.next <= 0) {
+            const side = Math.random() < 0.5 ? -1 : 1;
+            c.x = -side * (4 + Math.random() * 4);
+            c.y = 2 + Math.random() * 3;
+            c.z = -8 - Math.random() * 4;
+            c.vx = side * (5 + Math.random() * 4);
+            c.vy = -(1.2 + Math.random() * 1.6);
+            c.age = 0;
+            c.life = 1.1 + Math.random() * 0.8;
+            c.next = 3 + Math.random() * 7;
+          }
+        }
+        const live = c.age < c.life ? Math.sin((c.age / c.life) * Math.PI) : 0;
+        const hx = c.x + c.vx * c.age, hy = c.y + c.vy * c.age;
+        const k = i * 6;
+        cPos[k] = hx - c.vx * 0.16; cPos[k + 1] = hy - c.vy * 0.16; cPos[k + 2] = c.z;
+        cPos[k + 3] = hx; cPos[k + 4] = hy; cPos[k + 5] = c.z;
+        cLife[i * 2] = live;
+        cLife[i * 2 + 1] = live;
+      }
+      cPosAttr.needsUpdate = true;
+      cLifeAttr.needsUpdate = true;
+    }
     mat.uniforms.uBreath.value = cur.breath;
     skyMat.uniforms.uTime.value = time;
     skyMat.uniforms.uStage.value = Math.min(p, 3);
@@ -725,6 +854,17 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     },
     onTiles(cb) {
       tileCb = cb;
+    },
+    write(text) {
+      const pts = wordPoints(text, COUNT, rng(text.length * 97 + 3), 8.6);
+      if (!pts) return false;
+      awAttr.copyArray(pts);
+      awAttr.needsUpdate = true;
+      wordTarget = 1;
+      return true;
+    },
+    release() {
+      wordTarget = 0;
     },
     showDeck(items) {
       const n = Math.min(items.length, tiles.length);

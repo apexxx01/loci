@@ -4,9 +4,8 @@
  * room, and finally the name), the words sit quietly beside it, and the tools
  * (try a recall, build a palace, recall from any screen) live in the same sky.
  */
-import '@fontsource-variable/cormorant/wght.css';
-import '@fontsource-variable/cormorant/wght-italic.css';
-import '@fontsource-variable/hanken-grotesk/wght.css';
+import '@fontsource-variable/mona-sans/standard.css';
+import '@fontsource-variable/mona-sans/standard-italic.css';
 import 'lenis/dist/lenis.css';
 import Lenis from 'lenis';
 import './landing.css';
@@ -116,8 +115,15 @@ const HTML = `
 <section class="s s--hero" id="top" data-stage="0" data-shift="0" data-dim="0.1">
   <div class="hero">
     <h1 id="landing-title"><span class="line"><span>Your room</span></span><span class="line"><span>remembers.</span></span></h1>
-    <p class="hero__lede">Loci turns the room you are sitting in into a memory palace. What you want to learn rests on
-    your lamp, your shelf, your couch, and comes back to you just before you would forget it.</p>
+    <p class="hero__lede">A memory palace built from the room you are sitting in. What you want to learn rests on
+    your lamp, your shelf, your couch, and comes back just before you would forget it.</p>
+    <form class="whisper" data-whisper autocomplete="off">
+      <label for="whisper" class="sr-only">Something you want to remember</label>
+      <input id="whisper" name="whisper" maxlength="32" placeholder="Type anything you want to remember" data-whisper-input />
+    </form>
+    <p class="whisper__said" data-whisper-said hidden><span data-whisper-line></span>
+      <button class="lumen lumen--small" type="button" data-whisper-build>Build a palace from it</button>
+      <button class="lumen lumen--small lumen--quiet" type="button" data-whisper-free>Let it go</button></p>
     <div class="hero__actions">
       <button class="lumen" type="button" data-enter>Enter your palace</button>
       <button class="lumen lumen--quiet" type="button" data-breathe-open>Take a breath first</button>
@@ -660,6 +666,73 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
   }
   $('[data-wordmark-sigil]').innerHTML = sigilSVG('loci', 22);
 
+  /* ---------------------------------------------------- headings resolve word by word */
+  const headIO = new IntersectionObserver((en) => en.forEach((e) => e.isIntersecting && e.target.classList.add('in')), { root, threshold: 0.35 });
+  $$('section h2').forEach((h) => {
+    h.innerHTML = h.textContent!.trim().split(/\s+/).map((w, i) => `<span class="w" style="--i:${i}">${esc(w)}</span>`).join(' ');
+    if (calm) h.classList.add('in');
+    else headIO.observe(h);
+  });
+
+  /* ---------------------------------------------------- lanterns lean towards the cursor */
+  if (!coarse && !calm) {
+    let leaning: HTMLElement | null = null;
+    root.addEventListener('pointermove', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('.lumen');
+      if (leaning && leaning !== b) leaning.style.transform = '';
+      leaning = b;
+      if (!b) return;
+      const r = b.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) * 0.18;
+      const dy = (e.clientY - (r.top + r.height / 2)) * 0.3;
+      b.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
+    }, { passive: true });
+  }
+
+  /* ---------------------------------------------------- write it in the stars */
+  {
+    const form = $<HTMLFormElement>('[data-whisper]');
+    const input = $<HTMLInputElement>('[data-whisper-input]');
+    const said = $('[data-whisper-said]');
+    const line = $('[data-whisper-line]');
+    let written = '';
+    const free = () => {
+      if (!written) return;
+      written = '';
+      scene?.release();
+      root.classList.remove('is-whispering');
+      said.hidden = true;
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = input.value.replace(/\s+/g, ' ').trim().slice(0, 32);
+      if (!text) return;
+      if (!scene?.write(text)) return;
+      written = text;
+      root.classList.add('is-whispering');
+      said.hidden = false;
+      line.textContent = 'Written in your sky.';
+      chime('good');
+      input.blur();
+    });
+    $('[data-whisper-free]').addEventListener('click', () => {
+      free();
+      input.value = '';
+    });
+    $('[data-whisper-build]').addEventListener('click', () => {
+      const text = written;
+      free();
+      // One short phrase reads as a topic to teach; anything list-like as notes.
+      setMode(/[-:,]/.test(text) ? 'notes' : 'topic');
+      notes.value = text;
+      notes.dispatchEvent(new Event('input'));
+      scrollTo($('#start'));
+      setTimeout(() => notes.focus({ preventScroll: true }), 1200);
+    });
+    root.addEventListener('scroll', () => written && root.scrollTop > root.clientHeight * 0.45 && free(), { passive: true });
+    window.addEventListener('keydown', (e) => e.key === 'Escape' && free());
+  }
+
   /* ---------------------------------------------------- the headset, as a constellation */
   {
     const sky = $('[data-atlas]');
@@ -768,7 +841,27 @@ export function mountLanding(opts: LandingOptions): { hide(): void; show(): void
 
   /* ---------------------------------------------------- who, receipts, next */
   $('[data-people]').innerHTML = AUDIENCES.map((a) => `<article>${sigilSVG(a.who, 40, 'sigil people__sigil')}<h3>${esc(a.who)}</h3><p>${esc(a.text)}</p></article>`).join('');
-  $('[data-receipts]').innerHTML = RECEIPTS.map((r) => `<div><p class="numeral numeral--receipt">${esc(r.n)}${r.unit ? `<span class="numeral__unit">${esc(r.unit)}</span>` : ''}</p><p>${esc(r.text)}</p></div>`).join('');
+  $('[data-receipts]').innerHTML = RECEIPTS.map((r) => `<div><p class="numeral numeral--receipt"><span data-count="${esc(r.n)}">${esc(r.n)}</span>${r.unit ? `<span class="numeral__unit">${esc(r.unit)}</span>` : ''}</p><p>${esc(r.text)}</p></div>`).join('');
+  {
+    // Each receipt counts up once, the first time it comes into view.
+    const io = new IntersectionObserver((en) => en.forEach((e) => {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      const el = e.target as HTMLElement;
+      const goal = el.dataset.count!;
+      const dec = goal.includes('.') ? goal.split('.')[1].length : 0;
+      const end = Number(goal);
+      if (calm || !end) return;
+      const t0 = performance.now();
+      const tick = (t: number) => {
+        const k = Math.min(1, (t - t0) / 1600);
+        el.textContent = (end * (1 - Math.pow(1 - k, 3))).toFixed(dec);
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }), { root, threshold: 0.6 });
+    $$('[data-count]').forEach((el) => io.observe(el));
+  }
   $('[data-road]').innerHTML = ROADMAP.map((g) => `<div class="road__col road__col--${g.when.toLowerCase()}"><h3><i></i>${g.when}</h3><ul>${g.items.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('');
 
   /* ---------------------------------------------------- state */

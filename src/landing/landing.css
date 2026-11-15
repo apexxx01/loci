@@ -3,22 +3,22 @@
  *
  * The sky is the page. There are no boxes: words sit on the night, buttons are
  * small lanterns, charts are fields of stars, and every memory is drawn as its
- * own constellation. Cormorant, a Garamond for display sizes, speaks for the
- * 2,500-year-old art of memory; Hanken Grotesk carries everything you read and
- * press, set bright and sturdy enough for any screen.
+ * own constellation. One family, Mona Sans: stretched wide and set heavy for
+ * the lines that matter, normal width for everything you read, and bright
+ * enough to read on any screen.
  */
 :root {
   --void: #010103;
   --star: #f4f1fb;
-  --text: #ddd8eb;
-  --mist: #b5b0ca;
-  --dusk: #8c87a5;
+  --text: #ece8f6;
+  --mist: #c6c1d9;
+  --dusk: #9c97b5;
   --lilac: #bfb7ff;
   --candle: #ffcb8e;
   --candle-hi: #ffe4c2;
   --rose: #ffa3b9;
-  --font: 'Hanken Grotesk Variable', 'Hanken Grotesk', system-ui, sans-serif;
-  --display: 'Cormorant Variable', 'Cormorant', 'Cormorant Garamond', Garamond, serif;
+  --font: 'Mona Sans Variable', 'Mona Sans', system-ui, sans-serif;
+  --display: 'Mona Sans Variable', 'Mona Sans', system-ui, sans-serif;
   --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
   --pad: clamp(22px, 6vw, 104px);
   --glow-text: 0 0 28px rgba(1, 1, 3, 0.95), 0 0 8px rgba(1, 1, 3, 0.9);
@@ -31,7 +31,7 @@ html, body { margin: 0; background: var(--void); }
   position: fixed; inset: 0; z-index: 10;
   overflow-y: auto; overflow-x: hidden;
   color: var(--text);
-  font: 400 18px/1.75 var(--font);
+  font: 450 17.5px/1.72 var(--font);
   letter-spacing: 0.006em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -396,7 +396,7 @@ details p { color: var(--text); max-width: 40rem; padding: 0 0 14px 30px; }
 .recall__actions { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: 12px 0 18px; }
 .recall__hint { color: var(--dusk); font-size: 14.5px; }
 
-.preview-back { position: fixed; top: 18px; left: 18px; z-index: 11; cursor: pointer; border: 0; background: radial-gradient(closest-side, rgba(1, 1, 3, 0.9), rgba(1, 1, 3, 0.6)); color: var(--candle-hi); padding: 14px 24px; font: 460 15px 'Hanken Grotesk Variable', system-ui, sans-serif; letter-spacing: 0.06em; text-shadow: 0 0 14px rgba(255, 203, 142, 0.6); }
+.preview-back { position: fixed; top: 18px; left: 18px; z-index: 11; cursor: pointer; border: 0; background: radial-gradient(closest-side, rgba(1, 1, 3, 0.9), rgba(1, 1, 3, 0.6)); color: var(--candle-hi); padding: 14px 24px; font: 460 15px 'Mona Sans Variable', system-ui, sans-serif; letter-spacing: 0.06em; text-shadow: 0 0 14px rgba(255, 203, 142, 0.6); }
 .preview-back[hidden] { display: none; }
 
 /* ---------------------------------------------------------------- smaller screens */
@@ -519,4 +519,85 @@ details p { color: var(--text); max-width: 40rem; padding: 0 0 14px 30px; }
 }
 @media (max-width: 600px) {
   .people, .receipts, .road { grid-template-columns: 1fr; }
+}
+
+/* ================================================================ Mona Sans: the wide, bright voice */
+h1, h2, h3, .numeral, .wordmark, .demo__title, .demo__hint, .kind__label, .memories__text strong, summary,
+.close__line, .breathe__word, .recall__cue, .recall__answer, .weave__scene, .steps li::before, .atlas__card h3 {
+  font-family: var(--display); font-style: normal; font-stretch: 112.5%;
+}
+h1 { font-size: clamp(54px, 8vw, 132px); font-weight: 640; font-stretch: 125%; letter-spacing: -0.035em; line-height: 0.96; }
+h1 .line > span, h2 .w, .numeral, .close__line, .breathe__word, .recall__cue {
+  background: linear-gradient(180deg, #ffffff 30%, #d2c7ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: none;
+}
+h2 { font-size: clamp(36px, 4.3vw, 68px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.04; text-shadow: none; }
+h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.25; }
+.numeral { font-size: clamp(78px, 8.6vw, 136px); font-weight: 620; font-stretch: 125%; letter-spacing: -0.05em; line-height: 0.92;
+  background-image: linear-gradient(180deg, #fff6ea 25%, #ffc98a 100%); }
+.numeral--dim { background-image: linear-gradient(180deg, #e4dff3 20%, #8f8aa8 100%); }
+.numeral--mid { font-size: clamp(56px, 5.6vw, 88px); }
+.numeral--small { font-size: clamp(46px, 4.2vw, 66px); }
+.numeral--receipt { font-size: clamp(54px, 5vw, 80px); }
+.numeral__of, .numeral__unit { -webkit-text-fill-color: currentColor; font-stretch: 100%; font-weight: 500; letter-spacing: 0; }
+.numeral__of { color: var(--mist); font-style: italic; font-size: 0.26em; }
+.numeral__unit { color: var(--candle); }
+.wordmark { font: 600 25px/1 var(--display); font-stretch: 125%; letter-spacing: -0.01em; }
+.demo__title { font-size: clamp(36px, 3.2vw, 48px); font-weight: 620; letter-spacing: -0.03em; }
+.demo__hint { font-size: clamp(21px, 1.8vw, 26px); font-weight: 520; line-height: 1.4; font-stretch: 105%; }
+.kind__label { font: 600 20px/1.15 var(--display); font-stretch: 112.5%; letter-spacing: -0.015em; }
+.memories__text strong { font: 600 18px/1.25 var(--display); font-stretch: 112.5%; }
+summary { font-size: clamp(17px, 1.4vw, 20px); font-weight: 560; letter-spacing: -0.01em; }
+.close__line { font-size: clamp(26px, 2.6vw, 40px); font-weight: 600; font-stretch: 118%; letter-spacing: -0.025em; }
+.breathe__word { font-size: clamp(40px, 4.6vw, 70px); font-weight: 600; font-stretch: 125%; letter-spacing: -0.03em; }
+.recall__cue { font-size: clamp(46px, 5.4vw, 82px); font-weight: 640; font-stretch: 125%; letter-spacing: -0.04em; }
+.recall__answer { font-size: clamp(20px, 1.8vw, 26px); font-weight: 520; font-stretch: 105%; }
+.weave__scene { font: italic 480 clamp(21px, 1.9vw, 28px)/1.42 var(--display); font-stretch: 100%; }
+.steps li::before { font: 600 18px/1.3 var(--display); font-stretch: 125%; }
+.atlas__card h3 { font-size: clamp(28px, 2.6vw, 40px); font-weight: 620; letter-spacing: -0.03em; }
+.duo h3 { font-size: clamp(22px, 1.9vw, 28px); font-weight: 600; }
+.pipeline h3 { font-size: 18.5px; }
+.weave__intro h3 { font-size: clamp(24px, 2.1vw, 32px); }
+.people h3 { font-size: 22px; }
+.road h3 { font-size: 24px; }
+.palace h3 { font-size: clamp(24px, 2.2vw, 32px); font-weight: 600; }
+.bar__nav a { font-weight: 520; font-size: 13.5px; letter-spacing: 0.03em; }
+.lumen { font-weight: 600; font-stretch: 110%; letter-spacing: 0.02em; }
+.small, .figure figcaption, .figure__label, .cite, .refs ol { color: var(--mist); }
+.open__lede, .hero__lede { color: var(--text); }
+
+/* ================================================================ headings resolve word by word */
+h2 .w { display: inline-block; opacity: 0; filter: blur(10px); transform: translateY(0.28em);
+  transition: opacity 1.1s ease, filter 1.2s ease, transform 1.3s var(--ease); transition-delay: calc(var(--i) * 55ms); }
+h2.in .w { opacity: 1; filter: none; transform: none; }
+
+/* ================================================================ write it in the stars */
+.whisper { position: relative; display: flex; align-items: center; gap: 10px; width: min(560px, 92vw); margin: 0.6em 0 0.4em; }
+.whisper input {
+  flex: 1; min-width: 0; background: none; border: 0; padding: 14px 4px; text-align: center;
+  font: 500 19px var(--font); font-stretch: 105%; color: var(--star); caret-color: var(--candle); letter-spacing: 0.01em;
+}
+.whisper input::placeholder { color: rgba(198, 193, 217, 0.62); }
+.whisper input:focus { outline: none; }
+.whisper::after { content: ''; position: absolute; left: 6%; right: 6%; bottom: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(198, 193, 217, 0.5), transparent); transition: background 0.6s, box-shadow 0.6s; }
+.whisper:focus-within::after { background: linear-gradient(90deg, transparent, var(--candle), transparent); box-shadow: 0 0 14px rgba(255, 203, 142, 0.7); }
+.whisper__said { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 14px; color: var(--text); margin: 0.4em 0 0; text-shadow: var(--glow-text); }
+.whisper__said[hidden] { display: none; }
+.is-whispering .hero h1, .is-whispering .hero__lede, .is-whispering .hero__actions, .is-whispering .hero__note, .is-whispering .welcome {
+  opacity: 0 !important; transition: opacity 1.2s ease; pointer-events: none;
+}
+.is-whispering .hero::before { opacity: 0; }
+.hero::before { transition: opacity 1.2s ease; }
+.is-whispering .whisper { transform: translateY(22vh); }
+.whisper, .whisper__said { transition: transform 1.4s var(--ease); }
+.is-whispering .whisper__said { transform: translateY(22vh); }
+
+/* ================================================================ lanterns lean towards you */
+.lumen { transition: color 0.4s, text-shadow 0.4s, transform 0.6s var(--ease); }
+.lumen::before { background-size: 100% 100%; }
+.lumen > .shine { position: absolute; inset: 0; overflow: hidden; border-radius: 999px; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  h2 .w { opacity: 1; filter: none; transform: none; }
 }
