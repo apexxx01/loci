@@ -119,6 +119,10 @@ export function drawTile(
 ): void {
   const { w, h } = TILE_PX;
   ctx.clearRect(0, 0, w, h);
+  if (style.concept) {
+    drawConcept(ctx, item, face, style);
+    return;
+  }
   const pad = 14;
   const r = 56;
 
@@ -193,11 +197,6 @@ export function drawTile(
     ctx.fillText(label, w - pad - 24 - tw / 2, 84);
   }
 
-  if (style.concept) {
-    drawConcept(ctx, item, face, style, { ink, inkSoft, accent });
-    return;
-  }
-
   if (face === 'cue') {
     // Glyphs.
     const glyphs = item.glyphs.slice(0, 3);
@@ -267,113 +266,145 @@ export function drawTile(
   }
 }
 
-/* ------------------------------------------------------------------ concept stages */
-const LILAC = '#cdbfff';
+/* ------------------------------------------------------------------ concept stages
+ * Living light: at rest a stage is a small glowing label, one headline you can
+ * read from across the room. Pinch and it blooms open into the full card.
+ */
+const LILAC = '#d8ccff';
 const ROSE = '#ff9ec4';
+const GOLD = '#ffcf7a';
+const PEARL = '#fff4e6';
 
-function drawConcept(
-  ctx: CanvasRenderingContext2D,
-  item: MemoryItem,
-  face: FaceKind,
-  style: FaceStyle,
-  pal: { ink: string; inkSoft: string; accent: string },
-): void {
+function glass(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, glow: number, contrast?: boolean): void {
+  ctx.save();
+  if (glow > 0 && !contrast) {
+    ctx.shadowColor = `rgba(255, 207, 122, ${0.55 + glow * 0.4})`;
+    ctx.shadowBlur = 26 + glow * 26;
+  }
+  roundRect(ctx, x, y, w, h, r);
+  ctx.fillStyle = contrast ? '#000' : 'rgba(14, 10, 34, 0.9)';
+  ctx.fill();
+  ctx.restore();
+  roundRect(ctx, x, y, w, h, r);
+  ctx.lineWidth = contrast ? 6 : 3;
+  if (contrast) ctx.strokeStyle = '#ffffff';
+  else {
+    const g = ctx.createLinearGradient(x, y, x + w, y + h);
+    g.addColorStop(0, `rgba(255, 223, 160, ${0.5 + glow * 0.5})`);
+    g.addColorStop(1, `rgba(255, 190, 215, ${0.3 + glow * 0.4})`);
+    ctx.strokeStyle = g;
+  }
+  ctx.stroke();
+}
+
+function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: FaceKind, style: FaceStyle): void {
   const { w, h } = TILE_PX;
   const cx = w / 2;
-  const left = 54;
-  const maxW = w - left * 2;
-  const footer = (text: string, color = pal.accent) => {
+  const ink = style.contrast ? '#ffffff' : PEARL;
+  const soft = style.contrast ? '#ffffff' : 'rgba(240, 235, 255, 0.8)';
+  const accent = style.contrast ? '#ffd400' : GOLD;
+  const hint = (text: string, y: number, color = accent) => {
     ctx.textAlign = 'center';
     ctx.fillStyle = color;
-    ctx.font = `500 22px ${UI_FONT}`;
-    ctx.fillText(text, cx, h - 56);
+    ctx.font = `500 26px ${UI_FONT}`;
+    ctx.fillText(text, cx, y);
   };
-  const stageLine = (y: number) => {
-    ctx.textAlign = 'left';
-    ctx.fillStyle = pal.accent;
-    ctx.font = `500 22px ${UI_FONT}`;
-    ctx.fillText(`Stage ${item.order + 1}`, left, y);
-  };
+  const left = 60;
+  const maxW = w - left * 2;
   const block = (text: string, y: number, px: number, min: number, lines: number, color: string, weight = 400, family = UI_FONT) => {
     ctx.textAlign = 'left';
     ctx.fillStyle = color;
     const f = fitText(ctx, text, maxW, lines, px, min, weight, family);
     f.lines.forEach((l, i) => ctx.fillText(l, left, y + f.px + i * f.px * 1.25));
-    return y + f.px * 1.25 * f.lines.length + 8;
+    return y + f.px * 1.25 * f.lines.length + 10;
   };
 
-  if (face === 'learn' || face === 'hint') {
-    stageLine(150);
-    let y = block(item.cue, 160, 46, 30, 2, pal.ink, 400, DISPLAY_FONT);
-    y = block(item.answer, y + 4, 29, 22, 4, pal.ink, 400);
-    if (item.why) y = block(`Why: ${item.why}`, y + 6, 24, 19, 3, style.contrast ? '#ffffff' : LILAC, 400);
-    if (y < h - 170) block(item.scene, y + 6, 22, 18, Math.max(1, Math.floor((h - 150 - y) / 30)), pal.inkSoft, 300);
-    footer(item.link && style.next ? `${item.link.charAt(0).toUpperCase()}${item.link.slice(1)} \u2192 ${style.next}` : style.dwell ? 'look here to test yourself' : 'pinch to test yourself');
+  // At rest: a luminous label with one headline, centred low on the tile.
+  if (face === 'learn' || face === 'cue') {
+    const due = face === 'cue' && style.due;
+    const fresh = face === 'learn';
+    const title = face === 'cue' && style.blind ? `What happens ${style.surfaceLabel ? `on your ${style.surfaceLabel}` : 'here'}?` : item.cue;
+    ctx.font = `400 60px ${DISPLAY_FONT}`;
+    const f = fitText(ctx, title, w - 150, 2, 62, 44, 400, DISPLAY_FONT);
+    const lh = f.px * 1.18;
+    const boxH = 120 + lh * f.lines.length;
+    const y0 = h - 70 - boxH;
+    glass(ctx, 24, y0, w - 48, boxH, 44, due || fresh ? 1 : 0.15, style.contrast);
+    // Stage number in a ring.
+    ctx.beginPath();
+    ctx.arc(cx, y0 + 46, 24, 0, Math.PI * 2);
+    ctx.strokeStyle = due || fresh ? accent : 'rgba(255,255,255,0.35)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = due || fresh ? accent : soft;
+    ctx.font = `400 30px ${DISPLAY_FONT}`;
+    ctx.fillText(String(item.order + 1), cx, y0 + 57);
+    ctx.fillStyle = due || fresh || style.contrast ? ink : 'rgba(255, 244, 230, 0.72)';
+    f.lines.forEach((l, i) => {
+      ctx.font = `400 ${f.px}px ${DISPLAY_FONT}`;
+      ctx.fillText(l, cx, y0 + 96 + lh * 0.82 + i * lh);
+    });
+    const pinch = style.dwell ? 'look' : 'pinch';
+    hint(fresh ? `${pinch} to open` : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 26, fresh || due ? accent : 'rgba(240,235,255,0.55)');
     return;
   }
 
-  if (face === 'cue') {
-    // A large stage medallion: the place and the number are the cue.
-    ctx.textAlign = 'center';
-    ctx.beginPath();
-    ctx.arc(cx, 250, 92, 0, Math.PI * 2);
-    ctx.strokeStyle = style.due ? pal.accent : 'rgba(255,255,255,0.25)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.fillStyle = style.due ? pal.accent : pal.inkSoft;
-    ctx.font = `400 104px ${DISPLAY_FONT}`;
-    ctx.fillText(String(item.order + 1), cx, 286);
-    ctx.fillStyle = pal.ink;
-    const text = style.blind ? `Which stage lives ${style.surfaceLabel ? `on your ${style.surfaceLabel}` : 'here'}?` : item.cue;
-    const f = fitText(ctx, text, w - 90, 2, 46, 28, 400, DISPLAY_FONT);
-    f.lines.forEach((l, i) => ctx.fillText(l, cx, 420 + i * f.px * 1.2));
-    footer(style.due ? (style.dwell ? 'what happens here? look to check' : 'what happens here? pinch to check') : `rested, back ${style.restLabel}`, style.due ? pal.accent : C.inkDim);
+  // Opened: the full stage blooms into a card.
+  glass(ctx, 14, 14, w - 28, h - 28, 50, 0.6, style.contrast);
+  if (face === 'hint') {
+    ctx.textAlign = 'left';
+    ctx.fillStyle = accent;
+    ctx.font = `500 24px ${UI_FONT}`;
+    ctx.fillText(`Stage ${item.order + 1}`, left, 92);
+    let y = block(item.cue, 100, 46, 32, 2, ink, 400, DISPLAY_FONT);
+    y = block(item.answer, y + 2, 30, 22, 4, ink);
+    if (item.why) y = block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
+    const room = Math.floor((h - 120 - y) / 30);
+    if (room >= 1) block(item.scene, y + 4, 23, 19, Math.min(3, room), soft, 300);
+    hint(item.link && style.next ? `${item.link} → ${style.next}` : style.dwell ? 'look away to close' : 'pinch to close', h - 52);
     return;
   }
 
   if (face === 'check') {
     ctx.textAlign = 'center';
-    ctx.fillStyle = pal.ink;
-    ctx.font = `400 40px ${DISPLAY_FONT}`;
-    ctx.fillText('Which is true?', cx, 160);
+    ctx.fillStyle = ink;
+    ctx.font = `400 44px ${DISPLAY_FONT}`;
+    ctx.fillText('Which is true?', cx, 110);
     const check = item.check;
-    if (!check) {
-      footer('pinch to see the answer');
-      return;
-    }
+    if (!check) return;
     const [a, b] = style.wrongFirst ? [check.wrong, check.right] : [check.right, check.wrong];
     const card = (label: string, text: string, y: number) => {
-      roundRect(ctx, 40, y, w - 80, 170, 26);
-      ctx.fillStyle = style.contrast ? '#000' : 'rgba(205,191,255,0.10)';
+      roundRect(ctx, 44, y, w - 88, 200, 28);
+      ctx.fillStyle = style.contrast ? '#000' : 'rgba(216, 204, 255, 0.08)';
       ctx.fill();
       ctx.lineWidth = 2;
-      ctx.strokeStyle = style.contrast ? '#fff' : 'rgba(205,191,255,0.45)';
+      ctx.strokeStyle = style.contrast ? '#fff' : 'rgba(216, 204, 255, 0.45)';
       ctx.stroke();
       ctx.textAlign = 'left';
-      ctx.fillStyle = pal.accent;
-      ctx.font = `400 40px ${DISPLAY_FONT}`;
-      ctx.fillText(label, 62, y + 56);
-      ctx.fillStyle = pal.ink;
-      const f = fitText(ctx, text, w - 190, 4, 27, 19, 400);
-      const top = y + 85 - (f.lines.length * f.px * 1.22) / 2;
-      f.lines.forEach((l, i) => ctx.fillText(l, 116, top + f.px + i * f.px * 1.22 - 8));
+      ctx.fillStyle = accent;
+      ctx.font = `400 46px ${DISPLAY_FONT}`;
+      ctx.fillText(label, 70, y + 64);
+      ctx.fillStyle = ink;
+      const f = fitText(ctx, text, w - 200, 4, 30, 21, 400);
+      const top = y + 100 - (f.lines.length * f.px * 1.22) / 2;
+      f.lines.forEach((l, i) => ctx.fillText(l, 128, top + f.px * 0.85 + i * f.px * 1.22));
     };
-    card('A', a, 200);
-    card('B', b, 390);
-    footer(style.dwell ? 'look at A or B below' : 'pinch A or B below');
+    card('A', a, 150);
+    card('B', b, 370);
+    hint(style.dwell ? 'look at A or B beside the card' : 'pinch A or B beside the card', h - 52);
     return;
   }
 
-  // Answer: the verdict, the correction if needed, then the claim and why.
+  // Verdict.
   const right = style.lastCheck === 'right';
-  const verdictColor = style.lastCheck ? (right ? C.mint : ROSE) : pal.accent;
   ctx.textAlign = 'left';
-  ctx.fillStyle = verdictColor;
-  ctx.font = `400 46px ${DISPLAY_FONT}`;
-  ctx.fillText(style.lastCheck ? (right ? 'Right.' : 'Not quite.') : item.cue, left, 150);
-  let y = 166;
-  if (style.lastCheck === 'wrong' && item.check) y = block(item.check.right, y, 27, 20, 3, pal.ink, 500);
-  y = block(item.answer, y + 6, 26, 20, 4, style.lastCheck === 'wrong' ? pal.inkSoft : pal.ink, 400);
-  if (item.why) block(`Why: ${item.why}`, y + 6, 23, 18, 3, style.contrast ? '#ffffff' : LILAC, 400);
-  footer(style.lastCheck === 'wrong' ? 'it will come back sooner' : style.dwell ? 'look away to rest it' : 'pinch to rest it');
+  ctx.fillStyle = style.lastCheck ? (right ? C.mint : ROSE) : accent;
+  ctx.font = `400 50px ${DISPLAY_FONT}`;
+  ctx.fillText(style.lastCheck ? (right ? 'Right.' : 'Not quite.') : item.cue, left, 104);
+  let y = 118;
+  if (style.lastCheck === 'wrong' && item.check) y = block(item.check.right, y, 30, 22, 3, ink, 500);
+  y = block(item.answer, y + 4, 28, 21, 4, style.lastCheck === 'wrong' ? soft : ink);
+  if (item.why) block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
+  hint(style.lastCheck === 'wrong' ? 'it will come back sooner' : style.dwell ? 'look away to rest it' : 'pinch to rest it', h - 52);
 }

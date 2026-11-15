@@ -251,6 +251,7 @@ export class HubSystem extends createSystem({}) {
     this.setText('hub-heading', palace.deck.title);
     this.setText('hub-tagline', palace.deck.kind === 'concept' ? 'Follow the light from stage to stage.' : `${palace.deck.subtitle}.`);
     this.setText('palace-title', palace.deck.title.toUpperCase());
+    this.setDisplay('stats-row', palace.history.length > 0);
     this.setText('stat-due', String(dueIds(palace, now).length));
     this.setText('stat-mastery', `${Math.round(mastery(palace) * 100)}%`);
     this.setText('stat-streak', String(streak(palace.history, now)));

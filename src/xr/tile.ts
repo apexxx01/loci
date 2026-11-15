@@ -139,6 +139,7 @@ export function createTile(initial: MemoryItem): TileHandle {
 
   const pivot = new Group();
   pivot.add(halo, card, tether, foot);
+  let quiet = false;
   const root = new Group();
   root.name = `tile:${item.id}`;
   root.add(pivot);
@@ -179,6 +180,10 @@ export function createTile(initial: MemoryItem): TileHandle {
     foot,
     tether,
     render(face, style) {
+      // Concept stages carry their own glow on the canvas: no halo, a faint foot.
+      quiet = Boolean(style.concept);
+      footMat.opacity = quiet ? 0.3 : 0.9;
+      if (quiet) halo.visible = false;
       drawTile(ctx, item, face, style);
       texture.needsUpdate = true;
     },
@@ -199,7 +204,7 @@ export function createTile(initial: MemoryItem): TileHandle {
     },
     setHaloStrength(s) {
       haloMat.opacity = s;
-      halo.visible = s > 0.01;
+      halo.visible = !quiet && s > 0.01;
     },
     setHaloColor(hex) {
       haloMat.color.setHex(hex);

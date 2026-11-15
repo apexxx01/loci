@@ -18,7 +18,7 @@ export const PLACEMENT = {
   /** Furthest a tile may sit; beyond this text stops being legible. */
   maxDistance: 4.5,
   /** Widest yaw from forward a seated user can comfortably turn to (rad). */
-  maxYaw: (150 * Math.PI) / 180,
+  maxYaw: (70 * Math.PI) / 180,
   /** Minimum gap between two tiles so they never overlap. */
   minSeparation: 0.3,
   /** Height a tile floats above a horizontal surface. */
@@ -323,8 +323,16 @@ export function planPlacement(
     const remaining = needed - chosen.length;
     if (remaining <= 0) break;
     usedFallback = true;
+    // Try the even spread first; if real furniture blocks some of it, fill the
+    // gaps from a denser set of candidates on the same ring.
     for (const slot of arcSlots(remaining, viewer, ring.radius, ring.lift)) {
       if (farEnough(slot, chosen, viewer)) chosen.push(slot);
+    }
+    if (chosen.length < needed) {
+      for (const slot of arcSlots(Math.max(9, remaining * 4), viewer, ring.radius, ring.lift)) {
+        if (chosen.length >= needed) break;
+        if (farEnough(slot, chosen, viewer)) chosen.push(slot);
+      }
     }
   }
 

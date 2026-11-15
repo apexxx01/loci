@@ -57,15 +57,18 @@ aim_select(t['concept-heart']['position'])
 s = wait_for(lambda: (lambda st: st if st.get('n') == N else None)(state()), 60) or state()
 check(f'{N} stages placed and saved', s.get('n') == N, f"{s.get('n')} placements, frame={s.get('frame')}")
 labels = s.get('labels', [])
-check('stages spread across distinct objects', len(set(labels)) >= 5, ', '.join(labels))
+check('stages spread across distinct objects', len(set(labels)) >= 4, ', '.join(labels))
 print(f'   pick -> palace saved in {time.time() - t0:.1f}s wall-clock (emulator, headless)')
 
 th = wait_for(lambda: (lambda r: r if r.get('found') and r.get('fade', 0) > 0.5 else None)(threads()), 15) or threads()
 check('light threads join the stages in order', th.get('found') and round(th.get('links', 0)) == N - 1, str(th))
 
-# Stage 1 starts on its study face; pinch hides it (cue), pinch again opens the myth check.
+# Stage 1 starts as a glowing label: pinch opens it, pinch closes it, pinch again opens the myth check.
 t = targets()
 p = t['tile:concept-heart:0']['position']
+pinch(p)
+st = tile_state(0)
+check('pinching a label blooms it open', st and st.get('face') == 1, str(st))
 pinch(p)
 pinch(p)
 st = tile_state(0)
@@ -87,11 +90,15 @@ check('the thread from that stage lights up', (th.get('lit') or [0])[0] > 0.5, s
 p3 = t['tile:concept-heart:2']['position']
 pinch(p3)
 pinch(p3)
+pinch(p3)
 st = tile_state(2)
 t = targets()
 wrong = 'choice-A' if st.get('wrongFirst') else 'choice-B'
-aim_select(t[wrong]['position'])
-time.sleep(2)
+for _ in range(2):  # one retry if the first press lands before the hover registers
+    aim_select(t[wrong]['position'])
+    time.sleep(2)
+    if (tile_state(2) or {}).get('face') != 4:
+        break
 again = ev("""const p = window.__loci.app.palace; const last = p.history[p.history.length - 1];
   return { id: last.memoryId, rating: last.rating, mins: (new Date(p.cards[last.memoryId].due) - Date.now()) / 60000 }""")
 st = tile_state(2)

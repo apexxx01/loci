@@ -220,7 +220,7 @@ export class RecallSystem extends createSystem({
     // Concept stages: cue -> myth check (answered with A/B) -> verdict -> cue.
     if (app.palace?.deck.kind === 'concept') {
       if (face === TileFace.Check) {
-        setStatus('Pick A or B under the card.');
+        setStatus('Pick A or B beside the card.');
         return;
       }
       if (face === TileFace.Cue && rec.item.check && this.checks) {
@@ -230,13 +230,11 @@ export class RecallSystem extends createSystem({
         bus.emit({ type: 'flipped', face: TileFace.Check, label: rec.label });
         return;
       }
-      const next = face === TileFace.Cue ? TileFace.Answer : TileFace.Cue;
+      // Learn or cue -> opened card; opened card or verdict -> back to rest.
+      const next = face === TileFace.Learn || face === TileFace.Cue ? TileFace.Hint : TileFace.Cue;
       if (next === TileFace.Cue) rec.lastCheck = undefined;
       e.setValue(MemoryTile, 'face', next);
-      if (next === TileFace.Answer) {
-        e.setValue(MemoryTile, 'usedHint', true);
-        speak(`${rec.item.answer} ${rec.item.why ?? ''}`);
-      }
+      if (next === TileFace.Hint) speak(`${rec.item.cue}. ${rec.item.answer} ${rec.item.why ?? ''}`);
       this.palaceSys.renderTile(rec);
       rec.tile.root.getWorldPosition(this.tmp);
       playFlip(this.tmp);

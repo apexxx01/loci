@@ -25,7 +25,7 @@ import { TILE_SIZE } from './tile.js';
 
 const MAX_NODES = 12;
 const SEG = 28; // points per link
-const WIDTH = 0.018; // metres, half-width of the ribbon
+const WIDTH = 0.028; // metres, half-width of the ribbon
 const IGNITE_STEP = 0.75; // seconds from one stage to the next
 
 const VERT = /* glsl */ `
@@ -44,7 +44,7 @@ const FRAG = /* glsl */ `
     float link = floor(vT); float t = vT - link;
     // Drawn in as the ignite pulse passes; fully drawn afterwards.
     float drawn = smoothstep(0., .04, uIgnite - vT);
-    float core = exp(-vSide * vSide * 7.);
+    float core = exp(-vSide * vSide * 5.) + exp(-vSide * vSide * 40.) * .8;
     // Slow motes of light flowing in the direction of cause to effect.
     float flow = (1. - uCalm) * pow(.5 + .5 * sin((t * 9. - uTime * 1.6) * 3.14159), 6.) * .7;
     // The bright head of the ignite pulse.
@@ -110,7 +110,7 @@ export class ThreadSystem extends createSystem({}) {
         uCalm: { value: 0 },
         uLit: { value: new Array(MAX_NODES).fill(0) },
         uGold: { value: new Color('#ffcf7a') },
-        uRose: { value: new Color('#ff9ec4') },
+        uRose: { value: new Color('#fff0d2') },
       },
     });
     this.mesh = new Mesh(this.geo, this.mat);
@@ -133,8 +133,16 @@ export class ThreadSystem extends createSystem({}) {
     return app.palace?.deck.kind === 'concept';
   }
 
+  private litFor = '';
+
   private collect(ignite: boolean): void {
     const palace = this.world.getSystem(PalaceSystem);
+    // Lit links belong to one palace: start dark for any other.
+    const id = app.palace?.id ?? '';
+    if (id !== this.litFor) {
+      this.litFor = id;
+      (this.mat.uniforms.uLit.value as number[]).fill(0);
+    }
     this.order = this.active && palace ? [...palace.records.values()].sort((a, b) => a.item.order - b.item.order).slice(0, MAX_NODES) : [];
     const links = Math.max(0, this.order.length - 1);
     this.geo.setDrawRange(0, links * (SEG - 1) * 6);

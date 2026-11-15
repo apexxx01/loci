@@ -110,8 +110,9 @@ describe('planPlacement', () => {
   it('places every memory, spread across distinct surfaces', () => {
     const plan = planPlacement(PLANETS.items, room, seated);
     expect(plan.assignments).toHaveLength(PLANETS.items.length);
-    expect(plan.surfacesUsed).toBe(4);
-    expect(plan.usedFallback).toBe(false);
+    // Only furniture within a comfortable seated turn is used; the rest tops up in front.
+    expect(plan.surfacesUsed).toBeGreaterThanOrEqual(3);
+    for (const a of plan.assignments) expect(Math.abs(a.slot.yaw)).toBeLessThanOrEqual(PLACEMENT.maxYaw + 1e-9);
   });
 
   it('keeps every pair of tiles at least the minimum separation apart', () => {

@@ -124,13 +124,14 @@ export class CheckSystem extends createSystem({
       this.close();
       return;
     }
-    // Follow the card: two pills just under its bottom edge, facing the same way.
+    // Follow the card: A beside its left edge, B beside its right, facing the same
+    // way. Beside, not below, so a table or shelf under the card never blocks them.
     const pivot = rec.tile.pivot;
     pivot.updateWorldMatrix(true, false);
     pivot.getWorldQuaternion(this.quat);
     const s = rec.tile.root.scale.x * pivot.scale.x;
     this.buttons.forEach((b, i) => {
-      this.pos.set((i === 0 ? -1 : 1) * (BTN.w / 2 + 0.008), -TILE_SIZE.h / 2 - BTN.h / 2 - 0.012, 0.004);
+      this.pos.set((i === 0 ? -1 : 1) * (TILE_SIZE.w / 2 + BTN.w / 2 + 0.012), 0, 0.004);
       pivot.localToWorld(this.pos);
       b.mesh.position.copy(this.pos);
       b.mesh.quaternion.copy(this.quat);

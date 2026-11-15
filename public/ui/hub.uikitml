@@ -3,31 +3,35 @@
   element id; every id below is addressed in src/xr/hub-system.ts.
 -->
 <style>
-  .root { flex-direction: column; width: 480px; padding: 0px; background-color: #120e2a; border-radius: 30px; }
+  .root { flex-direction: column; width: 480px; padding: 0px; background-color: #120e2a; border-radius: 30px; border-width: 2px; border-color: #5a4630; }
+  .skin { flex-direction: column; width: 100%; background-color: #120e2a; border-radius: 30px; border-width: 2px; border-color: #6b5434; }
+  .root:dark { background-color: #120e2a; border-color: #5a4630; }
   .head { flex-direction: column; gap: 4px; padding-top: 24px; padding-left: 26px; padding-right: 26px; padding-bottom: 12px; }
   .eyebrow { color: #ffcf7a; font-size: 11.5px; font-weight: 700; letter-spacing: 2.2px; }
   .eyebrow:dark { color: #ffcf7a; }
   .title { color: #fff4e6; font-size: 31px; font-weight: 600; line-height: 37px; }
-  .title:dark { color: #f6f4ff; }
+  .title:dark { color: #fff4e6; }
   .tag { color: #d9d2f2; font-size: 15.5px; line-height: 21px; }
-  .tag:dark { color: #c9c6d8; }
+  .tag:dark { color: #d9d2f2; }
   .section { flex-direction: column; gap: 9px; padding-left: 26px; padding-right: 26px; padding-bottom: 24px; }
   .label { color: #b9b0dc; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 8px; }
-  .label:dark { color: #a7a3bd; }
+  .label:dark { color: #b9b0dc; }
   .row { flex-direction: row; gap: 9px; }
-  .btn { flex-grow: 1; flex-basis: 0; justify-content: flex-start; }
+  .btn { flex-grow: 1; flex-basis: 0; justify-content: flex-start; background-color: #241b4a; }
+  .btn:dark { background-color: #241b4a; }
   .stat { flex-direction: column; flex-grow: 1; padding: 10px; border-radius: 14px; background-color: #221a45; }
-  .stat:dark { background-color: #23222e; }
+  .stat:dark { background-color: #221a45; }
   .stat-num { color: #ffcf7a; font-size: 26px; font-weight: 700; }
-  .stat-num:dark { color: #ffffff; }
+  .stat-num:dark { color: #ffcf7a; }
   .stat-cap { color: #b9b0dc; font-size: 10.5px; }
-  .stat-cap:dark { color: #a7a3bd; }
+  .stat-cap:dark { color: #b9b0dc; }
   .status { color: #efe9ff; font-size: 13.5px; line-height: 19px; }
-  .status:dark { color: #d9d5ee; }
+  .status:dark { color: #efe9ff; }
   .hint { color: #b9b0dc; font-size: 12px; line-height: 17px; }
-  .hint:dark { color: #a7a3bd; }
+  .hint:dark { color: #b9b0dc; }
 </style>
 <Panel id="hub-root" class="root">
+<div class="skin">
   <div class="head">
     <div class="eyebrow">LOCI</div>
     <div id="hub-heading" class="title">What do you want to understand?</div>
@@ -67,16 +71,16 @@
     </div>
     <div class="label">OR</div>
     <div class="row">
-      <Button id="deck-phone" class="btn" variant="secondary">
+      <Button id="deck-phone" class="btn">
         <ButtonIcon><Sparkles></Sparkles></ButtonIcon>
         <ButtonLabel id="deck-phone-label">Anything else</ButtonLabel>
       </Button>
-      <Button id="deck-planets" class="btn" variant="secondary">
+      <Button id="deck-planets" class="btn">
         <ButtonIcon><Orbit></Orbit></ButtonIcon>
         <ButtonLabel>A quick list</ButtonLabel>
       </Button>
     </div>
-    <Button id="btn-open" class="btn" variant="secondary">
+    <Button id="btn-open" class="btn">
       <ButtonIcon><Library></Library></ButtonIcon>
       <ButtonLabel id="btn-open-label">Open a saved palace</ButtonLabel>
     </Button>
@@ -84,7 +88,7 @@
 
   <div id="section-palace" class="section" style="display: none">
     <div id="palace-title" class="label">YOUR PALACE</div>
-    <div class="row">
+    <div id="stats-row" class="row">
       <div class="stat">
         <div id="stat-due" class="stat-num">0</div>
         <div class="stat-cap">due now</div>
@@ -110,7 +114,7 @@
       </Button>
     </div>
     <div class="row">
-      <Button id="btn-switch" class="btn" variant="secondary">
+      <Button id="btn-switch" class="btn">
         <ButtonIcon><Library></Library></ButtonIcon>
         <ButtonLabel id="btn-switch-label">Switch palace</ButtonLabel>
       </Button>
@@ -118,38 +122,38 @@
   </div>
 
   <div class="section">
-    <Button id="btn-access" class="btn" variant="secondary">
+    <Button id="btn-access" class="btn">
       <ButtonIcon><Accessibility></Accessibility></ButtonIcon>
       <ButtonLabel id="btn-access-label">Comfort and access</ButtonLabel>
     </Button>
   </div>
   <div id="section-access" class="section" style="display: none">
     <div class="row">
-      <Button id="acc-dwell" class="btn" variant="secondary">
+      <Button id="acc-dwell" class="btn">
         <ButtonIcon><Eye></Eye></ButtonIcon>
         <ButtonLabel id="acc-dwell-label">Look to select: off</ButtonLabel>
       </Button>
-      <Button id="acc-contrast" class="btn" variant="secondary">
+      <Button id="acc-contrast" class="btn">
         <ButtonIcon><Contrast></Contrast></ButtonIcon>
         <ButtonLabel id="acc-contrast-label">High contrast: off</ButtonLabel>
       </Button>
     </div>
     <div class="row">
-      <Button id="acc-large" class="btn" variant="secondary">
+      <Button id="acc-large" class="btn">
         <ButtonIcon><ZoomIn></ZoomIn></ButtonIcon>
         <ButtonLabel id="acc-large-label">Larger tiles: off</ButtonLabel>
       </Button>
-      <Button id="acc-calm" class="btn" variant="secondary">
+      <Button id="acc-calm" class="btn">
         <ButtonIcon><Wind></Wind></ButtonIcon>
         <ButtonLabel id="acc-calm-label">Calm motion: off</ButtonLabel>
       </Button>
     </div>
     <div class="row">
-      <Button id="acc-speak" class="btn" variant="secondary">
+      <Button id="acc-speak" class="btn">
         <ButtonIcon><Speech></Speech></ButtonIcon>
         <ButtonLabel id="acc-speak-label">Read aloud: off</ButtonLabel>
       </Button>
-      <Button id="acc-sound" class="btn" variant="secondary">
+      <Button id="acc-sound" class="btn">
         <ButtonIcon><Volume2></Volume2></ButtonIcon>
         <ButtonLabel id="acc-sound-label">Sound: on</ButtonLabel>
       </Button>
@@ -159,4 +163,5 @@
   <div class="section">
     <div id="hub-status" class="status">Ready.</div>
   </div>
+</div>
 </Panel>
