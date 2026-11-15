@@ -217,7 +217,7 @@ For each stage produce:
 - why: why that is true or why it matters, one sentence, max 24 words. Teach the reason, not a restatement.
 - scene: ONE vivid, concrete, slightly absurd picture (max 24 words) that makes the claim memorable.
 - glyphs: 1 to 3 emoji that depict the scene.
-- wrong: ONE common misconception about this stage that real learners hold, stated confidently as if true (max 18 words).
+- wrong: ONE misconception about this stage that real people genuinely believe (the kind teachers have to correct), stated confidently as if true (max 18 words). Never a silly or absurd invention; it must sound plausible to a beginner.
 - right: the accurate statement that corrects it, in the same shape (max 18 words).
 - link: how this stage causes or leads into the next one, a short verb phrase (max 10 words). Empty string for the last stage.
 
