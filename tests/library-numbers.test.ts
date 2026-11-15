@@ -97,3 +97,25 @@ describe('learning modes', () => {
     expect(vetArchitectOutput(out, 'the moon landing', 'x')?.repaired).toBe(0);
   });
 });
+
+describe('reviewing in the browser', () => {
+  it('records the recall and keeps the active palace', async () => {
+    const { createPalace, savePalace, reviewInLibrary, loadLibrary } = await import('../src/core/palace.js');
+    const { PLANETS, ELEMENTS } = await import('../src/core/decks.js');
+    const mem = new Map<string, string>();
+    const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => void mem.set(k, v), removeItem: (k: string) => void mem.delete(k) };
+    const now = new Date('2026-11-15T10:00:00Z');
+    const a = createPalace(PLANETS, [], now, 'a');
+    const b = createPalace(ELEMENTS, [], now, 'b');
+    savePalace(store, a);
+    savePalace(store, b);
+    const first = PLANETS.items[0].id;
+    const next = reviewInLibrary(store, 'a', first, 'good', now);
+    expect(next?.history).toHaveLength(1);
+    expect(new Date(next!.cards[first].due).getTime()).toBeGreaterThan(now.getTime());
+    const { library } = loadLibrary(store);
+    expect(library.activeId).toBe('b');
+    expect(library.palaces.a.history[0]).toMatchObject({ memoryId: first, rating: 'good' });
+    expect(reviewInLibrary(store, 'a', 'nope', 'good', now)).toBeNull();
+  });
+});

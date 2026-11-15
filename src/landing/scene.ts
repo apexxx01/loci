@@ -15,7 +15,9 @@ import {
   Line,
   LineBasicMaterial,
   LineSegments,
+  Mesh,
   PerspectiveCamera,
+  PlaneGeometry,
   Points,
   Scene,
   PointsMaterial,
@@ -24,13 +26,14 @@ import {
   SpriteMaterial,
   SRGBColorSpace,
   Vector2,
+  Vector3,
   WebGLRenderer,
 } from '@iwsdk/core';
 
 type V3 = [number, number, number];
 
 export interface SceneTargets {
-  /** 0 galaxy · 1 neurons · 2 brain · 3 room */
+  /** 0 galaxy, 1 neurons, 2 brain, 3 room, 4 the word "loci" */
   progress: number;
   /** 0..1 how many memory tiles have landed in the room. */
   tiles: number;
@@ -38,10 +41,28 @@ export interface SceneTargets {
   shift: number;
   /** 0..1 fade the scene back behind dense content. */
   dim: number;
+  /** 0..1 the cloud swells as you breathe in and settles as you breathe out. */
+  breath: number;
+  /** Index of the memory tile to light up, or -1. */
+  focus: number;
+}
+
+export interface TileScreen {
+  x: number;
+  y: number;
+  /** 0..1 how present the tile is right now. */
+  a: number;
+  label: string;
 }
 
 export interface LandingScene {
   set(t: Partial<SceneTargets>): void;
+  /** A slow ring of light through the cloud from a point on screen (client px). */
+  ripple(x: number, y: number): void;
+  /** Called after each frame with each memory tile's screen position. */
+  onTiles(cb: ((tiles: TileScreen[]) => void) | null): void;
+  /** Resolves once the opening has played. */
+  ready: Promise<void>;
   setActive(on: boolean): void;
   dispose(): void;
 }
@@ -165,16 +186,50 @@ function brainPoint(r: () => number): V3 {
 }
 
 const F = -1.3; // floor height
-export const LOCI: { p: V3; glyph: string }[] = [
-  { p: [-2.38, F + 2.3, -0.8], glyph: '🌡️' }, // door
-  { p: [-2.2, F + 2.15, 0.6], glyph: '♨️' }, // shelf
-  { p: [-1.9, F + 1.05, -1.6], glyph: '🌍' }, // plant
-  { p: [-1.0, F + 1.55, -1.86], glyph: '🔴' }, // window
-  { p: [0.3, F + 0.86, 0.3], glyph: '👑' }, // table
-  { p: [1.2, F + 1.25, -1.4], glyph: '💍' }, // couch
-  { p: [1.2, F + 2.32, -1.86], glyph: '🧊' }, // wall art
-  { p: [2.1, F + 2.12, 0.9], glyph: '🔱' }, // lamp
+export const LOCI: { p: V3; glyph: string; label: string; cue: string }[] = [
+  { p: [-2.38, F + 2.3, -0.8], glyph: '🌡️', label: 'the door', cue: 'Mercury' },
+  { p: [-2.2, F + 2.15, 0.6], glyph: '♨️', label: 'the shelf', cue: 'Venus' },
+  { p: [-1.9, F + 1.05, -1.6], glyph: '🌍', label: 'the plant', cue: 'Earth' },
+  { p: [-1.0, F + 1.55, -1.86], glyph: '🔴', label: 'the window', cue: 'Mars' },
+  { p: [0.3, F + 0.86, 0.3], glyph: '👑', label: 'the table', cue: 'Jupiter' },
+  { p: [1.2, F + 1.25, -1.4], glyph: '💍', label: 'the couch', cue: 'Saturn' },
+  { p: [1.2, F + 2.32, -1.86], glyph: '🧊', label: 'the wall art', cue: 'Uranus' },
+  { p: [2.1, F + 2.12, 0.9], glyph: '🔱', label: 'the lamp', cue: 'Neptune' },
 ];
+
+/** Points that spell a word, sampled from the page's own typeface. */
+function wordPoints(word: string, n: number, r: () => number): Float32Array | null {
+  const W = 900, H = 320;
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  if (!g) return null;
+  g.fillStyle = '#fff';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.font = '200 270px "Jost Variable", "Jost", system-ui, sans-serif';
+  g.fillText(word, W / 2, H / 2 + 10);
+  const data = g.getImageData(0, 0, W, H).data;
+  const inside: number[] = [];
+  for (let y = 0; y < H; y += 2)
+    for (let x = 0; x < W; x += 2) if (data[(y * W + x) * 4 + 3] > 128) inside.push(x, y);
+  if (inside.length < 20) return null;
+  const out = new Float32Array(n * 3);
+  const scale = 7.6 / W;
+  for (let i = 0; i < n; i++) {
+    // Most particles trace the letters; a quiet tenth drift around them as dust.
+    if (r() < 0.1) {
+      const d = randDir(r);
+      const m = 3 + r() * 5;
+      out.set([d[0] * m, d[1] * m * 0.6, d[2] * m - 2], i * 3);
+      continue;
+    }
+    const k = Math.floor(r() * (inside.length / 2)) * 2;
+    out.set([(inside[k] - W / 2 + r() * 2) * scale, -(inside[k + 1] - H / 2 + r() * 2) * scale + 0.1, gauss(r) * 0.06], i * 3);
+  }
+  return out;
+}
 
 function buildRoom(): [V3, V3][] {
   const e: [V3, V3][] = [];
@@ -225,10 +280,10 @@ function buildRoom(): [V3, V3][] {
 
 /* ------------------------------------------------------------ shaders */
 const VERT = /* glsl */ `
-  attribute vec3 a1; attribute vec3 a2; attribute vec3 a3;
+  attribute vec3 a1; attribute vec3 a2; attribute vec3 a3; attribute vec3 a4;
   attribute vec3 aColor; attribute float aSeed; attribute float aSize;
-  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect;
-  uniform vec2 uMouse;
+  uniform float uProgress, uTime, uIntro, uPx, uCalm, uAspect, uBreath, uFocus;
+  uniform vec2 uMouse; uniform vec3 uRipple;
   varying vec3 vColor; varying float vAlpha;
   float st(float t){ t = clamp(t*1.5 - aSeed*0.5, 0., 1.); return t*t*(3.-2.*t); }
   void main(){
@@ -236,7 +291,10 @@ const VERT = /* glsl */ `
     vec3 pos = mix(position, a1, st(clamp(p,0.,1.)));
     pos = mix(pos, a2, st(clamp(p-1.,0.,1.)));
     pos = mix(pos, a3, st(clamp(p-2.,0.,1.)));
-    float moving = sin(3.14159 * st(fract(min(p, 2.999)))) * (1. - uCalm);
+    pos = mix(pos, a4, st(clamp(p-3.,0.,1.)));
+    float moving = sin(3.14159 * st(fract(min(p, 3.999)))) * (1. - uCalm);
+    // Breathing: the whole cloud swells on the in-breath, each mote a little late.
+    pos *= 1. + uBreath * (0.13 + aSeed * 0.05);
     pos += vec3(sin(aSeed*91.+uTime), cos(aSeed*57.+uTime*1.3), sin(aSeed*33.-uTime)) * 0.4 * moving;
     pos += vec3(sin(uTime*.6+aSeed*40.), cos(uTime*.5+aSeed*70.), sin(uTime*.4+aSeed*20.)) * 0.02 * (1. - uCalm);
     // Big bang: everything bursts out of one point, overshoots, and settles.
@@ -250,10 +308,17 @@ const VERT = /* glsl */ `
     away.x *= uAspect;
     float push = smoothstep(.3, 0., length(away)) * (1. - uCalm);
     gl_Position.xy += normalize(away + 1e-4) * push * .07 * gl_Position.w;
+    // A ring of light that travels out from where you clicked.
+    vec2 rc = gl_Position.xy / gl_Position.w - uRipple.xy; rc.x *= uAspect;
+    float age = uTime - uRipple.z;
+    float ring = exp(-pow((length(rc) - age * .55) * 9., 2.)) * exp(-age * 1.1) * step(0., age);
+    gl_Position.xy += normalize(rc + 1e-4) * ring * .035 * gl_Position.w;
     float tw = 0.7 + 0.3 * sin(uTime * (1.2 + aSeed * 2.) + aSeed * 50.);
-    gl_PointSize = aSize * uPx * tw * (1. + moving * .6 + push * .8) / -mv.z;
-    vColor = aColor;
-    vAlpha = intro * tw;
+    // Shallow depth of field: motes off the focal plane grow soft and faint.
+    float coc = clamp(abs(-mv.z - uFocus) * .32, 0., 2.2);
+    gl_PointSize = aSize * uPx * tw * (1. + moving * .6 + push * .8 + ring * 1.5) * (1. + coc) / -mv.z;
+    vColor = mix(aColor, vec3(1., .86, .62), ring * .8);
+    vAlpha = intro * tw * (1. + ring * 1.4 + uBreath * .25) / (1. + coc * coc * .8);
   }`;
 const FRAG = /* glsl */ `
   precision mediump float;
@@ -277,29 +342,55 @@ const LINE_FRAG = /* glsl */ `
     gl_FragColor = vec4(c, (.16 + pulse * .9) * uOpacity);
   }`;
 
+/** A slow, faint nebula behind everything; its colour follows the story. */
+const SKY_VERT = /* glsl */ `
+  varying vec2 vUv;
+  void main(){ vUv = uv; gl_Position = vec4(position.xy, .9999, 1.); }`;
+const SKY_FRAG = /* glsl */ `
+  precision mediump float;
+  varying vec2 vUv; uniform float uTime, uStage, uDim, uAspect, uBreath, uIntro;
+  float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+    return mix(mix(h(i), h(i+vec2(1,0)), f.x), mix(h(i+vec2(0,1)), h(i+vec2(1,1)), f.x), f.y); }
+  float fbm(vec2 p){ float v = 0., a = .5; for(int i = 0; i < 4; i++){ v += a * n(p); p = p * 2.03 + 11.7; a *= .5; } return v; }
+  void main(){
+    vec2 p = (vUv - .5) * vec2(uAspect, 1.);
+    float t = uTime * .012;
+    float q = fbm(p * 1.6 + vec2(t, -t));
+    float cloud = fbm(p * 2.4 + q * 1.8 - vec2(t * .7, t * .4));
+    float core = exp(-dot(p, p) * 2.6);
+    // galaxy: violet and dusk rose; neurons: deep blue; brain: lilac; room: candlelight from below.
+    vec3 violet = vec3(.24, .16, .52), rose = vec3(.52, .2, .34), blue = vec3(.08, .16, .42), candle = vec3(.62, .36, .14);
+    float g = clamp(1. - uStage, 0., 1.), ne = clamp(1. - abs(uStage - 1.), 0., 1.), b = clamp(1. - abs(uStage - 2.), 0., 1.), ro = clamp(uStage - 2., 0., 1.);
+    vec3 col = (violet * g + blue * ne + mix(violet, rose, .5) * b + violet * .5 * ro) * cloud * cloud * 1.6;
+    col += rose * g * core * cloud * .9 + candle * ro * exp(-pow(vUv.y + .15, 2.) * 6.) * (.5 + cloud * .5);
+    col *= (.75 + uBreath * .45) * uDim * uIntro;
+    gl_FragColor = vec4(col, 1.);
+  }`;
+
 function tileTexture(glyph: string, n: number): CanvasTexture {
   const c = document.createElement('canvas');
   c.width = 160;
   c.height = 200;
   const g = c.getContext('2d')!;
-  g.shadowColor = 'rgba(255,214,150,.9)';
-  g.shadowBlur = 18;
+  g.shadowColor = 'rgba(255,201,138,.8)';
+  g.shadowBlur = 22;
   g.beginPath();
-  g.roundRect(16, 16, 128, 168, 26);
+  g.roundRect(16, 16, 128, 168, 30);
   const grad = g.createLinearGradient(0, 16, 0, 184);
-  grad.addColorStop(0, 'rgba(58,44,110,.96)');
-  grad.addColorStop(1, 'rgba(26,18,60,.96)');
+  grad.addColorStop(0, 'rgba(30,24,52,.97)');
+  grad.addColorStop(1, 'rgba(10,8,20,.97)');
   g.fillStyle = grad;
   g.fill();
   g.shadowBlur = 0;
-  g.lineWidth = 3;
-  g.strokeStyle = 'rgba(255,224,170,.95)';
+  g.lineWidth = 2;
+  g.strokeStyle = 'rgba(255,214,160,.9)';
   g.stroke();
   g.font = '72px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
   g.textAlign = 'center';
   g.fillText(glyph, 80, 124);
-  g.fillStyle = 'rgba(255,224,170,.95)';
-  g.font = '700 26px system-ui,sans-serif';
+  g.fillStyle = 'rgba(255,214,160,.95)';
+  g.font = '400 24px "Jost Variable", system-ui, sans-serif';
   g.fillText(String(n), 80, 166);
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
@@ -368,15 +459,17 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     return { p: [(r() * 2 - 1) * 2.6, F + r() * 2.7, (r() * 2 - 1) * 2.1], warm: false };
   };
 
-  const a0 = new Float32Array(COUNT * 3), a1 = new Float32Array(COUNT * 3), a2 = new Float32Array(COUNT * 3), a3 = new Float32Array(COUNT * 3);
+  const a0 = new Float32Array(COUNT * 3), a1 = new Float32Array(COUNT * 3), a2 = new Float32Array(COUNT * 3), a3 = new Float32Array(COUNT * 3), a4 = new Float32Array(COUNT * 3);
   const col = new Float32Array(COUNT * 3), seed = new Float32Array(COUNT), size = new Float32Array(COUNT);
-  const palette: V3[] = [[1, 0.97, 0.9], [1, 0.78, 0.42], [1, 0.5, 0.72], [0.66, 0.56, 1], [0.45, 0.86, 1]];
+  // Starlight, candle, dusk rose, lilac, and a little cold blue.
+  const palette: V3[] = [[0.96, 0.95, 1], [1, 0.79, 0.54], [1, 0.58, 0.7], [0.72, 0.68, 1], [0.55, 0.78, 1]];
   for (let i = 0; i < COUNT; i++) {
     const room = roomPoint();
     a0.set(galaxyPoint(r), i * 3);
     a1.set(neuronPoint(), i * 3);
     a2.set(brainPoint(r), i * 3);
     a3.set(room.p, i * 3);
+    a4.set(galaxyPoint(r), i * 3); // replaced by the word once the typeface has loaded
     const k = r();
     const c = room.warm ? palette[1] : palette[k < 0.34 ? 0 : k < 0.58 ? 1 : k < 0.76 ? 3 : k < 0.9 ? 4 : 2];
     col.set(c, i * 3);
@@ -388,6 +481,14 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   geo.setAttribute('a1', new Float32BufferAttribute(a1, 3));
   geo.setAttribute('a2', new Float32BufferAttribute(a2, 3));
   geo.setAttribute('a3', new Float32BufferAttribute(a3, 3));
+  const a4Attr = new Float32BufferAttribute(a4, 3);
+  geo.setAttribute('a4', a4Attr);
+  void document.fonts?.load('200 270px "Jost Variable"').then(() => {
+    const word = wordPoints('loci', COUNT, rng(7));
+    if (!word) return;
+    a4Attr.copyArray(word);
+    a4Attr.needsUpdate = true;
+  });
   geo.setAttribute('aColor', new Float32BufferAttribute(col, 3));
   geo.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
   geo.setAttribute('aSize', new Float32BufferAttribute(size, 1));
@@ -397,8 +498,25 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     transparent: true,
     depthWrite: false,
     blending: AdditiveBlending,
-    uniforms: { uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 }, uCalm: { value: calm ? 1 : 0 }, uAspect: { value: 1 }, uMouse: { value: new Vector2(9, 9) } },
+    uniforms: {
+      uProgress: { value: 0 }, uTime: { value: 0 }, uIntro: { value: calm ? 1 : 0 }, uPx: { value: 60 }, uDim: { value: 1 },
+      uCalm: { value: calm ? 1 : 0 }, uAspect: { value: 1 }, uMouse: { value: new Vector2(9, 9) }, uBreath: { value: 0 },
+      uFocus: { value: 7.4 }, uRipple: { value: new Vector3(0, 0, -99) },
+    },
   });
+  const skyMat = new ShaderMaterial({
+    vertexShader: SKY_VERT,
+    fragmentShader: SKY_FRAG,
+    depthWrite: false,
+    depthTest: false,
+    uniforms: { uTime: { value: 0 }, uStage: { value: 0 }, uDim: { value: 1 }, uAspect: { value: 1 }, uBreath: { value: 0 }, uIntro: { value: 0 } },
+  });
+  const sky = new Mesh(new PlaneGeometry(2, 2), skyMat);
+  sky.frustumCulled = false;
+  sky.renderOrder = -10;
+  sky.visible = !lowPower;
+  scene.add(sky);
+
   const points = new Points(geo, mat);
   points.frustumCulled = false;
   group.add(points);
@@ -461,9 +579,16 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   });
 
   /* ---------------------------------------------------------- loop */
-  const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0 };
+  const target: SceneTargets = { progress: 0, tiles: 0, shift: 0, dim: 0, breath: 0, focus: -1 };
   const cur: SceneTargets = { ...target };
   let mx = 9, my = 9, yaw = 0, active = true, raf = 0, last = performance.now(), time = 0, intro = calm ? 1 : 0;
+  let tileCb: ((t: TileScreen[]) => void) | null = null;
+  let readyResolve: () => void = () => {};
+  const ready = new Promise<void>((res) => (readyResolve = res));
+  if (calm) readyResolve();
+  const focusGlow = LOCI.map(() => 0);
+  const screen = LOCI.map((l) => ({ x: 0, y: 0, a: 0, label: l.label }));
+  const v3 = new Vector3();
   const ROOM_YAW = -0.52;
   const BRAIN_YAW = 1.05;
 
@@ -479,6 +604,7 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     camera.updateProjectionMatrix();
     mat.uniforms.uPx.value = h * dpr * 0.085;
     mat.uniforms.uAspect.value = w / h;
+    skyMat.uniforms.uAspect.value = w / h;
   };
   window.addEventListener('pointermove', onMove, { passive: true });
   window.addEventListener('resize', resize);
@@ -489,21 +615,25 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     time += dt;
+    const wasIntro = intro < 1;
     intro = Math.min(1, intro + dt / 3.4);
+    if (wasIntro && intro >= 0.75) readyResolve();
     const k = calm ? 1 : Math.min(1, dt * 3.2);
     cur.progress += (target.progress - cur.progress) * k;
     cur.tiles += (target.tiles - cur.tiles) * k;
     cur.shift += (target.shift - cur.shift) * k;
     cur.dim += (target.dim - cur.dim) * k;
+    cur.breath += (target.breath - cur.breath) * Math.min(1, dt * 2.2);
 
     const p = cur.progress;
-    const roomness = Math.max(0, Math.min(1, (p - 2.15) / 0.85));
+    const wordness = Math.max(0, Math.min(1, p - 3));
+    const roomness = Math.max(0, Math.min(1, (p - 2.15) / 0.85)) * (1 - wordness);
     // The brain reads best in three-quarter profile, the room from its open corner.
     const brainness = Math.max(0, 1 - Math.abs(p - 2) * 1.7);
-    const posed = Math.max(roomness, brainness);
+    const posed = Math.max(roomness, brainness, wordness);
     if (posed < 0.01) yaw += calm ? 0 : dt * 0.07;
     else {
-      const goal = roomness > brainness ? ROOM_YAW : BRAIN_YAW;
+      const goal = wordness > 0.5 ? 0 : roomness > brainness ? ROOM_YAW : BRAIN_YAW;
       let d = goal + (calm ? 0 : Math.sin(time * 0.3) * (roomness > brainness ? 0.07 : 0.22)) - yaw;
       d = ((d + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
       yaw += d * Math.min(1, dt * 2.4 * posed + (calm ? 1 : 0));
@@ -511,37 +641,55 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
     const wide = camera.aspect > 1.15;
     const px = Math.abs(mx) > 1 ? 0 : mx;
     const py = Math.abs(my) > 1 ? 0 : my;
-    group.rotation.y = yaw + px * 0.1;
+    group.rotation.y = yaw + px * 0.1 * (1 - wordness * 0.7);
     group.rotation.x = roomness * 0.3 + py * 0.06;
     group.position.x = wide ? cur.shift * 1.9 : 0;
-    group.position.y = wide ? 0 : 0.4;
-    const s = (wide ? 1 : 0.62) * (1 - roomness * 0.12);
+    group.position.y = (wide ? 0 : 0.4) + wordness * 0.35;
+    const s = (wide ? 1 : 0.62) * (1 - roomness * 0.12) * (wide ? 1 : 1 - wordness * 0.25);
     group.scale.setScalar(s);
 
-    const vis = 1 - cur.dim * 0.78;
+    const vis = 1 - cur.dim * 0.84;
     mat.uniforms.uProgress.value = p;
     (mat.uniforms.uMouse.value as Vector2).set(mx, -my);
     stars.rotation.y = time * 0.006;
     mat.uniforms.uTime.value = time;
     mat.uniforms.uIntro.value = intro;
     mat.uniforms.uDim.value = vis;
+    mat.uniforms.uBreath.value = cur.breath;
+    skyMat.uniforms.uTime.value = time;
+    skyMat.uniforms.uStage.value = Math.min(p, 3);
+    skyMat.uniforms.uDim.value = vis * (1 - wordness * 0.5);
+    skyMat.uniforms.uBreath.value = cur.breath;
+    skyMat.uniforms.uIntro.value = intro;
     synMat.uniforms.uTime.value = time;
     synMat.uniforms.uOpacity.value = Math.max(0, 1 - Math.abs(p - 1) * 2.4) * vis;
     synapses.visible = synMat.uniforms.uOpacity.value > 0.01;
-    roomMat.opacity = Math.max(0, (p - 2.45) / 0.55) * 0.5 * vis;
+    roomMat.opacity = Math.max(0, Math.min(1, (p - 2.45) / 0.55)) * 0.5 * vis * (1 - wordness * 0.6);
     roomLines.visible = roomMat.opacity > 0.01;
     routeMat.opacity = Math.max(0, cur.tiles * 1.4 - 0.4) * 0.8 * vis * roomness;
     route.visible = routeMat.opacity > 0.01;
+    const lit = Math.round(target.focus);
     tiles.forEach((t, i) => {
       const a = Math.max(0, Math.min(1, cur.tiles * (tiles.length + 1) - i)) * roomness;
       const e = 1 - Math.pow(1 - a, 3);
       const bob = calm ? 0 : Math.sin(time * 1.3 + i) * 0.025;
+      focusGlow[i] += ((lit === i ? 1 : 0) - focusGlow[i]) * Math.min(1, dt * 4);
+      const quiet = lit >= 0 ? 0.55 + focusGlow[i] * 0.45 : 1;
+      const grow = 1 + focusGlow[i] * 0.35;
       t.position.y = LOCI[i].p[1] + bob + (1 - e) * 0.5;
-      t.scale.set(0.44 * e + 0.001, 0.55 * e + 0.001, 1);
-      (t.material as SpriteMaterial).opacity = e * vis;
+      t.scale.set((0.44 * e + 0.001) * grow, (0.55 * e + 0.001) * grow, 1);
+      (t.material as SpriteMaterial).opacity = e * vis * quiet;
       t.visible = e > 0.01;
+      if (tileCb) {
+        v3.copy(t.position).applyMatrix4(group.matrixWorld).project(camera);
+        const sc = screen[i];
+        sc.x = (v3.x * 0.5 + 0.5) * (canvas.clientWidth || window.innerWidth);
+        sc.y = (-v3.y * 0.5 + 0.5) * (canvas.clientHeight || window.innerHeight);
+        sc.a = e * vis * quiet;
+      }
     });
     renderer.render(scene, camera);
+    tileCb?.(screen);
   };
   raf = requestAnimationFrame(frame);
 
@@ -559,8 +707,18 @@ export function createLandingScene(canvas: HTMLCanvasElement): LandingScene | nu
   document.addEventListener('visibilitychange', onVis);
 
   const api: LandingScene = {
+    ready,
     set(t) {
       Object.assign(target, t);
+    },
+    ripple(x, y) {
+      if (calm) return;
+      const w = canvas.clientWidth || window.innerWidth;
+      const h = canvas.clientHeight || window.innerHeight;
+      (mat.uniforms.uRipple.value as Vector3).set((x / w) * 2 - 1, -((y / h) * 2 - 1), time);
+    },
+    onTiles(cb) {
+      tileCb = cb;
     },
     setActive(on) {
       wanted = on;

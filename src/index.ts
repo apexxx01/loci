@@ -1,6 +1,6 @@
 import { VisibilityState, World } from '@iwsdk/core';
 import projectOptions from 'virtual:iwsdk-project';
-import { deletePalace, listPalaces, savePalace } from './core/palace.js';
+import { deletePalace, listPalaces, reviewInLibrary, savePalace } from './core/palace.js';
 import { app, bus, getStorage } from './xr/app-state.js';
 import { AccessSystem } from './xr/access-system.js';
 import { GuideSystem } from './xr/guide-system.js';
@@ -38,6 +38,13 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
           if (!store) return;
           if (app.palace?.id === id) bus.emit({ type: 'new-palace' }); // puts it away first
           deletePalace(store, id);
+        },
+        review: (id, memoryId, rating) => {
+          const store = getStorage();
+          if (!store) return null;
+          const next = reviewInLibrary(store, id, memoryId, rating, new Date());
+          if (next && app.palace?.id === id) app.palace = next;
+          return next;
         },
         restore: (palace) => {
           const store = getStorage();

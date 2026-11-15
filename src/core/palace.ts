@@ -114,6 +114,25 @@ export function saveLibrary(store: KeyValue, library: Library): boolean {
   }
 }
 
+/**
+ * Record a recall made away from the headset (the browser review). Updates the
+ * palace in place and leaves whichever palace is in the room where it is.
+ */
+export function reviewInLibrary(
+  store: KeyValue,
+  palaceId: string,
+  memoryId: string,
+  rating: RecallRating,
+  now: Date,
+): Palace | null {
+  const { library } = loadLibrary(store);
+  const palace = library.palaces[palaceId];
+  if (!palace || !palace.cards[memoryId]) return null;
+  const next = recordReview(palace, memoryId, rating, now);
+  library.palaces[palaceId] = next;
+  return saveLibrary(store, library) ? next : null;
+}
+
 /** Save a palace and make it the active one. Oldest palaces drop off past the cap. */
 export function savePalace(store: KeyValue, palace: Palace): boolean {
   const { library } = loadLibrary(store);
