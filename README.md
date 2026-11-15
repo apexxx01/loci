@@ -1,16 +1,151 @@
-# Loci — your room remembers
+# Loci
 
-A hands-first mixed-reality memory palace for Meta Quest 3/3S, built with the
-Immersive Web SDK (WebXR). Pick something to learn and Loci places each memory
-on a real object in your room — the couch, the lamp, the shelf — keeps it there
-between sessions with a persistent anchor, and brings it back on a spaced-
-repetition schedule. Recall it, pinch to peek, then grab it and raise it if you
-knew it or lower it if you didn't.
+**Your room remembers.** Loci is a hands-first mixed-reality memory palace for Meta Quest 3 and 3S. Ask how something works and it is taught to you as a chain of stages, each one resting on a real piece of furniture in your room and joined to the next by a thread of gold light. Come back tomorrow and every stage is still on its object, waiting to be recalled.
 
-> Work in progress for the Meta VR Start Developer Competition 2026.
+Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competition 2026, Productivity track.
+
+**Live:** https://loci-vr.vercel.app
+
+<p>
+  <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: stage 1 of how the heart pumps blood, resting on a couch, with its myth check underneath">
+  <img src="docs/walk-explain-back.jpg" width="49%" alt="The explain-back step at the door: 3 of 6 stages explained, graded on the device">
+</p>
+<p>
+  <img src="docs/headset-concept.png" width="70%" alt="In the headset emulator: the concept stages for how the heart pumps blood sit on furniture around a seated viewer, joined by a gold thread">
+</p>
+
+---
+
+## Try it in 60 seconds
+
+> **On a Quest 3 or 3S**
+> 1. Run **Space Setup** once (Settings > Environment setup > Space Setup) so the headset knows where your table, couch and shelves are. Loci still works without it, but then stages float in an arc in front of you instead of sitting on your furniture.
+> 2. Open the **Quest Browser** and go to **https://loci-vr.vercel.app**. Press **Enter your room** and allow the room permissions.
+> 3. Sit down. On the panel in front of you, **pinch** a ready-made walk such as *How your heart pumps*, or pinch **Ask about anything** and type a topic with a pinch on each key, then **Teach me**.
+> 4. Follow the gold thread. **Pinch** a stage to turn it over, pick the true statement in its myth check, then hold it and **raise** it if you knew it or **lower** it to see it again soon.
+>
+> **On any screen (laptop, phone)**
+> Open https://loci-vr.vercel.app and scroll. The page is a walk through a room at night: each stage of a concept sits at a different place, you answer its myth check, and at the door you explain it back in your own words and get graded.
+
+## What it does
+
+- **Concepts as linked stages on your real furniture.** A topic becomes 4 to 7 stages of how it works. Each stage sits on a different object, the route runs left to right so one sweep of the head walks it in order, and a gold thread joins each stage to the next and lights up as you recall them.
+- **Myth checks.** Most stages carry two statements: a misconception real people hold and the accurate one. Picking the myth shows the correction and brings that stage back within minutes.
+- **Explain-back, graded.** At the end of the website walk you explain the whole concept in your own words. The Palace Architect marks which stages you covered, names any misconception, and tells you what to add next. If the server cannot be reached, an offline grader on the device gives a blunter verdict from key words.
+- **Spaced repetition with FSRS.** Every recall goes into an FSRS scheduler ([ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)), so each stage comes back just before you would forget it. Using the hint counts as a harder recall.
+- **The Palace Architect re-imagines a memory you miss twice.** When a stage lapses twice, its picture is rewritten around the object it sits on (a lamp heats, a couch sinks, a window fogs), up to two times per memory.
+- **Your own material.** Besides topics, you can paste notes, a list, a speech, names or numbers. Numbers are turned into pictures on the device and never leave it.
+
+## How it works
+
+```mermaid
+flowchart LR
+  subgraph Quest["Meta Quest 3 / 3S (WebXR, Immersive Web SDK)"]
+    SU["Scene understanding<br/>XRPlane + XRMesh<br/>(Space Setup labels)"] --> RS["RoomSystem<br/>planes and meshes to Surfaces"]
+    RS --> PS["Placement solver<br/>src/core/placement.ts"]
+    PS --> AN["Persistent anchor<br/>palace saved in local storage"]
+    AN --> ECS["ECS systems<br/>palace, recall, thread, check,<br/>hub, access, guide"]
+    ECS --> FS["FSRS scheduler<br/>src/core/scheduler.ts"]
+  end
+  subgraph Vercel["Vercel serverless: /api/architect"]
+    AR["Palace Architect<br/>teach, build, grade,<br/>bind, reimagine"] --> GM["Gemini, hedged:<br/>primary model, then a fallback<br/>starts every 3.5 s without an answer"]
+    GM --> VET["Rule-based vetting<br/>schema, safety filter,<br/>myth checks dropped if unsafe"]
+  end
+  ECS -- "Teach me / reimagine" --> AR
+  VET -- "deck of stages" --> ECS
+  WEB["Website walk<br/>any screen, same decks,<br/>same schedule"] -- "Teach me / grade" --> AR
+```
+
+- **Room to surfaces.** `src/xr/room-system.ts` reads the planes and meshes the headset reports (from Space Setup) and reduces each one to a centre, a normal, a size and a label such as table, couch, shelf, wall or window.
+- **Placement solver.** `src/core/placement.ts` is pure TypeScript with no engine imports. It turns surfaces into candidate slots, scores them for comfort (distance, how far you must turn, how distinctive the object is), spreads memories one per object, keeps tiles apart so none hides another from the seat, and orders the route left to right. Same room and same deck always give the same palace.
+- **Persistent anchors.** The palace is stored as poses relative to a WebXR persistent anchor, so it comes back in the same place next session.
+- **ECS.** The headset app is a set of entity-component systems (IWSDK's [ECS](https://iwsdk.dev)): each system queries the entities it cares about every frame, for example the recall system for tiles being held and the thread system for the gold links.
+- **Palace Architect.** `api/architect.ts` runs on Vercel serverless. It asks Gemini for structured JSON. If the primary model has not answered in 3.5 s, the next model in the chain starts in parallel and the first good answer wins. Every line then passes a rule-based check (`src/core/architect.ts`, `src/core/safety.ts`): unsafe scenes are replaced with a plain one and a myth check is dropped if either statement fails.
+
+## Works in rooms we have never seen
+
+Loci never assumes a particular room. Placement falls down a ladder:
+
+1. **Labelled furniture first.** Distinct, nameable objects (table, desk, couch, shelf, lamp, plant) make the strongest places, so they are chosen before blank walls. A table reported twice, once as a labelled mesh and once as a bare plane, counts once.
+2. **Then plain planes and walls**, at eye level on walls and just above horizontal tops.
+3. **Then a seated arc in front of you**, in up to three rings, filling whatever the room could not. A completely empty or unscanned room still gets an even, symmetric palace.
+
+Every slot stays within 70 degrees of where you face, so you never have to turn round in your chair.
+
+On your return, the palace restores from its anchor and then **re-checks the room by meaning**: do memories still sit near objects with the same labels? If fewer than 40 percent do (you moved, or rearranged), Loci **re-fits** the palace to the furniture that is there now instead of leaving memories floating. You can also re-fit by hand from the panel.
+
+The property test below throws 1,000 random rooms at the solver to back these claims.
+
+## Hands-first and accessible
+
+- **Pinch** with bare hands for everything: turn a stage over, choose a myth check answer, type on the panel keyboard.
+- **Look to select:** look at a tile and hold your gaze (head direction on Quest 3) to flip and rate it, so no pinching or lifting is ever required.
+- **Seated** by design: the whole palace fits in a comfortable turn from one chair.
+- **High contrast**, **larger tiles**, **calm motion** and **read-aloud**, plus a sound switch, all on the panel in your room.
+- Tiles on far objects are drawn larger so every one reads the same from your seat.
+
+## Privacy
+
+- **No accounts.** Palaces and progress live in your browser's local storage. Share links carry the palace inside the link itself.
+- **Your notes leave the device only when you press Teach me** (or build), and only go to the Palace Architect endpoint to write the stages. After that, only short memory text is sent: a memory's cue and picture with its object's label when it is woven into your room or re-imagined, and your explanation when you ask for it to be graded. The API keeps no copy of any of it; it only counts requests per IP address in memory, for rate limiting.
+- **Numbers are converted on the device** with the number-shape system, so a phone number or a date is never sent anywhere.
+
+## Receipts
+
+Every number here comes from a command that can be re-run. Generated 16 Nov 2026 (IST); `node scripts/receipts.mjs` re-runs the unit tests and writes [public/receipts.json](public/receipts.json).
+
+| What | Result | Reproduce |
+| --- | --- | --- |
+| Unit tests | **97 passing** in 9 files, 0 failing | `npx vitest run` |
+| Placement property test | **1,000 seeded random rooms**, 6 to 12 memories each, 9,037 placements: every memory placed, no two closer than the solver's own minimum spacing, every slot within 70 degrees of forward and none behind the viewer, heights within the solver's limits | `npx vitest run tests/placement-property.test.ts` |
+| Concept end-to-end in the Immersive Web Emulator | **15/15 checks** (16 Nov 2026, 00:35 IST): pick a concept, stages land on distinct furniture, threads join and light, myth checks record recalls, exit and re-enter restores everything; restore drift **under 1 mm** | `python3 scripts/e2e-concept.py` with the dev server up |
+| Palace Architect, live teach mode | **20 of 20 topics** taught (science, history, finance, law, tech, everyday, pasted notes, a child audience); median 4 stages, **82 of 87 stages kept a myth check**, median **6.1 s** server time (6.2 s wall) | `node scripts/eval-architect.mjs` |
+
+The full Architect run, with a per-topic table and two complete outputs, is in [docs/architect-eval.md](docs/architect-eval.md). In that run every answer came from the fallback model (`gemini-3.5-flash-lite`), not the primary, which shows the hedging doing its job.
+
+How the property test's 9,037 placements split: 1,263 on furniture tops, 3,439 on walls, 4,335 on the seated arc. 86 of the 1,000 rooms were empty on purpose.
+
+## The research behind it
+
+- **Place cells and grid cells.** The brain has a dedicated system for knowing where you are. [Nobel Prize in Physiology or Medicine 2014](https://www.nobelprize.org/prizes/medicine/2014/summary/) (O'Keefe, Moser and Moser).
+- **Memory champions use places, not special brains.** Superior memorizers rely on spatial learning with the method of loci. [Maguire et al., 2003, *Nature Neuroscience*](https://doi.org/10.1038/nn988).
+- **The method can be learned, and it lasts.** Six weeks of method-of-loci training made novices' brain networks look like memory athletes' and improved recall four months later. [Dresler et al., 2017, *Neuron*](https://doi.org/10.1016/j.neuron.2017.02.003).
+- **Virtual memory palaces work.** People recalled more with a memory palace in a head-mounted display than on a desktop. [Krokos, Plaisant and Varshney, 2018, *Virtual Reality*](https://doi.org/10.1007/s10055-018-0346-3).
+- **Testing beats rereading.** Retrieval practice produces better long-term retention than study alone, which is why Loci asks you to recall before it shows you. [Roediger and Karpicke, 2006, *Psychological Science*](https://doi.org/10.1111/j.1467-9280.2006.01693.x).
+- **Spacing beats cramming.** [Cepeda et al., 2006, *Psychological Bulletin*](https://doi.org/10.1037/0033-2909.132.3.354), a meta-analysis of distributed practice.
+- **FSRS**, the open spaced-repetition scheduler Loci uses: [open-spaced-repetition/ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs).
+
+## Development
+
+Requires Node 20.19+, 22.12+ or 24+.
 
 ```sh
 npm install
-npm run dev      # managed dev server + emulator
-npm test         # unit tests (placement, scheduler, recall gestures, safety)
+npm run dev          # IWSDK CLI managed dev server, opens a browser with the Quest emulator (IWER)
+npm test             # unit tests (vitest)
+npm run typecheck    # tsc --noEmit
 ```
+
+- `npm run dev` runs the dev server through the IWSDK CLI (`iwsdk dev`), not plain Vite. `iwsdk.config.json` is the project's source of truth for the scene and XR features. IWER is IWSDK's browser-based XR emulator; see [Testing your experience](https://iwsdk.dev/guides/02-testing-experience.html).
+- End-to-end tests drive the emulator with the dev server up: `python3 scripts/e2e.py` (list palace) and `python3 scripts/e2e-concept.py` (concept palace).
+- `node scripts/eval-architect.mjs` runs the live Architect evaluation (about 11 minutes; it paces itself under the API's rate limit). `node scripts/receipts.mjs` refreshes `public/receipts.json`.
+- The Architect needs `GEMINI_API_KEY` set on the server (see `.env.example`).
+
+```
+src/core/     pure logic, no engine imports: placement, scheduler, concepts, safety, grading
+src/xr/       headset ECS systems: room, palace, recall, thread, check, hub, access
+src/site/     the website walk
+api/          Palace Architect (Vercel serverless)
+tests/        vitest unit and property tests
+scripts/      e2e, evaluation and receipts scripts
+```
+
+## Known limits
+
+- **Not yet run on a physical Quest.** All mixed-reality testing so far is in the Immersive Web Emulator with synthetic rooms. Hand tracking, real Space Setup data and real anchor persistence still need a headset session.
+- **The emulator e2e runs on software GL**, so it proves behaviour, not frame rate. Performance on a Quest is unmeasured.
+- **The Architect can be wrong.** Its stages and myth checks are generated by a language model and only rule-checked for safety and shape, not for truth. The ready-made concepts were checked by hand; generated ones were not. In our 20-topic run, the vetting kept 82 of 87 myth checks; one topic (the Roman Republic) kept only 1 of 4.
+
+## License
+
+[MIT](LICENSE)

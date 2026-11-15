@@ -104,13 +104,20 @@ export const AUDIENCES: { who: string; text: string }[] = [
   { who: 'Anyone who sits', text: 'Made for sitting still. Look to select means no pinching or lifting is ever required.' },
 ];
 
+/**
+ * Numbers from real runs, 16 Nov 2026 (IST). `node scripts/receipts.mjs`
+ * re-runs the unit tests, writes public/receipts.json and warns if any number
+ * below no longer matches. Sources: `npx vitest run`; the concept e2e log
+ * (.tmp/e2e-concept.log from `python3 scripts/e2e-concept.py`); the live
+ * Architect run in docs/architect-eval.md (`node scripts/eval-architect.mjs`).
+ */
 export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
-  { n: '79', text: 'unit tests passing, across placement, scheduling, safety, sharing and the library' },
-  { n: '10', unit: '/10', text: 'mixed-reality checks passing in the Immersive Web Emulator, from entering the room to restoring it' },
-  { n: '0.0000', unit: 'm', text: 'drift when a saved palace was restored in that test' },
-  { n: '3', text: 'models racing for each build, so one busy model rarely stalls you' },
+  { n: '97', text: 'unit tests passing in 9 files, across placement, scheduling, concepts, safety, sharing and the library' },
+  { n: '1,000', text: 'random rooms in the placement property test: every memory placed, spaced apart, within a seated turn and never behind you' },
+  { n: '15', unit: '/15', text: 'concept checks passing in the Immersive Web Emulator, from picking a topic to restoring the palace' },
+  { n: '<1', unit: 'mm', text: 'drift when a saved palace was restored in that test' },
+  { n: '20', unit: '/20', text: 'topics taught by the live Palace Architect in our test run, median 6.1 s each, with 82 of 87 stages keeping a myth check' },
   { n: '0', text: 'accounts. Palaces and progress stay in your browser, and share links carry the palace inside the link itself' },
-  { n: '12', text: 'memories per palace and 12 palaces, each with its own schedule' },
 ];
 
 export const ROADMAP: { when: 'Now' | 'Next' | 'Later'; items: string[] }[] = [

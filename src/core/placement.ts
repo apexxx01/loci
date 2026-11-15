@@ -331,7 +331,8 @@ export function planPlacement(
     if (chosen.length < needed) {
       for (const slot of arcSlots(Math.max(9, remaining * 4), viewer, ring.radius, ring.lift)) {
         if (chosen.length >= needed) break;
-        if (farEnough(slot, chosen, viewer)) chosen.push(slot);
+        // Distinct ids from the even pass, so no two slots ever share one.
+        if (farEnough(slot, chosen, viewer)) chosen.push({ ...slot, id: `${slot.id}+` });
       }
     }
   }

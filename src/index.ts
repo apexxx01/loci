@@ -11,6 +11,8 @@ import { RecallSystem } from './xr/recall-system.js';
 import { RoomSystem } from './xr/room-system.js';
 import { ThreadSystem } from './xr/thread-system.js';
 import { CheckSystem } from './xr/check-system.js';
+import { TraceSystem } from './xr/trace-system.js';
+import { OnboardSystem } from './xr/onboard-system.js';
 import { mountSite } from './site/site.js';
 
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
@@ -20,6 +22,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(PalaceSystem)
       .registerSystem(ThreadSystem)
       .registerSystem(CheckSystem)
+      .registerSystem(TraceSystem)
+      .registerSystem(OnboardSystem)
       .registerSystem(RecallSystem)
       .registerSystem(GuideSystem)
       .registerSystem(AccessSystem)

@@ -17,7 +17,9 @@ import {
   ShaderMaterial,
   Vector3,
 } from '@iwsdk/core';
-import { app, bus } from './app-state.js';
+import { app, bus, setStatus } from './app-state.js';
+import { nextDue } from '../core/scheduler.js';
+import { span } from '../site/time.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
 import { playLand, playSuccess } from './sound.js';
 import { settings, speak } from './settings.js';
@@ -124,6 +126,7 @@ export class ThreadSystem extends createSystem({}) {
         if (e.type === 'palace-ready') this.collect(true);
         else if (e.type === 'palace-changed' || e.type === 'new-palace') this.collect(false);
         else if (e.type === 'stage-checked') this.light(e.memoryId, e.correct);
+        else if (e.type === 'rated') this.maybeComplete();
       }),
     );
   }
@@ -148,6 +151,23 @@ export class ThreadSystem extends createSystem({}) {
     this.geo.setDrawRange(0, links * (SEG - 1) * 6);
     if (ignite && links) this.ignite();
     if (!links) this.fade = 0;
+  }
+
+  private celebrated = new Set<string>();
+
+  /** The first time every stage has been checked, the whole chain lights up once more. */
+  private maybeComplete(): void {
+    const p = app.palace;
+    if (!p || p.deck.kind !== 'concept' || this.celebrated.has(p.id)) return;
+    const all = p.deck.items.every((it) => (p.cards[it.id]?.reps ?? 0) > 0);
+    if (!all) return;
+    this.celebrated.add(p.id);
+    const next = nextDue(p);
+    const wait = next ? span(next.getTime() - Date.now()) : '';
+    setTimeout(() => {
+      this.ignite();
+      setStatus(`You walked the whole chain: ${p.deck.title}. ${wait ? `It comes back in ${wait}, just before you would forget.` : ''}`);
+    }, 1800);
   }
 
   /** Run the pulse from the first stage to the last. */

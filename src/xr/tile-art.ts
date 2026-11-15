@@ -346,7 +346,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
       ctx.fillText(l, cx, y0 + 96 + lh * 0.82 + i * lh);
     });
     const pinch = style.dwell ? 'look' : 'pinch';
-    hint(fresh ? `${pinch} to open` : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 26, fresh || due ? accent : 'rgba(240,235,255,0.55)');
+    hint(fresh ? (style.surfaceLabel ? `on your ${style.surfaceLabel}, ${pinch} to open` : `${pinch} to open`) : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 26, fresh || due ? accent : 'rgba(240,235,255,0.55)');
     return;
   }
 
