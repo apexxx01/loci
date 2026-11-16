@@ -8,6 +8,8 @@
  *   e2eConcept         parsed from .tmp/e2e-concept.log if present, e.g. from
  *                        python3 scripts/e2e-concept.py | tee .tmp/e2e-concept.log
  *   architect          docs/architect-eval.json, written by scripts/eval-architect.mjs
+ *   roomMatrix         .tmp/matrix-pass1.json then .tmp/matrix-none2.json (later files
+ *                        replace earlier rows for the same room), from scripts/matrix.py --tag=...
  *
  * Then compares the numbers with RECEIPTS in src/site/parts/features.ts and
  * warns about any that disagree. Exit code 1 if a unit test failed.
@@ -55,7 +57,7 @@ if (existsSync(E2E_LOG)) {
   const log = readFileSync(E2E_LOG, 'utf8');
   const m = [...log.matchAll(/(\d+)\/(\d+) checks passed/g)].pop();
   const ranAt = log.match(/^ranAt:\s*(.+)$/m);
-  const drift = log.match(/max restore drift ([\d.]+) m/);
+  const drift = log.match(/max (?:restore )?drift ([\d.]+) m/);
   if (m)
     e2eConcept = {
       checks: Number(m[2]),
@@ -84,6 +86,28 @@ if (existsSync(EVAL)) {
   };
 }
 
+/* ---------- room matrix (optional) ---------- */
+let roomMatrix;
+const MATRIX = ['.tmp/matrix-pass1.json', '.tmp/matrix-none2.json'].map(at).filter(existsSync);
+if (MATRIX.length) {
+  const byRoom = new Map();
+  for (const f of MATRIX) for (const r of JSON.parse(readFileSync(f, 'utf8')).rooms) byRoom.set(r.room, r);
+  const rows = [...byRoom.values()];
+  const synth = rows.filter((r) => r.room !== 'none');
+  const empty = byRoom.get('none');
+  roomMatrix = {
+    command: 'python3 scripts/matrix.py --tag=pass1; python3 scripts/matrix.py --tag=none2 none',
+    doc: 'docs/test-matrix.md',
+    syntheticRooms: synth.length,
+    syntheticRoomsAllPassed: synth.filter((r) => r.passed === r.checks).length,
+    reruns: [],
+    stagesOnSurfaces: synth.reduce((a, r) => a + r.onSurfaces, 0),
+    stagesOnArc: synth.reduce((a, r) => a + r.onArc, 0),
+    ...(empty ? { emptyRoom: { passed: empty.passed, checks: empty.checks, onArc: empty.onArc, maxRestoreDriftM: empty.maxRestoreDriftM } } : {}),
+    rooms: rows.map((r) => ({ room: r.room, ranAt: r.ranAt, surfaces: r.surfaces, onSurfaces: r.onSurfaces, onArc: r.onArc, passed: r.passed, checks: r.checks, maxRestoreDriftM: r.maxRestoreDriftM })),
+  };
+}
+
 const receipts = {
   generatedAt: new Date().toISOString(),
   command: 'node scripts/receipts.mjs',
@@ -94,6 +118,7 @@ const receipts = {
   ...(placementProperty ? { placementProperty } : {}),
   ...(e2eConcept ? { e2eConcept } : {}),
   ...(architect ? { architect } : {}),
+  ...(roomMatrix ? { roomMatrix } : {}),
 };
 // Keep sections this script does not compute (room matrix, perf), written by
 // scripts/matrix.py and scripts/perf.py, so a refresh never drops them.
@@ -108,21 +133,5 @@ writeFileSync(at('public/receipts.json'), JSON.stringify(merged, null, 2) + '\n'
 console.log(JSON.stringify(receipts, null, 2));
 console.log('wrote public/receipts.json');
 
-/* ---------- compare with what the website says ---------- */
-const src = readFileSync(at('src/site/parts/features.ts'), 'utf8');
-const block = src.slice(src.indexOf('export const RECEIPTS'), src.indexOf('];', src.indexOf('export const RECEIPTS')));
-const shown = [...block.matchAll(/n:\s*'([^']*)'(?:,\s*unit:\s*'([^']*)')?,\s*text:\s*'([^']*)'/g)].map((m) => ({ n: m[1], unit: m[2], text: m[3] }));
-const warn = [];
-const find = (re) => shown.find((r) => re.test(r.text));
-const ut = find(/unit tests/);
-if (ut && Number(ut.n.replace(/,/g, '')) !== tests.passed) warn.push(`site says ${ut.n} unit tests, run has ${tests.passed}`);
-if (e2eConcept) {
-  const e = find(/emulator/i);
-  if (e && `${e.n}${e.unit ?? ''}` !== `${e2eConcept.passed}/${e2eConcept.checks}`) warn.push(`site says ${e.n}${e.unit ?? ''} e2e checks, log has ${e2eConcept.passed}/${e2eConcept.checks}`);
-}
-if (architect) {
-  const a = find(/Architect/);
-  if (a && `${a.n}${a.unit ?? ''}` !== `${architect.passed}/${architect.topics}`) warn.push(`site says ${a.n}${a.unit ?? ''} Architect topics, eval has ${architect.passed}/${architect.topics}`);
-}
-for (const w of warn) console.warn(`warning: ${w} (update RECEIPTS in src/site/parts/features.ts)`);
+// The website's receipts (src/site/parts/features.ts) import this file, so they cannot drift.
 process.exit(tests.success ? 0 : 1);

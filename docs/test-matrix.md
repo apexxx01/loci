@@ -1,10 +1,10 @@
 # Room matrix
 
-The concept end-to-end test (`scripts/e2e-concept.py`, 15 checks) run in every synthetic room the Immersive Web Emulator (IWER, IWSDK's browser-based XR emulator) ships, plus one run with no scene data at all. Everything here ran on 16 Nov 2026 in the headless managed emulator (Meta Quest 3 profile, software GL), driven by:
+The concept end-to-end test (`scripts/e2e-concept.py`, 15 checks) run in every synthetic room the Immersive Web Emulator (IWER, IWSDK's browser-based XR emulator) ships, plus one run with no scene data at all. The latest full pass ran on 16 Nov 2026, 15:50 to 17:57 IST, in the headless managed emulator (Meta Quest 3 profile, software GL), on the code at commits `1aac580` to `4a51993` (the page reloads before each room, so each room ran the code current when it started; nothing in that span changed placement or restore):
 
 ```sh
-python3 scripts/matrix.py                       # all 8 rooms + the empty room, 11:34 to 13:02 IST
-python3 scripts/matrix.py kitchen music_studio  # re-run of the two rooms whose first attempt stopped early, 13:13 to 13:38 IST
+python3 scripts/matrix.py --tag=pass1          # all 8 rooms + the empty room, 15:50 to 17:57 IST
+python3 scripts/matrix.py --tag=none2 none     # the empty room again after its check was corrected, 18:03 IST
 ```
 
 ## How rooms are switched
@@ -19,29 +19,31 @@ The empty room (`none`) calls `sem.deleteAll()` before and after entering XR, so
 
 "On room surfaces" counts stages placed on a real plane or mesh (furniture, walls, windows, doors), from the app's own build status line. "On the seated arc" counts stages on the virtual fallback arc in front of the viewer. Restore drift is the largest distance any stage moved between before exit and after re-entering XR; the e2e prints it to 0.1 mm.
 
-| Room | Surfaces found (planes + meshes) | On room surfaces | On the seated arc | Stage objects, in route order | Checks | Restore drift | Notes |
+| Room | Surfaces found (planes + meshes) | On room surfaces | On the seated arc | Stage objects, in route order | Checks | Restore drift | Run time |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| bedroom | 24 (14 + 10) | 6 | 0 | plant, table, bed, wall art, lamp, wall | **15/15** | 0.0000 m | |
-| conference_room | 23 (12 + 11) | 6 | 0 | window, other, table, other, wall art, wall | **15/15** | 0.0000 m | Two stages on unlabelled ("other") meshes. |
-| home_office | 21 (13 + 8) | 6 | 0 | wall, shelf, window, desk, shelf, wall | **15/15** | 0.0000 m | Two shelves and two walls used; 4 distinct labels. |
-| kitchen | 29 (14 + 15) | 6 | 0 | shelf, lamp, window, table, plant, other | **15/15** on re-run (13:13 IST) | 0.0000 m | First attempt (12:11 IST) passed 4, failed 3, then stopped: the press on the heart walk did not register. See below. |
-| music_studio | 23 (11 + 12) | 6 | 0 | wall, plant, other, window, desk, lamp | **15/15** on re-run (13:28 IST) | 0.0000 m | First attempt (12:16 IST) passed 2, failed 1, then stopped: the press on Ask did not register. See below. |
-| open_office | 32 (17 + 15) | 6 | 0 | other, desk, wall, shelf, couch, table | **15/15** | 0.0000 m | Most surfaces of any room. |
-| open_studio | 11 (9 + 2) | 5 | 1 | (arc), other, wall, wall, door, plant | **15/15** | 0.0000 m | Sparsest room: the solver topped up with one arc slot, as designed. |
-| sunlit_living_room | 28 (15 + 13) | 6 | 0 | window, lamp, table, couch, shelf, screen | **15/15** | 0.0000 m | The configured default room. |
-| none (no planes, no meshes) | 0 | 0 | 6 | all six on the arc | **14/15** | 0.0000 m | Fails only "stages spread across distinct objects", which by design cannot pass here. See below. |
+| bedroom | 24 (14 + 10) | 6 | 0 | plant, table, bed, wall art, lamp, wall | **15/15** | 0.0000 m | 657 s |
+| conference_room | 23 (12 + 11) | 6 | 0 | window, other, table, other, wall art, wall | **15/15** | 0.0000 m | 587 s |
+| home_office | 21 (13 + 8) | 6 | 0 | wall, shelf, window, desk, shelf, wall | **15/15** | 0.0000 m | 635 s |
+| kitchen | 29 (14 + 15) | 6 | 0 | shelf, lamp, window, table, plant, other | **15/15** | 0.0000 m | 621 s |
+| music_studio | 23 (11 + 12) | 6 | 0 | wall, plant, other, window, desk, lamp | **15/15** | 0.0000 m | 539 s |
+| open_office | 32 (17 + 15) | 6 | 0 | other, desk, wall, shelf, couch, table | **15/15** | 0.0000 m | 764 s |
+| open_studio | 11 (9 + 2) | 5 | 1 | (arc), other, wall, wall, door, plant | **15/15** | 0.0000 m | 445 s |
+| sunlit_living_room | 28 (15 + 13) | 6 | 0 | window, lamp, table, couch, shelf, screen | **15/15** | 0.0000 m | 695 s |
+| none (no planes, no meshes) | 0 | 0 | 6 | all six on the arc | **15/15** (re-run 18:03 IST) | 0.0000 m | 237 s |
 
-**8 of 8 synthetic rooms pass all 15 checks** (kitchen and music_studio on their second run). In the 8 rooms, 47 of 48 stages landed on a real surface and 1 on the arc. The empty room built a full six-stage palace on the seated arc, joined the threads, recorded recalls and restored with no drift; its one failure is the furniture check.
+**All 8 synthetic rooms passed all 15 checks on the first try**, in one full pass with no re-runs; in those rooms 47 of 48 stages landed on a real surface and 1 on the arc. The earlier pass (11:34 IST) needed second runs for kitchen and music_studio; the fix was holding the emulated pinch for 1.4 s in `aim_select` (`scripts/e2e.py`), longer than the emulator's p95 frame interval. A second back-to-back full pass was started and stopped after its first room, because a full pass takes about two hours at one emulator frame a second.
 
-Logs: `.tmp/matrix-<room>.log` (one per room, with `ranAt`), `.tmp/matrix-full-1.json` (the full run), `.tmp/matrix-rerun.json` (the re-run). `.tmp` is not committed; re-run the commands above to regenerate.
+The empty room needed its one furniture check corrected, not the app. In the full pass it scored 14/15, failing "stages spread across distinct objects", which cannot pass with no furniture. The e2e now checks, when every placement label is empty, that all six stages went to the seated arc instead; with that, the empty room passed 15/15.
+
+Logs: `.tmp/matrix-pass1-<room>.log` (one per room, with `ranAt`), `.tmp/matrix-pass1.json`, `.tmp/matrix-none2.json`. `.tmp` is not committed; re-run the commands above to regenerate.
 
 ## Failures and their causes
 
-### Empty room: "stages spread across distinct objects" (expected)
+### Empty room: "stages spread across distinct objects" (fixed in the test)
 
 The check in `scripts/e2e-concept.py` asserts `len(set(labels)) >= 4` over the placement labels. With no scene data, `planPlacement` in `src/core/placement.ts` falls back entirely to `arcSlots()`, which creates every slot with `label: ''` (there is no object to name). So the six labels are all empty and the set has one member. The app did what the README promises for an unscanned room (an even arc, status "No furniture found yet, so memories are floating around you. Run Space Setup for a room-anchored palace."); the check is a furniture assertion that does not apply when there is no furniture. The other 14 checks, including restore and threads, passed.
 
-### kitchen and music_studio, first attempt: a press that never landed (flaky, emulator timing)
+### kitchen and music_studio in the 11:34 IST pass: a press that never landed (fixed in the test)
 
 - kitchen, 12:11 IST: the ready-made walks opened, the heart walk was pressed, and no palace was built within 60 s (`0 placements, frame=reference`). The script then stopped with `KeyError: 'tile:concept-heart:0'`.
 - music_studio, 12:16 IST: Ask was pressed and the keyboard never opened. The script stopped with `KeyError: 'ask-cancel'`.

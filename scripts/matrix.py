@@ -16,6 +16,7 @@ Run with the managed dev server up (with --allow-browser-automation):
     python3 scripts/matrix.py                  # every room + the empty room
     python3 scripts/matrix.py kitchen none     # just these
     python3 scripts/matrix.py --same-page      # no page reload between rooms
+    python3 scripts/matrix.py --tag=pass1      # logs to .tmp/matrix-pass1-*.log / .json
 
 The page is reloaded before each room, so every room starts like a fresh
 launch. Writes .tmp/matrix.json and one log per room in .tmp/matrix-<room>.log.
@@ -35,6 +36,9 @@ from ev import ev  # noqa: E402
 
 IST = ZoneInfo('Asia/Kolkata')
 FRESH = '--same-page' not in sys.argv
+# --tag=NAME keeps one pass's logs apart from another's: .tmp/matrix-NAME-<room>.log, .tmp/matrix-NAME.json
+TAG = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--tag=')), '')
+PREFIX = f'.tmp/matrix-{TAG}-' if TAG else '.tmp/matrix-'
 # Every check() call in the e2e, so a run that stops early still reports against the full count.
 E2E_CHECKS = len(re.findall(r'^\s*check\(', open('scripts/e2e-concept.py').read(), re.M))
 CONFIG_ROOM = json.load(open('iwsdk.config.json'))['dev']['emulator'].get('environment')
@@ -152,7 +156,7 @@ def run_room(room):
     t0 = time.time()
     proc = subprocess.run([sys.executable, 'scripts/e2e-concept.py', room], capture_output=True, text=True)
     log = proc.stdout + proc.stderr
-    with open(f'.tmp/matrix-{room}.log', 'w') as f:
+    with open(f'{PREFIX}{room}.log', 'w') as f:
         f.write(f'ranAt: {started}\ncommand: python3 scripts/e2e-concept.py {room}\n\n{log}')
 
     checks = [(m.group(1) == 'PASS', m.group(2).strip()) for m in re.finditer(r'^(PASS|FAIL)  (.+?)  ', log, re.M)]
@@ -211,7 +215,7 @@ def main():
                 print(f'skipping unknown room {room}; available: {", ".join(available)}')
                 continue
             rows.append(run_room(room))
-            with open('.tmp/matrix.json', 'w') as f:
+            with open(PREFIX.rstrip('-') + '.json', 'w') as f:
                 json.dump({'command': 'python3 scripts/matrix.py ' + ' '.join(sys.argv[1:]), 'rooms': rows}, f, indent=1)
     finally:
         if CONFIG_ROOM:

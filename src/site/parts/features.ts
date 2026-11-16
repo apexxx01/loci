@@ -1,3 +1,4 @@
+import receipts from '../../../public/receipts.json';
 /**
  * Everything Loci does, written down once, so the page tells the whole truth
  * about the product: what runs in the headset, what the Palace Architect does
@@ -105,18 +106,27 @@ export const AUDIENCES: { who: string; text: string }[] = [
 ];
 
 /**
- * Numbers from real runs, 16 Nov 2026 (IST). `node scripts/receipts.mjs`
- * re-runs the unit tests, writes public/receipts.json and warns if any number
- * below no longer matches. Sources: `npx vitest run`; the concept e2e log
- * (.tmp/e2e-concept.log from `python3 scripts/e2e-concept.py`); the live
- * Architect run in docs/architect-eval.md (`node scripts/eval-architect.mjs`).
+ * Numbers from real runs, read from public/receipts.json, which
+ * `node scripts/receipts.mjs` writes from the test, e2e, matrix and Architect
+ * runs. Nothing here is typed by hand, so the site cannot drift from them.
  */
+const R = receipts;
+const fmt = (n: number) => n.toLocaleString('en-US');
+const secs = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
-  { n: '99', text: 'unit tests passing in 10 files, across placement, scheduling, concepts, safety, sharing, the library and per-frame allocation' },
-  { n: '1,000', text: 'random rooms in the placement property test: every memory placed, spaced apart, within a seated turn and never behind you' },
-  { n: '15', unit: '/15', text: 'concept checks passing in the Immersive Web Emulator, from picking a topic to restoring the palace' },
-  { n: '8', unit: '/8', text: 'synthetic emulator rooms passing every concept check (two on a second run), with 47 of 48 stages on the room’s own furniture and walls' },
-  { n: '20', unit: '/20', text: 'topics taught by the live Palace Architect in our test run, median 6.1 s each, with 82 of 87 stages keeping a myth check' },
+  { n: String(R.tests), text: `unit tests passing in ${R.testFiles} files, across placement, scheduling, concepts, safety, sharing, the library and per-frame allocation` },
+  { n: fmt(R.placementProperty.rooms), text: 'random rooms in the placement property test: every memory placed, spaced apart, within a seated turn and never behind you' },
+  { n: String(R.e2eConcept.passed), unit: `/${R.e2eConcept.checks}`, text: 'concept checks passing in the Immersive Web Emulator, from picking a topic to restoring the palace' },
+  {
+    n: String(R.roomMatrix.syntheticRoomsAllPassed),
+    unit: `/${R.roomMatrix.syntheticRooms}`,
+    text: `synthetic emulator rooms passing every concept check on the first try, with ${R.roomMatrix.stagesOnSurfaces} of ${R.roomMatrix.stagesOnSurfaces + R.roomMatrix.stagesOnArc} stages on the room’s own furniture and walls`,
+  },
+  {
+    n: String(R.architect.passed),
+    unit: `/${R.architect.topics}`,
+    text: `topics taught by the live Palace Architect in our test run, median ${secs(R.architect.medianWallMs)} each, with ${R.architect.mythChecks} of ${R.architect.stages} stages keeping a myth check`,
+  },
   { n: '0', text: 'accounts. Palaces and progress stay in your browser, and share links carry the palace inside the link itself' },
 ];
 

@@ -67,7 +67,12 @@ aim_select(t['concept-heart']['position'])
 s = wait_for(lambda: (lambda st: st if st.get('n') == N else None)(state()), 60) or state()
 check(f'{N} stages placed and saved', s.get('n') == N, f"{s.get('n')} placements, frame={s.get('frame')}")
 labels = s.get('labels', [])
-check('stages spread across distinct objects', len(set(labels)) >= 4, ', '.join(labels))
+if any(labels):
+    check('stages spread across distinct objects', len(set(labels)) >= 4, ', '.join(labels))
+else:
+    # No scene data (the empty room): there is no furniture to spread across, so
+    # the promise is the seated arc instead: every stage placed, none on an object.
+    check('with no furniture, every stage goes on the seated arc', len(labels) == N, f'{len(labels)} arc slots')
 print(f'   pick -> palace saved in {time.time() - t0:.1f}s wall-clock (emulator, headless)')
 
 th = wait_for(lambda: (lambda r: r if r.get('found') and r.get('fade', 0) > 0.5 else None)(threads()), 15) or threads()
