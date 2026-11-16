@@ -1,8 +1,8 @@
 """
 End-to-end check of the headset asking and practice flows in the IWER emulator.
 
-  keyboard: Ask about anything -> type with key presses -> finished-question
-  chips appear -> Back.  Chain practice: build a concept -> Rebuild the chain
+  keyboard: Ask about anything -> type "How" with three key presses -> the
+  chips turn from openers into finished questions -> Back.  Chain practice: build a concept -> Rebuild the chain
   -> stage numbers hide and the thread dims -> a wrong pick is refused -> the
   stages picked in order relight every link -> practice ends.
 
@@ -55,15 +55,31 @@ check('XR session active', ensure_xr())
 time.sleep(5)
 ev("window.__loci.bus.emit({ type: 'new-palace' }); localStorage.removeItem('loci.library.v2'); localStorage.removeItem('loci.onboarded.v1'); return 1")
 wait_for(lambda: not state().get('palace'), 10)
+# The hub keeps a typed question as a draft when you press Back, so a run in a
+# page an earlier run used starts from an empty draft, like a fresh launch.
+ev("const h = [...window.__loci.world.systems].find(s => s.constructor.name === 'HubSystem'); if (h) h.askText = ''; return 1")
 time.sleep(3)
 
-# Keyboard: type "ti" and expect finished questions on the chips.
+# Keyboard: type "How" and expect finished questions on the chips.
+# With fewer than two letters typed the chips are the openers ("How does",
+# "Why do", ...), so their mere presence proves nothing: read what the hub has
+# typed and what each visible chip says.
+HUB = """const hub = [...window.__loci.world.systems].find(s => s.constructor.name === 'HubSystem');
+  return hub ? { asking: hub.asking, text: hub.askText, chips: hub.chips() } : null"""
+OPENERS = {'How does', 'Why do', 'What is', 'Explain'}
 press('btn-ask', 4)
+print(f"   keyboard open after Ask: {'key-h' in targets()}", flush=True)
 for k in ['key-h', 'key-o', 'key-w']:
     press(k, 1.2)
+    print(f'   after {k}: {ev(HUB)}', flush=True)
 t = targets()
+hub = ev(HUB) or {}
 visible_chips = [k for k in ('pre-how', 'pre-why', 'pre-what', 'pre-explain') if k in t]
-check('typing turns the chips into finished questions', len(visible_chips) >= 1, ', '.join(visible_chips))
+chips = [c.strip() for c in (hub.get('chips') or [])]
+finished = [c for c in chips[: len(visible_chips)] if c not in OPENERS and c.endswith('?')]
+check('typing turns the chips into finished questions',
+      (hub.get('text') or '').lower() == 'how' and len(visible_chips) >= 1 and len(finished) == len(visible_chips),
+      f"typed {hub.get('text')!r}; visible {', '.join(visible_chips) or 'none'}; chips {chips}")
 press('ask-cancel', 2)
 
 # Build a concept from the ready-made walks.
