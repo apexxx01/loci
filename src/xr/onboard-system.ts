@@ -18,6 +18,7 @@ export class OnboardSystem extends createSystem({}) {
   private tex!: CanvasTexture;
   private step: 'off' | 'pinch' | 'choose' = 'off';
   private t = 0;
+  private acc = 1;
   private p = new Vector3();
 
   init(): void {
@@ -109,6 +110,11 @@ export class OnboardSystem extends createSystem({}) {
     this.sprite.position.lerp(this.p, Math.min(1, delta * 6));
     const m = this.sprite.material as SpriteMaterial;
     m.opacity = Math.min(1, this.t * 1.5);
-    this.draw((this.t * 0.6) % 1);
+    // Redraw the little hand about 20 times a second, not every frame.
+    this.acc += delta;
+    if (this.acc > 0.05) {
+      this.acc = 0;
+      this.draw((this.t * 0.6) % 1);
+    }
   }
 }

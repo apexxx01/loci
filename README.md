@@ -16,6 +16,8 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 
 ---
 
+<p align="center"><img src="docs/headset-closeup.png" width="49%" alt="In the headset: a stage glows on a real couch, joined to the next by the gold thread, with a ring of light on the surface it rests on." /> <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: a living room drawn in light, with the first stage and its myth check." /></p>
+
 ## Try it in 60 seconds
 
 > **On a Quest 3 or 3S**

@@ -2,6 +2,13 @@
 
 > Paste each section into the matching Devpost field. Numbers come from real runs in this repo; re-check them against `public/receipts.json` on submission day.
 
+## Images to upload (in this order)
+
+1. `docs/headset-closeup.png`: a stage on a real couch, the gold thread, the ring of light.
+2. `docs/headset-concept.png`: the whole chain around the room.
+3. `docs/walk-stage.jpg`: the website walk.
+4. `docs/walk-explain-back.jpg`: explain-back graded.
+
 ## Tagline
 
 Your room remembers. Ask about anything, and Loci turns it into a chain of stages that live on your real furniture, joined by a thread of light.

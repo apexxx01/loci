@@ -367,8 +367,9 @@ export class HubSystem extends createSystem({}) {
       // Negative is to the left, matching the dock rotation below.
       return d;
     });
-    const options = [DOCK_YAW, (-60 * Math.PI) / 180, -DOCK_YAW, (60 * Math.PI) / 180];
-    const blocked = (y: number) => yaws.filter((t) => Math.abs(t - y) < (20 * Math.PI) / 180).length;
+    const options = [DOCK_YAW, (-60 * Math.PI) / 180, -DOCK_YAW, (60 * Math.PI) / 180, (-78 * Math.PI) / 180, (78 * Math.PI) / 180];
+    // The panel is about 0.5 m wide at 0.5 m away: it covers roughly 28 degrees either side of its centre.
+    const blocked = (y: number) => yaws.filter((t) => Math.abs(t - y) < (28 * Math.PI) / 180).length;
     return options.reduce((best, y) => (blocked(y) < blocked(best) ? y : best), options[0]);
   }
 

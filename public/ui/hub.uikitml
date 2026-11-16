@@ -16,6 +16,8 @@
   .go:dark { background-color: #9a6418; }
   .field { padding: 14px; border-radius: 16px; background-color: #0b0820; border-width: 2px; border-color: #6b5434; min-height: 64px; }
   .field-text { color: #fff4e6; font-size: 20px; line-height: 26px; }
+  .lbl { color: #fff4e6; }
+  .lbl:dark { color: #fff4e6; }
   .skin { flex-direction: column; width: 100%; background-color: #120e2a; border-radius: 30px; border-width: 2px; border-color: #6b5434; }
   .root:dark { background-color: #120e2a; border-color: #5a4630; }
   .head { flex-direction: column; gap: 4px; padding-top: 24px; padding-left: 26px; padding-right: 26px; padding-bottom: 12px; }
@@ -53,40 +55,40 @@
   <div id="section-decks" class="section">
     <Button id="btn-ask" class="btn big">
       <ButtonIcon><Sparkles></Sparkles></ButtonIcon>
-      <ButtonLabel>Ask about anything</ButtonLabel>
+      <ButtonLabel class="lbl">Ask about anything</ButtonLabel>
     </Button>
     <div id="recent-block" class="group">
       <div class="label">PICK UP WHERE YOU LEFT OFF</div>
-      <Button id="recent-0" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-0-label">Recent</ButtonLabel></Button>
-      <Button id="recent-1" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-1-label">Recent</ButtonLabel></Button>
-      <Button id="recent-2" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel id="recent-2-label">Recent</ButtonLabel></Button>
+      <Button id="recent-0" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel class="lbl" id="recent-0-label">Recent</ButtonLabel></Button>
+      <Button id="recent-1" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel class="lbl" id="recent-1-label">Recent</ButtonLabel></Button>
+      <Button id="recent-2" class="btn"><ButtonIcon><History></History></ButtonIcon><ButtonLabel class="lbl" id="recent-2-label">Recent</ButtonLabel></Button>
     </div>
     <div class="row">
       <Button id="btn-browse" class="btn">
         <ButtonIcon><BookOpen></BookOpen></ButtonIcon>
-        <ButtonLabel id="btn-browse-label">Ready-made walks</ButtonLabel>
+        <ButtonLabel class="lbl" id="btn-browse-label">Ready-made walks</ButtonLabel>
       </Button>
       <Button id="btn-open" class="btn">
         <ButtonIcon><Library></Library></ButtonIcon>
-        <ButtonLabel id="btn-open-label">Saved palaces</ButtonLabel>
+        <ButtonLabel class="lbl" id="btn-open-label">Saved palaces</ButtonLabel>
       </Button>
     </div>
     <div id="browse-block" class="group">
       <div class="row">
-        <Button id="concept-heart" class="btn"><ButtonIcon><Heart></Heart></ButtonIcon><ButtonLabel>How your heart pumps</ButtonLabel></Button>
-        <Button id="concept-plants" class="btn"><ButtonIcon><Leaf></Leaf></ButtonIcon><ButtonLabel>How plants make food</ButtonLabel></Button>
+        <Button id="concept-heart" class="btn"><ButtonIcon><Heart></Heart></ButtonIcon><ButtonLabel class="lbl">How your heart pumps</ButtonLabel></Button>
+        <Button id="concept-plants" class="btn"><ButtonIcon><Leaf></Leaf></ButtonIcon><ButtonLabel class="lbl">How plants make food</ButtonLabel></Button>
       </div>
       <div class="row">
-        <Button id="concept-seasons" class="btn"><ButtonIcon><Sun></Sun></ButtonIcon><ButtonLabel>Why we have seasons</ButtonLabel></Button>
-        <Button id="concept-vaccine" class="btn"><ButtonIcon><ShieldCheck></ShieldCheck></ButtonIcon><ButtonLabel>How vaccines train you</ButtonLabel></Button>
+        <Button id="concept-seasons" class="btn"><ButtonIcon><Sun></Sun></ButtonIcon><ButtonLabel class="lbl">Why we have seasons</ButtonLabel></Button>
+        <Button id="concept-vaccine" class="btn"><ButtonIcon><ShieldCheck></ShieldCheck></ButtonIcon><ButtonLabel class="lbl">How vaccines train you</ButtonLabel></Button>
       </div>
       <div class="row">
-        <Button id="concept-water" class="btn"><ButtonIcon><Droplets></Droplets></ButtonIcon><ButtonLabel>The water cycle</ButtonLabel></Button>
-        <Button id="concept-web" class="btn"><ButtonIcon><Globe></Globe></ButtonIcon><ButtonLabel>How a web page arrives</ButtonLabel></Button>
+        <Button id="concept-water" class="btn"><ButtonIcon><Droplets></Droplets></ButtonIcon><ButtonLabel class="lbl">The water cycle</ButtonLabel></Button>
+        <Button id="concept-web" class="btn"><ButtonIcon><Globe></Globe></ButtonIcon><ButtonLabel class="lbl">How a web page arrives</ButtonLabel></Button>
       </div>
       <div class="row">
-        <Button id="deck-planets" class="btn"><ButtonIcon><Orbit></Orbit></ButtonIcon><ButtonLabel>A quick list: the planets</ButtonLabel></Button>
-        <Button id="deck-phone" class="btn"><ButtonIcon><FileText></FileText></ButtonIcon><ButtonLabel id="deck-phone-label">Paste notes on a screen</ButtonLabel></Button>
+        <Button id="deck-planets" class="btn"><ButtonIcon><Orbit></Orbit></ButtonIcon><ButtonLabel class="lbl">A quick list: the planets</ButtonLabel></Button>
+        <Button id="deck-phone" class="btn"><ButtonIcon><FileText></FileText></ButtonIcon><ButtonLabel class="lbl" id="deck-phone-label">Paste notes on a screen</ButtonLabel></Button>
       </div>
     </div>
   </div>
@@ -94,23 +96,23 @@
   <div id="section-ask" class="section">
     <div class="field"><div id="ask-text" class="field-text">Type with a pinch on each key</div></div>
     <div class="row">
-      <Button id="pre-how" class="chip"><ButtonLabel id="pre-how-label">How does</ButtonLabel></Button>
-      <Button id="pre-why" class="chip"><ButtonLabel id="pre-why-label">Why do</ButtonLabel></Button>
+      <Button id="pre-how" class="chip"><ButtonLabel class="lbl" id="pre-how-label">How does</ButtonLabel></Button>
+      <Button id="pre-why" class="chip"><ButtonLabel class="lbl" id="pre-why-label">Why do</ButtonLabel></Button>
     </div>
     <div class="row">
-      <Button id="pre-what" class="chip"><ButtonLabel id="pre-what-label">What is</ButtonLabel></Button>
-      <Button id="pre-explain" class="chip"><ButtonLabel id="pre-explain-label">Explain</ButtonLabel></Button>
+      <Button id="pre-what" class="chip"><ButtonLabel class="lbl" id="pre-what-label">What is</ButtonLabel></Button>
+      <Button id="pre-explain" class="chip"><ButtonLabel class="lbl" id="pre-explain-label">Explain</ButtonLabel></Button>
     </div>
-    <div class="keys"><Button id="key-q" class="key"><ButtonLabel>Q</ButtonLabel></Button><Button id="key-w" class="key"><ButtonLabel>W</ButtonLabel></Button><Button id="key-e" class="key"><ButtonLabel>E</ButtonLabel></Button><Button id="key-r" class="key"><ButtonLabel>R</ButtonLabel></Button><Button id="key-t" class="key"><ButtonLabel>T</ButtonLabel></Button><Button id="key-y" class="key"><ButtonLabel>Y</ButtonLabel></Button><Button id="key-u" class="key"><ButtonLabel>U</ButtonLabel></Button><Button id="key-i" class="key"><ButtonLabel>I</ButtonLabel></Button><Button id="key-o" class="key"><ButtonLabel>O</ButtonLabel></Button><Button id="key-p" class="key"><ButtonLabel>P</ButtonLabel></Button></div>
-    <div class="keys"><Button id="key-a" class="key"><ButtonLabel>A</ButtonLabel></Button><Button id="key-s" class="key"><ButtonLabel>S</ButtonLabel></Button><Button id="key-d" class="key"><ButtonLabel>D</ButtonLabel></Button><Button id="key-f" class="key"><ButtonLabel>F</ButtonLabel></Button><Button id="key-g" class="key"><ButtonLabel>G</ButtonLabel></Button><Button id="key-h" class="key"><ButtonLabel>H</ButtonLabel></Button><Button id="key-j" class="key"><ButtonLabel>J</ButtonLabel></Button><Button id="key-k" class="key"><ButtonLabel>K</ButtonLabel></Button><Button id="key-l" class="key"><ButtonLabel>L</ButtonLabel></Button></div>
-    <div class="keys"><Button id="key-z" class="key"><ButtonLabel>Z</ButtonLabel></Button><Button id="key-x" class="key"><ButtonLabel>X</ButtonLabel></Button><Button id="key-c" class="key"><ButtonLabel>C</ButtonLabel></Button><Button id="key-v" class="key"><ButtonLabel>V</ButtonLabel></Button><Button id="key-b" class="key"><ButtonLabel>B</ButtonLabel></Button><Button id="key-n" class="key"><ButtonLabel>N</ButtonLabel></Button><Button id="key-m" class="key"><ButtonLabel>M</ButtonLabel></Button><Button id="key-q-mark" class="key"><ButtonLabel>?</ButtonLabel></Button></div>
+    <div class="keys"><Button id="key-q" class="key"><ButtonLabel class="lbl">Q</ButtonLabel></Button><Button id="key-w" class="key"><ButtonLabel class="lbl">W</ButtonLabel></Button><Button id="key-e" class="key"><ButtonLabel class="lbl">E</ButtonLabel></Button><Button id="key-r" class="key"><ButtonLabel class="lbl">R</ButtonLabel></Button><Button id="key-t" class="key"><ButtonLabel class="lbl">T</ButtonLabel></Button><Button id="key-y" class="key"><ButtonLabel class="lbl">Y</ButtonLabel></Button><Button id="key-u" class="key"><ButtonLabel class="lbl">U</ButtonLabel></Button><Button id="key-i" class="key"><ButtonLabel class="lbl">I</ButtonLabel></Button><Button id="key-o" class="key"><ButtonLabel class="lbl">O</ButtonLabel></Button><Button id="key-p" class="key"><ButtonLabel class="lbl">P</ButtonLabel></Button></div>
+    <div class="keys"><Button id="key-a" class="key"><ButtonLabel class="lbl">A</ButtonLabel></Button><Button id="key-s" class="key"><ButtonLabel class="lbl">S</ButtonLabel></Button><Button id="key-d" class="key"><ButtonLabel class="lbl">D</ButtonLabel></Button><Button id="key-f" class="key"><ButtonLabel class="lbl">F</ButtonLabel></Button><Button id="key-g" class="key"><ButtonLabel class="lbl">G</ButtonLabel></Button><Button id="key-h" class="key"><ButtonLabel class="lbl">H</ButtonLabel></Button><Button id="key-j" class="key"><ButtonLabel class="lbl">J</ButtonLabel></Button><Button id="key-k" class="key"><ButtonLabel class="lbl">K</ButtonLabel></Button><Button id="key-l" class="key"><ButtonLabel class="lbl">L</ButtonLabel></Button></div>
+    <div class="keys"><Button id="key-z" class="key"><ButtonLabel class="lbl">Z</ButtonLabel></Button><Button id="key-x" class="key"><ButtonLabel class="lbl">X</ButtonLabel></Button><Button id="key-c" class="key"><ButtonLabel class="lbl">C</ButtonLabel></Button><Button id="key-v" class="key"><ButtonLabel class="lbl">V</ButtonLabel></Button><Button id="key-b" class="key"><ButtonLabel class="lbl">B</ButtonLabel></Button><Button id="key-n" class="key"><ButtonLabel class="lbl">N</ButtonLabel></Button><Button id="key-m" class="key"><ButtonLabel class="lbl">M</ButtonLabel></Button><Button id="key-q-mark" class="key"><ButtonLabel class="lbl">?</ButtonLabel></Button></div>
     <div class="row">
-      <Button id="key-back" class="btn"><ButtonIcon><Delete></Delete></ButtonIcon><ButtonLabel>Delete</ButtonLabel></Button>
-      <Button id="key-space" class="btn space"><ButtonLabel>Space</ButtonLabel></Button>
+      <Button id="key-back" class="btn"><ButtonIcon><Delete></Delete></ButtonIcon><ButtonLabel class="lbl">Delete</ButtonLabel></Button>
+      <Button id="key-space" class="btn space"><ButtonLabel class="lbl">Space</ButtonLabel></Button>
     </div>
     <div class="row">
-      <Button id="ask-cancel" class="btn"><ButtonIcon><X></X></ButtonIcon><ButtonLabel>Back</ButtonLabel></Button>
-      <Button id="ask-go" class="btn go"><ButtonIcon><Sparkles></Sparkles></ButtonIcon><ButtonLabel id="ask-go-label">Teach me</ButtonLabel></Button>
+      <Button id="ask-cancel" class="btn"><ButtonIcon><X></X></ButtonIcon><ButtonLabel class="lbl">Back</ButtonLabel></Button>
+      <Button id="ask-go" class="btn go"><ButtonIcon><Sparkles></Sparkles></ButtonIcon><ButtonLabel class="lbl" id="ask-go-label">Teach me</ButtonLabel></Button>
     </div>
   </div>
 
@@ -133,22 +135,22 @@
     <div id="palace-howto" class="hint">Pinch a memory to turn it over.</div>
     <Button id="btn-chain" class="btn">
       <ButtonIcon><Link></Link></ButtonIcon>
-      <ButtonLabel id="btn-chain-label">Rebuild the chain</ButtonLabel>
+      <ButtonLabel class="lbl" id="btn-chain-label">Rebuild the chain</ButtonLabel>
     </Button>
     <div class="row">
       <Button id="btn-refit" class="btn">
         <ButtonIcon><RefreshCw></RefreshCw></ButtonIcon>
-        <ButtonLabel>Re-fit to room</ButtonLabel>
+        <ButtonLabel class="lbl">Re-fit to room</ButtonLabel>
       </Button>
       <Button id="btn-new" class="btn">
         <ButtonIcon><Plus></Plus></ButtonIcon>
-        <ButtonLabel>New palace</ButtonLabel>
+        <ButtonLabel class="lbl">New palace</ButtonLabel>
       </Button>
     </div>
     <div class="row">
       <Button id="btn-switch" class="btn">
         <ButtonIcon><Library></Library></ButtonIcon>
-        <ButtonLabel id="btn-switch-label">Switch palace</ButtonLabel>
+        <ButtonLabel class="lbl" id="btn-switch-label">Switch palace</ButtonLabel>
       </Button>
     </div>
   </div>
@@ -156,38 +158,38 @@
   <div class="section">
     <Button id="btn-access" class="btn">
       <ButtonIcon><Accessibility></Accessibility></ButtonIcon>
-      <ButtonLabel id="btn-access-label">Comfort and access</ButtonLabel>
+      <ButtonLabel class="lbl" id="btn-access-label">Comfort and access</ButtonLabel>
     </Button>
   </div>
   <div id="section-access" class="section" style="display: none">
     <div class="row">
       <Button id="acc-dwell" class="btn">
         <ButtonIcon><Eye></Eye></ButtonIcon>
-        <ButtonLabel id="acc-dwell-label">Look to select: off</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-dwell-label">Look to select: off</ButtonLabel>
       </Button>
       <Button id="acc-contrast" class="btn">
         <ButtonIcon><Contrast></Contrast></ButtonIcon>
-        <ButtonLabel id="acc-contrast-label">High contrast: off</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-contrast-label">High contrast: off</ButtonLabel>
       </Button>
     </div>
     <div class="row">
       <Button id="acc-large" class="btn">
         <ButtonIcon><ZoomIn></ZoomIn></ButtonIcon>
-        <ButtonLabel id="acc-large-label">Larger tiles: off</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-large-label">Larger tiles: off</ButtonLabel>
       </Button>
       <Button id="acc-calm" class="btn">
         <ButtonIcon><Wind></Wind></ButtonIcon>
-        <ButtonLabel id="acc-calm-label">Calm motion: off</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-calm-label">Calm motion: off</ButtonLabel>
       </Button>
     </div>
     <div class="row">
       <Button id="acc-speak" class="btn">
         <ButtonIcon><Speech></Speech></ButtonIcon>
-        <ButtonLabel id="acc-speak-label">Read aloud: off</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-speak-label">Read aloud: off</ButtonLabel>
       </Button>
       <Button id="acc-sound" class="btn">
         <ButtonIcon><Volume2></Volume2></ButtonIcon>
-        <ButtonLabel id="acc-sound-label">Sound: on</ButtonLabel>
+        <ButtonLabel class="lbl" id="acc-sound-label">Sound: on</ButtonLabel>
       </Button>
     </div>
   </div>

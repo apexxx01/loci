@@ -475,7 +475,7 @@ export class PalaceSystem extends createSystem({
     setStatus(
       res.via === 'architect'
         ? `Every picture now lives on its object (${secs} s). Pinch a memory to see it.`
-        : 'Pictures pinned to their objects (offline). Pinch a memory to see it.',
+        : 'Every memory is on its object. Pinch one to see it.',
     );
   }
 
