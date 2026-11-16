@@ -414,7 +414,11 @@ export function verifyPrompt(title: string, stages: VerifyStage[]): string {
 }
 
 export function vetVerify(raw: unknown, stages: VerifyStage[]): { index: number; issue: string }[] {
-  const parsed = ArchitectVerifySchema.safeParse(raw);
+  const r = (raw ?? {}) as { flags?: unknown };
+  const flags = Array.isArray(r.flags)
+    ? r.flags.filter((f: { index?: unknown }) => Number.isInteger(f?.index) && (f.index as number) >= 0 && (f.index as number) < stages.length).slice(0, 24)
+    : r.flags;
+  const parsed = ArchitectVerifySchema.safeParse({ flags });
   if (!parsed.success) return [];
   const seen = new Set<number>();
   const source = stages.map((s) => `${s.cue} ${s.answer} ${s.why ?? ''} ${s.myth ?? ''} ${s.fact ?? ''}`).join(' ');
