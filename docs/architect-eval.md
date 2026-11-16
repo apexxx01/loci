@@ -1,6 +1,6 @@
 # Palace Architect: live teach-mode evaluation
 
-Run: 16 Nov 2026, 00:25 IST (2026-11-15T18:55:07.913Z UTC start, 2026-11-15T19:05:51.902Z UTC end), against `https://loci-vr.vercel.app/api/architect`.
+Run: 16 Nov 2026, 15:43 IST (2026-11-16T10:13:56.489Z UTC start, 2026-11-16T10:24:29.328Z UTC end), against `https://loci-vr.vercel.app/api/architect`.
 
 Command:
 
@@ -17,37 +17,37 @@ Each topic was sent once as `POST {mode: "teach", topic, audience}`, one at a ti
 | Topics | 20 |
 | Passed (deck with 3 or more stages) | 20 of 20 (100%) |
 | Median stages per concept | 4 |
-| Myth checks kept | 82 of 87 stages |
-| Scenes replaced by the safety filter | 0 |
-| Median server time | 6112 ms |
-| Median wall time | 6234 ms |
-| Primary model (from GET) | gemini-3.8-flash |
+| Myth checks kept | 83 of 88 stages |
+| Scenes replaced by the safety filter | 2 |
+| Median server time | 2655 ms |
+| Median wall time | 2756 ms |
+| Primary model (from GET) | gemini-3.5-flash-lite |
 | Models that answered | gemini-3.5-flash-lite (20) |
 
 ## Per topic
 
 | # | Topic | Domain | Audience | Result | Stages | Myth checks kept | Model | Server ms | Wall ms |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | How a vaccine trains the immune system | science | adult | ok | 5 | 4 | gemini-3.5-flash-lite | 4997 | 5075 |
-| 2 | How photosynthesis turns sunlight into sugar | science | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2847 | 3005 |
-| 3 | How plate tectonics builds mountains | science | teen | ok | 4 | 4 | gemini-3.5-flash-lite | 6314 | 6392 |
-| 4 | How the Roman Republic became an empire | history | adult | ok | 4 | 1 | gemini-3.5-flash-lite | 6263 | 6350 |
-| 5 | How the printing press helped spread the Reformation | history | adult | ok | 5 | 4 | gemini-3.5-flash-lite | 6844 | 6928 |
-| 6 | What caused the 1929 stock market crash | history / finance | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 7108 | 7180 |
-| 7 | How compound interest grows savings over time | finance | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 6067 | 6145 |
-| 8 | How an index fund works | finance | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2890 | 2970 |
-| 9 | How a UPI payment moves money between two bank accounts | finance / tech | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 6109 | 6242 |
-| 10 | How a bill becomes law in the Indian Parliament | law | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 5899 | 6004 |
-| 11 | How a contract is formed: offer, acceptance and consideration | law | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 6379 | 6443 |
-| 12 | What happens in a criminal case from arrest to verdict | law | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 8027 | 8095 |
-| 13 | How HTTPS keeps a connection private | tech | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 6114 | 6187 |
-| 14 | How a large language model predicts the next word | tech | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 6385 | 6487 |
-| 15 | How Git records and merges changes | tech | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 5840 | 6855 |
-| 16 | How a refrigerator keeps food cold | everyday | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 5772 | 5855 |
-| 17 | How a flush toilet works | everyday | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 6149 | 6226 |
-| 18 | How noise-cancelling headphones work | everyday | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 4294 | 4368 |
-| 19 | Pasted notes: water cycle (7 lines) | pasted notes | teen | ok | 5 | 5 | gemini-3.5-flash-lite | 6486 | 6571 |
-| 20 | Why is the sky blue? | science (child) | child | ok | 4 | 4 | gemini-3.5-flash-lite | 2544 | 2635 |
+| 1 | How a vaccine trains the immune system | science | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2483 | 2690 |
+| 2 | How photosynthesis turns sunlight into sugar | science | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 3194 | 3311 |
+| 3 | How plate tectonics builds mountains | science | teen | ok | 4 | 4 | gemini-3.5-flash-lite | 2417 | 2527 |
+| 4 | How the Roman Republic became an empire | history | adult | ok | 4 | 1 | gemini-3.5-flash-lite | 2447 | 2598 |
+| 5 | How the printing press helped spread the Reformation | history | adult | ok | 4 | 2 | gemini-3.5-flash-lite | 2783 | 2868 |
+| 6 | What caused the 1929 stock market crash | history / finance | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 3230 | 3351 |
+| 7 | How compound interest grows savings over time | finance | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2577 | 2649 |
+| 8 | How an index fund works | finance | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2723 | 2806 |
+| 9 | How a UPI payment moves money between two bank accounts | finance / tech | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 2849 | 2935 |
+| 10 | How a bill becomes law in the Indian Parliament | law | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2247 | 2315 |
+| 11 | How a contract is formed: offer, acceptance and consideration | law | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2525 | 2598 |
+| 12 | What happens in a criminal case from arrest to verdict | law | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 2891 | 3040 |
+| 13 | How HTTPS keeps a connection private | tech | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2587 | 2692 |
+| 14 | How a large language model predicts the next word | tech | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2066 | 2148 |
+| 15 | How Git records and merges changes | tech | adult | ok | 5 | 5 | gemini-3.5-flash-lite | 3288 | 3720 |
+| 16 | How a refrigerator keeps food cold | everyday | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2517 | 2705 |
+| 17 | How a flush toilet works | everyday | adult | ok | 6 | 6 | gemini-3.5-flash-lite | 3710 | 3841 |
+| 18 | How noise-cancelling headphones work | everyday | adult | ok | 4 | 4 | gemini-3.5-flash-lite | 2495 | 2598 |
+| 19 | Pasted notes: water cycle (7 lines) | pasted notes | teen | ok | 5 | 5 | gemini-3.5-flash-lite | 2897 | 3013 |
+| 20 | Why is the sky blue? | science (child) | child | ok | 4 | 4 | gemini-3.5-flash-lite | 5169 | 5245 |
 
 The pasted notes sent for row 19:
 
@@ -65,52 +65,52 @@ Water cycle notes (Year 9 geography)
 
 Title and stages exactly as the API returned them (after server-side vetting). Glyph emoji are omitted.
 
-### "Why the sky is blue"
+### "Why is the sky blue?"
 
-Topic: "Why is the sky blue?", audience: child, model: gemini-3.5-flash-lite, server 2544 ms.
+Topic: "Why is the sky blue?", audience: child, model: gemini-3.5-flash-lite, server 5169 ms.
 
-1. **Sunlight has all colors**: Sunlight looks white, but it is actually made of every color of the rainbow mixed together.
-   - Why: White light from the sun carries all the colors of light traveling through space as waves.
-   - Scene: A giant sun wearing a superhero cape made of all the colors of the rainbow, spinning around.
-   - Myth check: wrong "Sunlight is pure white light that contains no other colors until it hits a cloud." / right "Sunlight is secretly made of all the colors of the rainbow mixed together."
-   - Leads on: travels through space
-2. **Light hits the air**: The colorful sunlight reaches Earth and crashes into tiny invisible gas pieces in the sky.
-   - Why: Earth is wrapped in an atmosphere full of tiny invisible bits of air called molecules that trap and bounce light.
-   - Scene: A million tiny bouncy green trampoline sponges floating in the air, catching bouncing laser beams.
-   - Myth check: wrong "Sunlight passes straight through the air without touching anything until it reaches the ground." / right "Sunlight crashes into tiny gas pieces floating all around in the air."
-   - Leads on: bounces off gas
-3. **Blue light scatters**: Blue light waves travel in tiny short steps, so they bounce off the gas pieces in every direction.
-   - Why: Short light waves bump into tiny things much easier than long red waves, making blue bounce away fast.
-   - Scene: Tiny blue bouncy balls pinballing everywhere in a giant room full of sleeping giant clouds.
-   - Myth check: wrong "Red light bounces around the most because it is the strongest color in sunlight." / right "Blue light bounces around the most because its waves are short and easy to scatter."
-   - Leads on: fills the sky
-4. **We see blue overhead**: All the scattered blue light spreads across the whole sky, and our eyes see it from everywhere.
-   - Why: When we look up, we are seeing all that bounced blue light shining down on us from the air.
-   - Scene: A happy child wearing giant blue sunglasses, looking up at a sky made of sparkling blue paint.
-   - Myth check: wrong "The sky is blue because it is acting like a giant mirror reflecting the salty ocean." / right "The sky is blue because air scatters blue light waves all around us."
+1. **Sunlight has all colors**: Sunlight looks white to us, but it is actually made of every color of the rainbow mixed together.
+   - Why: White light from the sun carries all the colors of the light spectrum travelling together in waves.
+   - Scene: A giant glowing sun squeezes a rainbow toothpaste tube across the whole sky.
+   - Myth check: wrong "Sunlight is purely white light and contains no other colors inside it." / right "Sunlight is actually a mixture of all the colors of the rainbow combined."
+   - Leads on: travels down to touch the air
+2. **Light hits the air**: The sunbeams crash into tiny invisible gas particles floating all around our planet.
+   - Why: Earth is wrapped in a thick blanket of air made of gases like nitrogen and oxygen.
+   - Scene: Bouncing pinballs made of sunlight crash into millions of tiny floating soap bubbles.
+   - Myth check: wrong "Sunlight passes straight through the air without touching any gases or particles." / right "Sunlight constantly crashes into tiny gas particles floating everywhere in the air."
+   - Leads on: bounces blue light away
+3. **Blue bounces around**: Blue light travels in short, choppy waves that crash into gas and scatter in every direction.
+   - Why: Shorter light waves hit obstacles much easier than long waves, causing them to bounce wildly.
+   - Scene: Little blue frogs hop crazily in every direction off tiny trampoline clouds.
+   - Myth check: wrong "Blue light travels in long straight lines and passes through the air without scattering." / right "Blue light travels in short waves that scatter in every direction when hitting gas."
+   - Leads on: fills the sky above
+4. **We see blue sky**: Our eyes catch all this scattered blue light bouncing around above us, so the sky looks blue.
+   - Why: The scattered blue light spreads all across the sky dome before reaching our eyes.
+   - Scene: A happy child wearing giant blue sunglasses looks up and smiles at the glowing roof.
+   - Myth check: wrong "The sky looks blue because it reflects the color of the deep ocean water." / right "The sky looks blue because scattered blue sunlight reaches our eyes from everywhere."
 
 ### "How compound interest grows savings"
 
-Topic: "How compound interest grows savings over time", audience: adult, model: gemini-3.5-flash-lite, server 6067 ms.
+Topic: "How compound interest grows savings over time", audience: adult, model: gemini-3.5-flash-lite, server 2577 ms.
 
-1. **Principal earns initial interest**: Your deposited money earns a percentage based on the starting balance over a set time period.
-   - Why: Banks pay you to use your money, providing a baseline return that fuels future growth.
-   - Scene: A shiny gold coin sits on a table, slowly sweating a smaller silver coin next to itself.
-   - Myth check: wrong "Interest is calculated using the total amount currently in the account including previous earnings." / right "Initial interest is calculated only on the original deposit amount during the first cycle."
-   - Leads on: adds earnings back into the balance
-2. **Interest joins the principal**: The interest earned in the first period is added directly to your original starting balance.
-   - Why: Merging earnings with the base amount increases the total size of the pot for the next calculation.
-   - Scene: A tiny silver coin melts into the gold coin, visibly swelling the original coin to a larger size.
-   - Myth check: wrong "The interest earned is automatically sent to a separate account so the main balance never changes." / right "The interest earned is merged directly into the main balance to increase the total amount."
-   - Leads on: enables earning interest on interest
-3. **Growing balance generates more**: The next interest payment is calculated using the new, larger total including past earnings.
-   - Why: A larger base number naturally produces a bigger payout when multiplied by the exact same percentage rate.
-   - Scene: The swollen gold coin drops bigger rain droplets of silver onto the table below.
-   - Myth check: wrong "Interest payments stay the exact same size every single period because the percentage rate increases." / right "Interest payments grow larger each period because the base amount being multiplied keeps increasing."
-   - Leads on: accelerates the overall growth rate
-4. **Exponential snowball effect occurs**: The speed of wealth accumulation accelerates rapidly over time as earnings continuously compound upon themselves.
-   - Why: Cumulative layering creates a curve that shoots upward steeply rather than growing in a straight, predictable line.
-   - Scene: A tiny snowball rolls down a short hill, instantly transforming into a massive boulder crushing a fence.
-   - Myth check: wrong "Savings grow in a straight, steady diagonal line where the exact same amount is added every year." / right "Savings grow in an accelerating curve where the amount added gets bigger every single year."
+1. **Earning initial interest**: Money placed in a savings account earns extra money called interest based on the principal amount.
+   - Why: Banks pay you to use your deposited money for their own lending activities.
+   - Scene: A shiny golden coin sitting in a glass jar suddenly splits into the original coin plus a smaller silver coin.
+   - Myth check: wrong "Interest is a flat fee paid by the bank once per year as a holiday bonus." / right "Interest is calculated continuously or periodically as a percentage of your total current balance."
+   - Leads on: adds this new money to the total
+2. **Adding to the principal**: The newly earned interest joins your original deposit to form a larger total balance.
+   - Why: Your account balance grows so that future calculations use a bigger starting figure.
+   - Scene: A tiny silver coin melts into the original golden coin, making the single coin visibly larger and heavier.
+   - Myth check: wrong "Earned interest is automatically separated and stored in a different untouchable account." / right "Earned interest merges directly into your main balance, increasing the amount eligible for future gains."
+   - Leads on: multiplies the next percentage cycle
+3. **Generating interest on interest**: The next interest payment is calculated using the new, larger total rather than just the original deposit.
+   - Why: Percentage growth naturally yields bigger returns when applied to a larger overall sum.
+   - Scene: A larger golden coin splits into the big coin plus two silver coins instead of just one.
+   - Myth check: wrong "Interest is always calculated strictly against the original starting amount forever." / right "Compound interest calculates earnings on both the original principal and all accumulated past interest."
+   - Leads on: accelerates the growth speed over time
+4. **Snowballing over time**: The cycle repeats continuously, causing the total savings to grow faster and faster over long periods.
+   - Why: Exponential growth curves turn small early gains into massive totals if given enough time.
+   - Scene: A small rolling snowball rapidly transforms into a massive glowing boulder crashing across the room.
+   - Myth check: wrong "Compound interest grows steadily at the exact same straight-line speed every single year." / right "Compound interest accelerates exponentially, meaning the growth gets significantly faster with each passing year."
 
 Raw results for every topic, including full decks: [architect-eval.json](architect-eval.json).

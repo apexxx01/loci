@@ -2,23 +2,23 @@
   "summary": {
     "url": "https://loci-vr.vercel.app/api/architect",
     "command": "node scripts/eval-architect.mjs",
-    "startedAt": "2026-11-15T18:55:07.913Z",
-    "finishedAt": "2026-11-15T19:05:51.902Z",
-    "startedAtIST": "16 Nov 2026, 00:25 IST",
-    "primaryModel": "gemini-3.8-flash",
+    "startedAt": "2026-11-16T10:13:56.489Z",
+    "finishedAt": "2026-11-16T10:24:29.328Z",
+    "startedAtIST": "16 Nov 2026, 15:43 IST",
+    "primaryModel": "gemini-3.5-flash-lite",
     "fallbacks": [
-      "gemini-3.5-flash-lite",
+      "gemini-3.8-flash",
       "gemini-3.6-flash"
     ],
     "topics": 20,
     "passed": 20,
     "passRate": 1,
-    "medianServerMs": 6112,
-    "medianWallMs": 6234,
+    "medianServerMs": 2655,
+    "medianWallMs": 2756,
     "medianStages": 4,
-    "stagesTotal": 87,
-    "mythChecksTotal": 82,
-    "repairedTotal": 0,
+    "stagesTotal": 88,
+    "mythChecksTotal": 83,
+    "repairedTotal": 2,
     "models": {
       "gemini-3.5-flash-lite": 20
     }
@@ -32,99 +32,90 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 5,
+      "stages": 4,
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 4997,
-      "wallMs": 5075,
+      "serverMs": 2483,
+      "wallMs": 2690,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi72gq2",
+        "id": "cx_mwj3w2fu",
         "title": "How a vaccine trains the immune system",
-        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi72gq2:0",
-            "cue": "Harmless piece enters",
-            "answer": "A tiny, harmless piece of a virus is injected into the body.",
-            "why": "This acts as a preview, letting the defense network study the threat without facing an actual infection.",
-            "scene": "A tiny, harmless toy robot shaped like a virus sits politely on a velvet cushion.",
+            "id": "cx_mwj3w2fu:0",
+            "cue": "Injected with harmless fragments",
+            "answer": "A vaccine introduces harmless pieces of a virus or bacteria into the body.",
+            "why": "This safely exposes your immune cells to the invader without causing any actual disease or illness.",
+            "scene": "A tiny, friendly cardboard cutout of a virus sits politely on a microscopic velvet chair.",
             "glyphs": [
-              "🤖",
-              "🛋️"
+              "🦠",
+              "🪑",
+              "📦"
             ],
             "order": 0,
             "check": {
-              "wrong": "The injection contains a weakened live virus that always causes a mild version of the disease.",
-              "right": "The injection only contains a harmless fragment or blueprint, never the whole live virus."
+              "wrong": "Vaccines inject a mild, weakened form of the live disease that can sometimes still cause you to get sick.",
+              "right": "Vaccines contain only harmless fragments or blueprints of the pathogen, never the live infectious disease."
             },
-            "link": "Triggers the guard cells"
+            "link": "Triggers the specialized white blood cells to investigate"
           },
           {
-            "id": "cx_mwi72gq2:1",
-            "cue": "Guard cells sound alarm",
-            "answer": "Specialized guard cells spot the foreign piece and raise the alarm.",
-            "why": "The immune system constantly patrols for strangers, and any unrecognized shape instantly commands attention.",
-            "scene": "A wide-eyed guard owl blows a giant brass trumpet upon seeing the toy robot.",
+            "id": "cx_mwj3w2fu:1",
+            "cue": "White blood cells spot intruder",
+            "answer": "Specialized immune cells called macrophages spot the foreign fragments and sound the alarm.",
+            "why": "Detection is vital because the body must recognize that these specific molecules do not belong there.",
+            "scene": "A glowing security guard with a magnifying glass shines a bright spotlight on the cardboard virus.",
             "glyphs": [
-              "🦉",
-              "🎺"
+              "🔍",
+              "🔦",
+              "🚨"
             ],
             "order": 1,
-            "link": "Recruits the master molders"
+            "check": {
+              "wrong": "White blood cells immediately destroy all foreign molecules floating in the blood without needing to inspect them first.",
+              "right": "Specialized immune cells must first inspect and identify specific foreign molecules before mounting a targeted response."
+            },
+            "link": "Prompts the production of custom chemical weapons"
           },
           {
-            "id": "cx_mwi72gq2:2",
-            "cue": "Master molders forge weapons",
-            "answer": "Special cells called lymphocytes design custom proteins called antibodies to fit the intruder.",
-            "why": "Every invader requires a bespoke molecular handcuffs shape to neutralize it effectively.",
-            "scene": "Busy dwarf blacksmiths hammer glowing metal keys specifically shaped to lock the toy robot.",
+            "id": "cx_mwj3w2fu:2",
+            "cue": "B cells manufacture matching antibodies",
+            "answer": "B cells build custom Y-shaped proteins called antibodies designed to latch onto the invader.",
+            "why": "Antibodies must be custom-shaped to fit the specific invader like a key fitting precisely into a lock.",
+            "scene": "A busy little workshop where tiny smiths hammer out millions of shiny, golden Y-shaped metal keys.",
             "glyphs": [
-              "🔨",
-              "🗝️"
+              "🛠️",
+              "🔑",
+              "🏭"
             ],
             "order": 2,
             "check": {
-              "wrong": "The body uses leftover generic antibodies from previous colds to fight the new vaccine.",
-              "right": "The immune system manufactures brand-new, customized antibodies exclusively shaped for this specific threat."
+              "wrong": "The body uses the exact same generic antibodies to fight off every different type of virus or bacteria.",
+              "right": "The body manufactures unique, custom-shaped antibodies tailored specifically to fit the exact invader."
             },
-            "link": "Stores the memory blueprints"
+            "link": "Leaves behind trained memory cells for the future"
           },
           {
-            "id": "cx_mwi72gq2:3",
-            "cue": "Memory cells store blueprints",
-            "answer": "Long-lasting memory cells retain the exact blueprint of the intruder's shape for decades.",
-            "why": "Without these archives, the body would forget the lesson and have to start from scratch next time.",
-            "scene": "An old librarian carefully slides a glowing blueprint scroll into a vault marked with a shield.",
+            "id": "cx_mwj3w2fu:3",
+            "cue": "Memory cells patrol for decades",
+            "answer": "Long-lived memory cells remain in the bloodstream to remember the invader for years.",
+            "why": "These veteran cells ensure your body can respond instantly if the real pathogen ever tries to attack.",
+            "scene": "An old, wise owl wearing a detective hat sits guard at the gateway, holding a wanted poster.",
             "glyphs": [
+              "🦉",
               "📜",
               "🛡️"
             ],
             "order": 3,
             "check": {
-              "wrong": "Antibodies float freely in the bloodstream forever, constantly searching for invaders.",
-              "right": "Antibodies fade away over time, but memory cells remain ready to quickly produce more when needed."
-            },
-            "link": "Defeats real invaders instantly"
-          },
-          {
-            "id": "cx_mwi72gq2:4",
-            "cue": "Real invaders defeated instantly",
-            "answer": "If the real virus ever attacks, memory cells recognize it and destroy it before illness starts.",
-            "why": "Previous training allows a lightning-fast response that stops the pathogen from multiplying.",
-            "scene": "A lightning bolt instantly zaps a real green monster before it can take a single step.",
-            "glyphs": [
-              "⚡",
-              "👾"
-            ],
-            "order": 4,
-            "check": {
-              "wrong": "Vaccines create an impenetrable physical shield that prevents viruses from ever entering the body.",
-              "right": "Vaccines let viruses enter, but destroy them so rapidly that you never experience symptoms."
+              "wrong": "Once the vaccine fragments are cleared away, the immune system forgets the lesson and returns to its original state.",
+              "right": "Long-lived memory cells persist in the body for years to provide rapid defense against future infections."
             }
           }
         ]
@@ -138,90 +129,108 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 4,
-      "mythChecks": 4,
+      "stages": 5,
+      "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 2847,
-      "wallMs": 3005,
+      "serverMs": 3194,
+      "wallMs": 3311,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi72m8v",
-        "title": "How photosynthesis turns sunlight",
-        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "id": "cx_mwj3w61j",
+        "title": "How photosynthesis turns sunlight into sugar",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi72m8v:0",
-            "cue": "Capturing solar energy",
-            "answer": "Chlorophyll pigments inside plant chloroplasts absorb incoming sunlight to power the entire process.",
-            "why": "Light energy is required to split water molecules and release the electrons needed for chemical reactions.",
-            "scene": "A tiny green solar panel on a leaf drinks in blinding golden laser beams from the sky.",
+            "id": "cx_mwj3w61j:0",
+            "cue": "Chlorophyll captures solar energy",
+            "answer": "Green pigment molecules inside chloroplasts absorb incoming photons from sunlight.",
+            "why": "This absorption strips electrons away from water molecules, providing the raw electrical power needed to drive the entire reaction.",
+            "scene": "A microscopic solar panel glowing bright emerald as tiny bright yellow light bullets crash into it.",
             "glyphs": [
-              "🌱",
+              "🔋",
               "☀️",
-              "🔋"
+              "🌿"
             ],
             "order": 0,
             "check": {
-              "wrong": "Plants use sunlight directly as food just like humans eat sugar for instant energy.",
-              "right": "Plants use sunlight only as a power source to manufacture their own sugar internally."
+              "wrong": "Plants use sunlight directly to bake carbon dioxide and water into sugar like an oven.",
+              "right": "Sunlight is only used to generate temporary power carriers, not to bake sugar directly."
             },
-            "link": "Triggers water splitting"
+            "link": "Energized electrons travel down a protein chain."
           },
           {
-            "id": "cx_mwi72m8v:1",
-            "cue": "Splitting water molecules",
-            "answer": "Absorbed light energy splits water molecules into oxygen, protons, and free electrons.",
-            "why": "Water provides the essential raw materials and replaces the electrons that chlorophyll lost to sunlight.",
-            "scene": "A glowing blue water droplet shatters violently under a beam of light, releasing tiny bubbles.",
+            "id": "cx_mwj3w61j:1",
+            "cue": "Water molecules split apart",
+            "answer": "Enzymes break water molecules apart into oxygen gas, protons, and free electrons.",
+            "why": "Splitting water is the only way to continuously replenish the electrons that the chlorophyll lost to the sunlight.",
+            "scene": "A miniature pair of silver scissors slicing dripping water droplets into tiny floating gas bubbles.",
             "glyphs": [
               "💧",
-              "⚡",
+              "✂️",
               "🫧"
             ],
             "order": 1,
             "check": {
-              "wrong": "Water is only used by plants to keep their stems upright and leaves from drooping.",
-              "right": "Water is chemically torn apart inside cells to harvest essential electrons and oxygen."
+              "wrong": "Plants absorb water simply to keep their leaves cool and hydrated on hot days.",
+              "right": "Plants chemically crack water apart to harvest its essential electrons for energy production."
             },
-            "link": "Pumps protons forward"
+            "link": "Protons and electrons build a battery charge."
           },
           {
-            "id": "cx_mwi72m8v:2",
-            "cue": "Building energy carriers",
-            "answer": "High-energy molecules of ATP and NADPH are forged to store the harvested solar power temporarily.",
-            "why": "These temporary energy carriers are robust enough to transport power out of the chloroplast's reaction center.",
-            "scene": "Tiny glowing battery packs are frantically stitched together by microscopic factory workers.",
+            "id": "cx_mwj3w61j:2",
+            "cue": "ATP batteries are charged",
+            "answer": "Flowing protons snap chemical tags onto molecules to create rechargeable energy packets called ATP.",
+            "why": "ATP acts as universal cellular currency, storing raw solar energy in chemical bonds for later use.",
+            "scene": "Tiny glowing battery packs clicking into microscopic charging slots along a factory wall.",
             "glyphs": [
-              "🔋",
               "⚡",
+              "🔋",
               "🏭"
             ],
             "order": 2,
             "check": {
-              "wrong": "Sunlight is converted directly into finished table sugar in a single instant step.",
-              "right": "Sunlight energy is first stored in temporary cellular batteries before making sugar."
+              "wrong": "Plants store sunlight overnight inside glowing pockets of liquid light inside their stems.",
+              "right": "Sunlight energy is converted into chemical bonds within rechargeable molecules like ATP."
             },
-            "link": "Powers sugar creation"
+            "link": "Charged batteries power the next chemical cycle."
           },
           {
-            "id": "cx_mwi72m8v:3",
-            "cue": "Assembling sugar molecules",
-            "answer": "Enzymes use stored energy and carbon dioxide from the air to build glucose sugar.",
-            "why": "Glucose provides a stable, long-term energy storage form that the plant can use for growth.",
-            "scene": "A microscopic baker kneads invisible air gas and glowing powder into sweet white crystals.",
+            "id": "cx_mwj3w61j:3",
+            "cue": "Carbon dioxide enters leaves",
+            "answer": "Microscopic pores on the leaf underside suck in invisible carbon dioxide gas from the air.",
+            "why": "Carbon dioxide supplies the essential carbon atoms needed to build the backbone of physical sugar molecules.",
+            "scene": "A tiny open trapdoor on a giant leaf swallowing swirling grey clouds of gas.",
             "glyphs": [
-              "🌬️",
-              "🧪",
-              "🍬"
+              "🍃",
+              "🕳️",
+              "💨"
             ],
             "order": 3,
             "check": {
-              "wrong": "Plants pull solid sugar directly up through their roots from the rich dark soil.",
-              "right": "Plants build every single molecule of sugar themselves from thin air and water."
+              "wrong": "Plants pull all their structural growth material up exclusively through their roots from the soil.",
+              "right": "Most of a plant's solid mass comes from invisible carbon dioxide gas captured from the air."
+            },
+            "link": "Carbon atoms stitch together into sweet syrup."
+          },
+          {
+            "id": "cx_mwj3w61j:4",
+            "cue": "Calvin cycle builds sugar",
+            "answer": "The plant uses stored ATP energy to stitch captured carbon atoms into glucose sugar.",
+            "why": "Glucose provides stable, long-term chemical storage that the plant can eat for fuel or use to build wood.",
+            "scene": "A bustling assembly line weaving glowing carbon beads into sticky white sugar cubes.",
+            "glyphs": [
+              "⚙️",
+              "🍬",
+              "🌳"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Sunlight fuses directly with carbon dioxide in a single instant flash to create sugar.",
+              "right": "A complex cycle uses stored battery energy to painstakingly stitch carbon atoms together step by step."
             }
           }
         ]
@@ -239,86 +248,82 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6314,
-      "wallMs": 6392,
+      "serverMs": 2417,
+      "wallMs": 2527,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi72q1u",
-        "title": "How plate tectonics builds mountains",
+        "id": "cx_mwj3wa4w",
+        "title": "How Plate Tectonics Builds Mountains",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi72q1u:0",
-            "cue": "Floating crust plates move",
-            "answer": "Massive slabs of Earth's solid crust float on a churning ocean of hot melted rock beneath.",
-            "why": "Heat rising from the deep core creates massive underground currents that slowly drag these rocky plates around the globe.",
-            "scene": "Giant floating puzzle pieces drift across a giant glowing soup pot while bubbling lava pops everywhere.",
+            "id": "cx_mwj3wa4w:0",
+            "cue": "Convection currents churn below",
+            "answer": "Hot magma deep underground slowly circulates in giant churning loops driven by core heat.",
+            "why": "This relentless underground movement acts like a massive conveyor belt, constantly pushing and pulling the Earth's hard outer shell.",
+            "scene": "A giant glowing pot of spaghetti sauce bubbling underground, driven by a roaring dragon furnace.",
             "glyphs": [
-              "🧩",
-              "🌋",
+              "🔥",
               "🍲"
             ],
             "order": 0,
             "check": {
-              "wrong": "The continents move because the oceans push them around like giant floating boats.",
-              "right": "The plates move because they are dragged by churning currents of hot rock deep underground."
+              "wrong": "The Earth's crust floats on a deep underground ocean of liquid water.",
+              "right": "The crust floats on slowly churning, semi-solid rock mantle."
             },
-            "link": "Drifts two plates directly into a slow-motion head-on collision"
+            "link": "Drags the rigid tectonic plates sideways"
           },
           {
-            "id": "cx_mwi72q1u:1",
-            "cue": "Plates collide head on",
-            "answer": "Two continental plates smash directly into each other with unimaginable, planet-shaking force.",
-            "why": "Neither plate can sink because both are made of light rock, leaving them nowhere to go but up.",
-            "scene": "Two giant angry bulldozers made of solid stone crash into each other in a cloud of dust.",
+            "id": "cx_mwj3wa4w:1",
+            "cue": "Tectonic plates collide head-on",
+            "answer": "Two massive continental plates smash directly into each other with unstoppable geological force.",
+            "why": "Neither plate can sink because both are made of lightweight rock, so they have nowhere to go but up.",
+            "scene": "Two giant bulldozers crashing head-on in a giant sandbox, piling up dirt between them.",
             "glyphs": [
               "🚜",
-              "💥",
-              "💨"
+              "💥"
             ],
             "order": 1,
             "check": {
-              "wrong": "When two plates collide, one always immediately dives straight down into the deep core.",
-              "right": "When two light continental plates collide, neither can sink, so they smash upward together."
+              "wrong": "Plates crash because the Earth is rapidly shrinking in size every single year.",
+              "right": "Plates crash because new crust is constantly being created elsewhere by seafloor spreading."
             },
-            "link": "Crushes and squeezes the rock layers skyward"
+            "link": "Crushes and folds the rocky ground"
           },
           {
-            "id": "cx_mwi72q1u:2",
-            "cue": "Rock folds and rises",
-            "answer": "Solid stone wrinkles and folds like a soft rug being pushed across a slippery floor.",
-            "why": "Extreme sideways pressure forces rigid rock to bend and buckle upward over millions of years without breaking.",
-            "scene": "A giant green rug being pushed against a wall, forming huge folds that look like giant stone waves.",
+            "id": "cx_mwj3wa4w:2",
+            "cue": "Earth crust crumples upward",
+            "answer": "The intense sideways pressure wrinkles and folds the solid rock layers toward the sky.",
+            "why": "Solid rock behaves like a giant rug being pushed from both ends, forcing huge folds upward into peaks.",
+            "scene": "A giant plush carpet being shoved across a living room floor until it forms a massive ridge.",
             "glyphs": [
               "🧶",
-              "🌊",
               "📈"
             ],
             "order": 2,
             "check": {
-              "wrong": "Mountains are formed when volcanoes erupt and pile up lava layer by layer into peaks.",
-              "right": "Fold mountains are formed when sideways pressure wrinkles the solid Earth crust upward."
+              "wrong": "Mountains are formed entirely by volcanoes erupting lava high into the air.",
+              "right": "Fold mountains are formed by solid rock buckling under horizontal pressure without volcanoes."
             },
-            "link": "Lifts the crushed stone high into freezing skies"
+            "link": "Piles up immense weight above"
           },
           {
-            "id": "cx_mwi72q1u:3",
-            "cue": "Gravity shapes the peaks",
-            "answer": "Gravity pulls down on the towering stone mass, carving sharp jagged ridges and steep cliffs.",
-            "why": "Ice, wind, and melting snow constantly chip away at the high rock, shaping the jagged mountain peaks we see.",
-            "scene": "A giant ice cream scoop carved out of a mountain peak while snow falls from the sky.",
+            "id": "cx_mwj3wa4w:3",
+            "cue": "Gravity carves jagged peaks",
+            "answer": "Rain, ice, and gravity weather the towering rock masses into sharp, dramatic mountain ridges.",
+            "why": "Erosion sculpts the bulky pile of uplifted rock into the iconic jagged peaks we see today.",
+            "scene": "An artist furiously carving a massive block of giant cheese with a giant ice cream scoop.",
             "glyphs": [
-              "🏔️",
-              "❄️",
+              "🧀",
               "⛏️"
             ],
             "order": 3,
             "check": {
-              "wrong": "Mountains grow taller forever because the plates never stop pushing them up.",
-              "right": "Gravity and weather constantly wear down mountains, balancing the upward push of plate tectonics."
+              "wrong": "Mountains will grow taller forever and eventually reach out into outer space.",
+              "right": "Mountains reach a maximum height where the weight causes them to erode as fast as they rise."
             }
           }
         ]
@@ -334,75 +339,71 @@
       "error": "",
       "stages": 4,
       "mythChecks": 1,
-      "repaired": 0,
+      "repaired": 1,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6263,
-      "wallMs": 6350,
+      "serverMs": 2447,
+      "wallMs": 2598,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi72wj4",
-        "title": "How the Roman Republic Became an Empire",
+        "id": "cx_mwj3wdo1",
+        "title": "How the Roman Republic became an empire",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi72wj4:0",
-            "cue": "Conquests bring vast wealth",
-            "answer": "Victorious foreign wars flooded Rome with incredible riches and massive numbers of enslaved people.",
-            "why": "This sudden influx completely overwhelmed the traditional agrarian economy and transformed the social structure.",
-            "scene": "A towering mountain of glittering gold coins spills out from a temple treasury while chained workers haul heavy crates.",
+            "id": "cx_mwj3wdo1:0",
+            "cue": "Conquests bring massive wealth",
+            "answer": "Rapid military expansion across the Mediterranean floods Rome with unprecedented riches and enslaved labor.",
+            "why": "This sudden influx of wealth destroyed traditional agrarian economics, concentrating land and power into the hands of a few elite generals.",
+            "scene": "Picture conquests bring massive wealth happening right in front of you, glowing as it goes.",
             "glyphs": [
               "💰",
-              "🏛️",
-              "⛓️"
+              "🏛️"
             ],
             "order": 0,
             "check": {
-              "wrong": "Foreign conquest made every Roman citizen rich and prosperous.",
-              "right": "Foreign conquest concentrated extreme wealth among the elite while impoverishing ordinary citizens."
+              "wrong": "Foreign wealth was shared equally among all Roman citizens to fund public housing.",
+              "right": "Foreign wealth concentrated in the hands of wealthy patricians and successful military commanders."
             },
-            "link": "fuels massive inequality and political corruption"
+            "link": "funding ambitious generals"
           },
           {
-            "id": "cx_mwi72wj4:1",
-            "cue": "Warlords buy private armies",
-            "answer": "Ambitious generals recruited poor, landless citizens by promising them land and loot after victory.",
-            "why": "Soldiers became fiercely loyal to their charismatic commanders rather than to the actual Roman state.",
-            "scene": "A wealthy general tosses heavy coin purses to cheering soldiers who eagerly raise their swords in allegiance.",
+            "id": "cx_mwj3wdo1:1",
+            "cue": "Armies loyal to generals",
+            "answer": "Military reforms create professional armies that depend on their generals for land and pay rather than the state.",
+            "why": "Soldiers became fiercely loyal to charismatic commanders who promised them retirement plots, turning national troops into private factions.",
+            "scene": "Thousands of helmeted soldiers carve their general's glowing face into their shields while ignoring standard senatorial banners.",
             "glyphs": [
-              "🤝",
-              "🗡️",
-              "🪙"
+              "🛡️",
+              "🤝"
             ],
             "order": 1,
-            "link": "leads to destructive civil wars"
+            "link": "ignoring senate authority"
           },
           {
-            "id": "cx_mwi72wj4:2",
-            "cue": "Coup by Julius Caesar",
-            "answer": "Julius Caesar crossed a forbidden boundary river with his loyal army and seized control of Rome.",
-            "why": "Military might successfully overrode centuries of republican legal tradition and constitutional checks.",
-            "scene": "A stern commander dramatically urges his horse across a shallow, splashing river under a stormy night sky.",
+            "id": "cx_mwj3wdo1:2",
+            "cue": "Civil wars tear Rome",
+            "answer": "Rivalling generals use their loyal private armies to fight devastating civil wars for supreme political control.",
+            "why": "Decades of internal conflict shattered republican norms and institutions, proving the old government could no longer maintain order.",
+            "scene": "Two giant stone statues of Roman commanders violently smash their swords together in the middle of a crowded forum.",
             "glyphs": [
-              "🐎",
-              "🌊",
-              "👑"
+              "⚔️",
+              "💥"
             ],
             "order": 2,
-            "link": "triggers the rise of absolute rule"
+            "link": "establishing single rule"
           },
           {
-            "id": "cx_mwi72wj4:3",
-            "cue": "Augustus establishes permanent rule",
-            "answer": "The first emperor centralized all political and military power while maintaining the illusion of the republic.",
-            "why": "People accepted autocracy because it finally brought peace after decades of bloody civil conflict.",
-            "scene": "A calm leader sits quietly behind a paper-covered desk while a golden laurel wreath hovers above his head.",
+            "id": "cx_mwj3wdo1:3",
+            "cue": "Augustus seizes absolute power",
+            "answer": "The victor consolidates total control while preserving the illusion of the traditional republic.",
+            "why": "By centralizing executive authority while keeping old titles, he established stable autocracy without triggering another revolution.",
+            "scene": "A clever leader wears a simple magistrate's toga while secretly holding a glowing crown of absolute power behind his back.",
             "glyphs": [
-              "📜",
-              "🌿",
-              "🏛️"
+              "👑",
+              "🎭"
             ],
             "order": 3
           }
@@ -417,99 +418,82 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 5,
-      "mythChecks": 4,
+      "stages": 4,
+      "mythChecks": 2,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6844,
-      "wallMs": 6928,
+      "serverMs": 2783,
+      "wallMs": 2868,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi732yp",
+        "id": "cx_mwj3wh66",
         "title": "How the printing press spread the Reformation",
-        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi732yp:0",
-            "cue": "Printing the Ninety-five Theses",
-            "answer": "A German monk published ninety-five complaints about church practices, which were quickly printed into pamphlets.",
-            "why": "Movable type allowed identical copies to be produced rapidly, bypassing slow handwritten copying.",
-            "scene": "A towering wooden printing press spits out endless stacks of paper covered in inked complaints.",
+            "id": "cx_mwj3wh66:0",
+            "cue": "Printing the initial complaints",
+            "answer": "Mechanical movable type quickly produced thousands of identical copies of critical religious texts.",
+            "why": "Mass production bypassed slow hand-copying by monks, allowing ideas to escape local control instantly.",
+            "scene": "A massive wooden screw press stamps out hundreds of ink-stained papers while a monk weeps nearby.",
             "glyphs": [
               "📰",
-              "⚙️"
+              "🪵",
+              "📜"
             ],
             "order": 0,
-            "link": "pamphlets travel rapidly along trade routes to distant towns"
+            "link": "Mass-produced pamphlets travel along trade routes across Europe."
           },
           {
-            "id": "cx_mwi732yp:1",
-            "cue": "Mass production in German",
-            "answer": "Printers translated the texts from scholarly Latin into the everyday German language spoken by ordinary people.",
-            "why": "Translating the text allowed millions of literate citizens to read and debate the ideas directly for themselves.",
-            "scene": "A massive dictionary glows brightly as Latin words magically transform into everyday German letters.",
+            "id": "cx_mwj3wh66:1",
+            "cue": "Translating into local languages",
+            "answer": "Translating Latin texts into common spoken languages allowed ordinary citizens to read them directly.",
+            "why": "Removing the Latin barrier stripped religious leaders of their monopoly on interpreting sacred texts.",
+            "scene": "A peasant at a wooden table holds a glowing book, reading aloud to an amazed crowd in a tavern.",
             "glyphs": [
+              "🗣️",
               "📖",
-              "🔄"
+              "👥"
             ],
             "order": 1,
-            "check": {
-              "wrong": "Only university professors and priests were legally allowed to read the printed German pamphlets.",
-              "right": "Any ordinary citizen who could read was able to buy and understand the affordable German pamphlets."
-            },
-            "link": "readers discuss the texts aloud in crowded public marketplaces"
+            "link": "Empowered readers discuss the translated texts in public spaces."
           },
           {
-            "id": "cx_mwi732yp:2",
-            "cue": "Public debates and songs",
-            "answer": "Citizens sang catchy protest hymns and debated the printed ideas in public squares and taverns.",
-            "why": "Oral traditions and catchy songs helped spread these complex religious ideas to people who could not read.",
-            "scene": "A bustling town square where giant floating musical notes carry religious arguments above the crowd.",
+            "id": "cx_mwj3wh66:2",
+            "cue": "Sparking public debate everywhere",
+            "answer": "Cheap pamphlets fueled widespread public arguments in town squares and marketplaces.",
+            "why": "Printed arguments created a continuous public conversation that authorities could no longer easily silence.",
+            "scene": "A towering pile of leaflets turns into a literal bonfire of fiery speeches in a crowded cobblestone square.",
             "glyphs": [
-              "🎶",
-              "🗣️"
+              "🔥",
+              "🗣️",
+              "🏙️"
             ],
             "order": 2,
             "check": {
-              "wrong": "The ideas only spread through quiet, private reading without any public discussion.",
-              "right": "Loud public debates and catchy songs helped spread the core arguments to illiterate listeners."
+              "wrong": "Local authorities immediately collected and burned every single printed copy without any resistance.",
+              "right": "Demand was so high and widespread that authorities could not intercept all the circulating pamphlets."
             },
-            "link": "local leaders face growing public pressure to adopt the new reforms"
+            "link": "Widespread debate forces the established church to take formal action."
           },
           {
-            "id": "cx_mwi732yp:3",
-            "cue": "Political leaders take sides",
-            "answer": "Regional rulers saw the immense public support and officially broke away from the traditional Roman church.",
-            "why": "Princes and kings used the popular religious movement to gain independence from foreign religious authority.",
-            "scene": "A towering stone castle drops a heavy iron gate to block foreign authority while flying a new flag.",
+            "id": "cx_mwj3wh66:3",
+            "cue": "Overwhelming the institutional response",
+            "answer": "The sheer volume of fast-moving criticism overwhelmed traditional systems of censorship.",
+            "why": "Institutions built to stop single handwritten manuscripts could not keep up with thousands of printed sheets.",
+            "scene": "A regal official stands buried up to his neck in a swirling avalanche of flying white papers.",
             "glyphs": [
-              "🏰",
-              "🚩"
+              "📚",
+              "🌊",
+              "🏃"
             ],
             "order": 3,
             "check": {
-              "wrong": "Political leaders blindly followed the movement without caring about public opinion or power.",
-              "right": "Rulers strategically embraced the popular movement to increase their own political independence and authority."
-            },
-            "link": "permanent religious divisions reshape the political map of Europe"
-          },
-          {
-            "id": "cx_mwi732yp:4",
-            "cue": "Permanent religious division",
-            "answer": "Europe split permanently into different Christian denominations, transforming education and culture forever.",
-            "why": "Widespread access to printed religious texts made centralized religious control impossible to maintain.",
-            "scene": "A giant map of Europe cracks cleanly down the middle into two glowing, separate halves.",
-            "glyphs": [
-              "🗺️",
-              "⚡"
-            ],
-            "order": 4,
-            "check": {
-              "wrong": "The division was quickly resolved through a single meeting between all religious leaders.",
-              "right": "The split became permanent, leading to centuries of new religious denominations and shifting cultures."
+              "wrong": "Censors easily tracked every printed page because printing shops operated in secret underground rooms.",
+              "right": "Printing shops operated openly in busy cities, making total suppression nearly impossible for authorities."
             }
           }
         ]
@@ -527,104 +511,104 @@
       "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 7108,
-      "wallMs": 7180,
+      "serverMs": 3230,
+      "wallMs": 3351,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi739uw",
-        "title": "Causes of the 1929 Stock Market Crash",
+        "id": "cx_mwj3wkxn",
+        "title": "What caused the 1929 stock market crash",
         "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi739uw:0",
-            "cue": "Speculative stock market boom",
-            "answer": "Easy credit allowed ordinary people to buy stocks with borrowed money, driving prices far above actual value.",
-            "why": "Investors relied on continuous price increases to pay back loans, creating an extremely fragile financial house of cards.",
-            "scene": "A towering castle built entirely of stacked playing cards wobbles violently as a golden hand places one more card on top.",
+            "id": "cx_mwj3wkxn:0",
+            "cue": "Speculative buying frenzy builds",
+            "answer": "Investors borrowed heavily to buy stocks, pushing prices far above their actual business value.",
+            "why": "Easy credit created a false sense of endless wealth, encouraging risky financial bets across the country.",
+            "scene": "A towering mountain of glittering gold coins resting precariously on a giant balloon that is slowly inflating.",
             "glyphs": [
-              "🃏",
+              "🪙",
               "📈",
-              "🏰"
+              "🎈"
             ],
             "order": 0,
             "check": {
-              "wrong": "The crash happened because the government suddenly outlawed all stock trading overnight.",
-              "right": "The crash happened because asset prices detached from reality and panic selling suddenly overwhelmed the market."
+              "wrong": "The crash happened because the government suddenly outlawed all private stock trading overnight.",
+              "right": "The crash happened because falling stock values triggered panic selling and unpaid borrowed loans."
             },
-            "link": "Leads to widespread overleveraging across the entire economy"
+            "link": "Sparks a wave of sudden panic"
           },
           {
-            "id": "cx_mwi739uw:1",
-            "cue": "Buying on margin",
-            "answer": "Investors bought stocks using as little as ten percent cash down, borrowing the remaining ninety percent from brokers.",
-            "why": "This extreme leverage magnified potential profits, but it also meant a tiny price drop would wipe out the investor entirely.",
-            "scene": "A tightrope walker holds a tiny paper umbrella while balancing on a single thread suspended over a roaring canyon.",
+            "id": "cx_mwj3wkxn:1",
+            "cue": "Panic selling begins",
+            "answer": "Fear spread rapidly as stock prices dipped, causing millions to try to sell at the exact same time.",
+            "why": "When confidence evaporates, everyone rushes for the exit simultaneously, overwhelming the market's capacity to absorb trades.",
+            "scene": "A massive stampede of paper stock certificates running frantically through a crowded banking hall.",
             "glyphs": [
-              "🎪",
-              "🧗",
+              "🏃",
+              "📄",
               "📉"
             ],
             "order": 1,
             "check": {
-              "wrong": "Buying on margin meant people were purchasing groceries on credit rather than actual investments.",
-              "right": "Buying on margin meant purchasing stocks with borrowed money using the purchased shares as collateral."
+              "wrong": "Trading floors closed permanently because computers suffered a massive global power failure.",
+              "right": "Trading floors were simply overwhelmed by the sheer volume of frantic human sellers."
             },
-            "link": "Triggers sudden margin calls when stock prices dip"
+            "link": "Drives stock values downward instantly"
           },
           {
-            "id": "cx_mwi739uw:2",
-            "cue": "Sudden panic selling",
-            "answer": "As stock prices slipped slightly, lenders demanded immediate loan repayments, forcing investors to dump shares frantically.",
-            "why": "Panic feeds on itself in financial markets, turning a routine market correction into a self-reinforcing downward spiral.",
-            "scene": "Thousands of identical penguins panic on an ice floe, all diving off the edge into the dark water at the exact same moment.",
+            "id": "cx_mwj3wkxn:2",
+            "cue": "Share prices collapse",
+            "answer": "Stock values plummeted to near zero, wiping out fortunes accumulated over many years in hours.",
+            "why": "With vastly more sellers than buyers, prices dropped violently until trading came to a near standstill.",
+            "scene": "A towering glass skyscraper shattering completely into sparkling dust as a tiny feather touches it.",
             "glyphs": [
-              "🐧",
-              "🌊",
-              "🏃"
+              "🏢",
+              "💥",
+              "🪶"
             ],
             "order": 2,
             "check": {
-              "wrong": "Brokers bought up all the remaining shares to protect their clients from losing any money.",
-              "right": "Brokers demanded immediate cash repayment of loans, forcing panic selling to cover debts."
+              "wrong": "Every single company in the world went bankrupt and completely ceased operations forever.",
+              "right": "Share prices collapsed even though many underlying businesses remained open and operational."
             },
-            "link": "Causes widespread bank failures due to unpaid loans"
+            "link": "Triggers massive bank withdrawals"
           },
           {
-            "id": "cx_mwi739uw:3",
-            "cue": "Bank failures and runs",
-            "answer": "Unpaid loans crushed banks that had lent money to speculators, causing frightened depositors to withdraw all their cash.",
-            "why": "Banks keep only a fraction of deposits on hand, so a sudden rush of withdrawals rapidly exhausts their liquid reserves.",
-            "scene": "A massive honey jar cracks down the middle, and golden honey streams out onto the floor while panicked bees swarm around it.",
+            "id": "cx_mwj3wkxn:3",
+            "cue": "Banks face devastating runs",
+            "answer": "Terrified citizens rushed to withdraw their savings, but banks had already lost money invested in the market.",
+            "why": "Banks lent depositors cash to buy stocks, so when the market failed, the banks could not pay back customers.",
+            "scene": "A desperate queue of people holding empty piggy banks outside a locked, heavy iron vault door.",
             "glyphs": [
-              "🍯",
-              "🐝",
-              "🏦"
+              "🏦",
+              "🐖",
+              "🔒"
             ],
             "order": 3,
             "check": {
-              "wrong": "Banks simply closed their doors voluntarily because the bankers wanted to take a long vacation.",
-              "right": "Banks failed because borrowers defaulted on loans and panicked depositors rushed to withdraw their funds simultaneously."
+              "wrong": "Banks voluntarily closed their doors to give all their employees a long weekend holiday.",
+              "right": "Banks closed because they ran out of physical cash after frightened customers emptied their vaults."
             },
-            "link": "Results in a severe contraction of the money supply"
+            "link": "Plunges the economy into depression"
           },
           {
-            "id": "cx_mwi739uw:4",
-            "cue": "Economic depression begins",
-            "answer": "The collapse of the banking system froze credit, plunging businesses into bankruptcy and starting the Great Depression.",
-            "why": "Without functioning credit and circulating money, commerce grinds to a halt, destroying jobs and consumer spending power.",
-            "scene": "A giant grandfather clock freezes mid-tick, its heavy golden pendulum locking completely in place as dust settles over the gears.",
+            "id": "cx_mwj3wkxn:4",
+            "cue": "The Great Depression follows",
+            "answer": "The financial collapse froze credit and spending, plunging the global economy into a decade of hardship.",
+            "why": "Without functioning banks or consumer spending, businesses closed and millions lost their jobs and homes.",
+            "scene": "A giant factory with its smokestacks completely cold, while a lone tumbleweed rolls across the empty entrance.",
             "glyphs": [
-              "⏰",
-              "⚙️",
-              "🛑"
+              "🏭",
+              "💨",
+              "🌾"
             ],
             "order": 4,
             "check": {
-              "wrong": "The economy recovered within a single weekend as international trade immediately doubled.",
-              "right": "The economy contracted severely, leading to a decade of high unemployment and stagnant business activity."
+              "wrong": "The economy recovered by the following Tuesday afternoon through normal market corrections.",
+              "right": "The economic downturn lasted for a decade, requiring massive structural reforms to fix."
             }
           }
         ]
@@ -642,11 +626,11 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6067,
-      "wallMs": 6145,
+      "serverMs": 2577,
+      "wallMs": 2649,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi73gxz",
+        "id": "cx_mwj3wp23",
         "title": "How compound interest grows savings",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -654,72 +638,70 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi73gxz:0",
-            "cue": "Principal earns initial interest",
-            "answer": "Your deposited money earns a percentage based on the starting balance over a set time period.",
-            "why": "Banks pay you to use your money, providing a baseline return that fuels future growth.",
-            "scene": "A shiny gold coin sits on a table, slowly sweating a smaller silver coin next to itself.",
+            "id": "cx_mwj3wp23:0",
+            "cue": "Earning initial interest",
+            "answer": "Money placed in a savings account earns extra money called interest based on the principal amount.",
+            "why": "Banks pay you to use your deposited money for their own lending activities.",
+            "scene": "A shiny golden coin sitting in a glass jar suddenly splits into the original coin plus a smaller silver coin.",
             "glyphs": [
               "🪙",
-              "💧"
+              "✨"
             ],
             "order": 0,
             "check": {
-              "wrong": "Interest is calculated using the total amount currently in the account including previous earnings.",
-              "right": "Initial interest is calculated only on the original deposit amount during the first cycle."
+              "wrong": "Interest is a flat fee paid by the bank once per year as a holiday bonus.",
+              "right": "Interest is calculated continuously or periodically as a percentage of your total current balance."
             },
-            "link": "adds earnings back into the balance"
+            "link": "adds this new money to the total"
           },
           {
-            "id": "cx_mwi73gxz:1",
-            "cue": "Interest joins the principal",
-            "answer": "The interest earned in the first period is added directly to your original starting balance.",
-            "why": "Merging earnings with the base amount increases the total size of the pot for the next calculation.",
-            "scene": "A tiny silver coin melts into the gold coin, visibly swelling the original coin to a larger size.",
+            "id": "cx_mwj3wp23:1",
+            "cue": "Adding to the principal",
+            "answer": "The newly earned interest joins your original deposit to form a larger total balance.",
+            "why": "Your account balance grows so that future calculations use a bigger starting figure.",
+            "scene": "A tiny silver coin melts into the original golden coin, making the single coin visibly larger and heavier.",
             "glyphs": [
               "🪙",
-              "➕",
-              "💰"
+              "➕"
             ],
             "order": 1,
             "check": {
-              "wrong": "The interest earned is automatically sent to a separate account so the main balance never changes.",
-              "right": "The interest earned is merged directly into the main balance to increase the total amount."
+              "wrong": "Earned interest is automatically separated and stored in a different untouchable account.",
+              "right": "Earned interest merges directly into your main balance, increasing the amount eligible for future gains."
             },
-            "link": "enables earning interest on interest"
+            "link": "multiplies the next percentage cycle"
           },
           {
-            "id": "cx_mwi73gxz:2",
-            "cue": "Growing balance generates more",
-            "answer": "The next interest payment is calculated using the new, larger total including past earnings.",
-            "why": "A larger base number naturally produces a bigger payout when multiplied by the exact same percentage rate.",
-            "scene": "The swollen gold coin drops bigger rain droplets of silver onto the table below.",
+            "id": "cx_mwj3wp23:2",
+            "cue": "Generating interest on interest",
+            "answer": "The next interest payment is calculated using the new, larger total rather than just the original deposit.",
+            "why": "Percentage growth naturally yields bigger returns when applied to a larger overall sum.",
+            "scene": "A larger golden coin splits into the big coin plus two silver coins instead of just one.",
             "glyphs": [
-              "🌧️",
-              "💰"
+              "💰",
+              "📈"
             ],
             "order": 2,
             "check": {
-              "wrong": "Interest payments stay the exact same size every single period because the percentage rate increases.",
-              "right": "Interest payments grow larger each period because the base amount being multiplied keeps increasing."
+              "wrong": "Interest is always calculated strictly against the original starting amount forever.",
+              "right": "Compound interest calculates earnings on both the original principal and all accumulated past interest."
             },
-            "link": "accelerates the overall growth rate"
+            "link": "accelerates the growth speed over time"
           },
           {
-            "id": "cx_mwi73gxz:3",
-            "cue": "Exponential snowball effect occurs",
-            "answer": "The speed of wealth accumulation accelerates rapidly over time as earnings continuously compound upon themselves.",
-            "why": "Cumulative layering creates a curve that shoots upward steeply rather than growing in a straight, predictable line.",
-            "scene": "A tiny snowball rolls down a short hill, instantly transforming into a massive boulder crushing a fence.",
+            "id": "cx_mwj3wp23:3",
+            "cue": "Snowballing over time",
+            "answer": "The cycle repeats continuously, causing the total savings to grow faster and faster over long periods.",
+            "why": "Exponential growth curves turn small early gains into massive totals if given enough time.",
+            "scene": "A small rolling snowball rapidly transforms into a massive glowing boulder crashing across the room.",
             "glyphs": [
-              "⛄",
-              "📈",
-              "💥"
+              "❄️",
+              "🚀"
             ],
             "order": 3,
             "check": {
-              "wrong": "Savings grow in a straight, steady diagonal line where the exact same amount is added every year.",
-              "right": "Savings grow in an accelerating curve where the amount added gets bigger every single year."
+              "wrong": "Compound interest grows steadily at the exact same straight-line speed every single year.",
+              "right": "Compound interest accelerates exponentially, meaning the growth gets significantly faster with each passing year."
             }
           }
         ]
@@ -737,11 +719,11 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 2890,
-      "wallMs": 2970,
+      "serverMs": 2723,
+      "wallMs": 2806,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi73n8e",
+        "id": "cx_mwj3wsni",
         "title": "How an index fund works",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -749,70 +731,70 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi73n8e:0",
+            "id": "cx_mwj3wsni:0",
             "cue": "Pooling investor money together",
             "answer": "Thousands of everyday investors combine their cash into one giant financial pool.",
-            "why": "Pooling money grants everyday people the massive purchasing power usually reserved for wealthy investors.",
-            "scene": "A giant swimming pool filled with sparkling gold coins and dollar bills contributed by an endless line of cheering people.",
+            "why": "Pooling money gives everyday buyers the massive purchasing power usually reserved for wealthy investors and huge institutions.",
+            "scene": "A giant glowing swimming pool filled with sparkling gold coins instead of water, with thousands of tiny hands pouring buckets in.",
             "glyphs": [
               "🏊",
               "💰"
             ],
             "order": 0,
             "check": {
-              "wrong": "Investors pool their money to buy shares in a single private startup company.",
-              "right": "Investors pool their money to buy a broad basket of many different companies."
+              "wrong": "An index fund is a special private bank account managed entirely by a single wealthy stockbroker.",
+              "right": "An index fund is a pooled collection of money owned collectively by thousands of ordinary individual investors."
             },
-            "link": "flows into buying a market index"
+            "link": "buying a whole market index"
           },
           {
-            "id": "cx_mwi73n8e:1",
-            "cue": "Buying the market index",
-            "answer": "A fund manager uses the pooled cash to buy a slice of every company in a specific market index.",
-            "why": "This automated mirroring strategy ensures instant diversification across hundreds of businesses at once.",
-            "scene": "A giant robotic grocery shopper sweeping whole supermarket shelves into a mega-cart in one single motion.",
+            "id": "cx_mwj3wsni:1",
+            "cue": "Buying a market index",
+            "answer": "The fund manager uses the pooled cash to buy every company inside a specific stock market index.",
+            "why": "Instead of guessing which single company will succeed, buying the whole basket spreads your financial risk widely.",
+            "scene": "A giant robotic grocery shopper sweeping every single item off every supermarket shelf into one enormous shopping cart.",
             "glyphs": [
               "🛒",
-              "🤖"
+              "📦"
             ],
             "order": 1,
             "check": {
-              "wrong": "The fund manager actively picks and chooses only the trendiest stocks every single week.",
-              "right": "The fund manager automatically copies a fixed list of companies without constant guessing."
+              "wrong": "The fund manager constantly trades stocks every single day to chase quick profits and beat the market.",
+              "right": "The fund manager simply buys and holds a fixed basket of stocks to match the overall market performance."
             },
-            "link": "balances risks across the portfolio"
+            "link": "tracking steady market growth"
           },
           {
-            "id": "cx_mwi73n8e:2",
-            "cue": "Spreading risk across companies",
-            "answer": "Owning hundreds of stocks means if one company fails, your overall investment barely feels the drop.",
-            "why": "Diversification protects your savings from the unpredictable downfall of any single business.",
-            "scene": "A massive circus acrobat walking a tightrope while holding a giant balancing pole made of tiny glowing houses.",
+            "id": "cx_mwj3wsni:2",
+            "cue": "Earning steady proportional returns",
+            "answer": "As the overall economy grows and companies make profits, the value of the fund rises steadily.",
+            "why": "Diversification protects you because even if one company fails, the growth of the remaining hundreds balances your losses.",
+            "scene": "A massive hot air balloon slowly rising into a clear blue sky, steadied by hundreds of strong ropes tied below.",
             "glyphs": [
-              "🎪",
-              "⚖️"
+              "🎈",
+              "📈"
             ],
             "order": 2,
             "check": {
-              "wrong": "Spreading money across many companies completely eliminates all possibility of losing money.",
-              "right": "Spreading money reduces specific company risk, but overall market drops can still affect value."
+              "wrong": "Investing in an index fund guarantees you will double your money within your very first year.",
+              "right": "An index fund fluctuates with the overall economy and aims for steady, long-term growth rather than quick riches."
             },
-            "link": "generates returns from dividends and growth"
+            "link": "distributing dividends back out"
           },
           {
-            "id": "cx_mwi73n8e:3",
-            "cue": "Earning steady market returns",
-            "answer": "As the overall economy grows and companies make profits, the total value of your fund steadily rises.",
-            "why": "Historically, broad economic growth outpaces inflation over long periods, rewarding patient investors.",
-            "scene": "A sturdy wooden tree with dollar bills sprouting on every branch as the sun slowly rises behind it.",
+            "id": "cx_mwj3wsni:3",
+            "cue": "Distributing dividends and growth",
+            "answer": "Profits and dividends earned by the companies flow automatically back to you as the investor.",
+            "why": "Keeping costs low and avoiding active managers lets you keep almost all of your generated investment earnings.",
+            "scene": "A golden tree shaking its branches, dropping ripe silver coins directly into waiting open hands on the grass below.",
             "glyphs": [
               "🌳",
-              "📈"
+              "🪙"
             ],
             "order": 3,
             "check": {
-              "wrong": "Index funds guarantee a fixed high interest rate every month regardless of market conditions.",
-              "right": "Index fund returns fluctuate daily based on the actual performance of the underlying companies."
+              "wrong": "You must pay heavy hidden fees to a financial advisor every time the index fund makes a profit.",
+              "right": "Index funds typically charge very low management fees because they require almost no active human trading."
             }
           }
         ]
@@ -826,90 +808,108 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 4,
-      "mythChecks": 4,
+      "stages": 5,
+      "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6109,
-      "wallMs": 6242,
+      "serverMs": 2849,
+      "wallMs": 2935,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi73r2k",
+        "id": "cx_mwj3wwd6",
         "title": "How a UPI payment moves money",
-        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi73r2k:0",
-            "cue": "Scanning the payment QR",
-            "answer": "The payer scans a QR code using a mobile app to capture the receiver's virtual payment address.",
-            "why": "This address acts as a secure alias protecting the actual bank account numbers from exposure during transactions.",
-            "scene": "A giant glowing barcode hovering in mid-air gets swallowed by a smartphone camera lens like spaghetti.",
+            "id": "cx_mwj3wwd6:0",
+            "cue": "Scanning the QR code",
+            "answer": "The payer scans the receiver code using a smartphone payment app.",
+            "why": "This digital scan captures the receiver payment address and request details safely.",
+            "scene": "A glowing smartphone shoots a laser beam at a pixelated square, freezing time in the room.",
             "glyphs": [
+              "📱",
               "📷",
-              "🟦",
-              "📲"
+              "⚡"
             ],
             "order": 0,
             "check": {
-              "wrong": "Scanning the QR code directly transfers cash from your bank account to the merchant's physical hand.",
-              "right": "Scanning the QR code only reads the receiver's digital address to initiate a secure transfer request."
+              "wrong": "Scanning the code transfers money directly from your phone wallet to their phone.",
+              "right": "Scanning the code only reads the receiver payment details to start the secure bank request."
             },
-            "link": "Sends the payment request to the banking network."
+            "link": "Sends encrypted payment details to your bank app"
           },
           {
-            "id": "cx_mwi73r2k:1",
-            "cue": "Entering the secret PIN",
-            "answer": "The payer enters a private passcode to authorize the movement of funds from their account.",
-            "why": "This cryptographic PIN proves the account owner truly consents, preventing unauthorized spending if the phone is stolen.",
-            "scene": "A tiny lock shatters into glowing digital confetti as four secret numbers type themselves into the screen.",
+            "id": "cx_mwj3wwd6:1",
+            "cue": "Entering your secret PIN",
+            "answer": "The payer types a confidential personal identification number to authorize the transfer.",
+            "why": "This cryptographic signature proves your identity and legally permits moving funds from your account.",
+            "scene": "A giant digital keypad floats in mid-air, clicking shut like a heavy bank vault door.",
             "glyphs": [
               "🔢",
               "🔐",
-              "💥"
+              "🚪"
             ],
             "order": 1,
             "check": {
-              "wrong": "Entering your PIN tells the merchant your actual bank password so they can withdraw the money.",
-              "right": "Entering your PIN authorizes your own bank to securely release the funds for this single transaction."
+              "wrong": "Typing your PIN tells the merchant your secret banking password.",
+              "right": "Your PIN safely unlocks your bank app to sign a one-time payment instruction."
             },
-            "link": "Triggers communication between both banks."
+            "link": "Routes the signed instruction through the central server"
           },
           {
-            "id": "cx_mwi73r2k:2",
-            "cue": "Central router verifies transfer",
-            "answer": "A central payment switch receives the encrypted message and routes the debit and credit instructions.",
-            "why": "This hub connects thousands of different banks instantly so they do not need direct connections to each other.",
-            "scene": "A massive glowing traffic intersection in the clouds directs tiny dollar bills down lightning-fast pipes.",
+            "id": "cx_mwj3wwd6:2",
+            "cue": "Central switch routes message",
+            "answer": "A unified payment network instantly relays the transaction request between different banks.",
+            "why": "It acts as a universal translator so that any bank can talk to any other bank securely.",
+            "scene": "A tiny digital train zooms through a glowing glass tube, switching tracks at high speed.",
             "glyphs": [
-              "⚡",
+              "🚂",
               "🌐",
-              "🚦"
+              "🔀"
             ],
             "order": 2,
             "check": {
-              "wrong": "The central switch holds all your money in a giant digital wallet before sending it onward.",
-              "right": "The central switch only passes messages between banks; it never actually holds your money."
+              "wrong": "The payment network stores all your personal bank savings on its own private servers.",
+              "right": "The payment network only routes messages and never holds your actual bank balance."
             },
-            "link": "Instructs both banks to update balances."
+            "link": "Commands the sender bank to debit money"
           },
           {
-            "id": "cx_mwi73r2k:3",
-            "cue": "Accounts update in real-time",
-            "answer": "The sender bank debits the amount while the receiver bank credits it, completing the transfer.",
-            "why": "Instant ledger updates ensure both parties see the correct balance immediately without waiting days to clear.",
-            "scene": "Two giant mechanical scales balance out instantly as gold coins magically vanish from one side and appear on the other.",
+            "id": "cx_mwj3wwd6:3",
+            "cue": "Sender bank debits funds",
+            "answer": "Your bank subtracts the specified amount from your account balance.",
+            "why": "This ensures the sender no longer has access to the money being transferred.",
+            "scene": "A golden coin shrinks into a tiny puff of smoke inside a glowing vault drawer.",
             "glyphs": [
-              "⚖️",
-              "💰",
-              "✨"
+              "📉",
+              "🏦",
+              "💨"
             ],
             "order": 3,
             "check": {
-              "wrong": "Physical paper money is instantly transported through underground cables to the other bank.",
-              "right": "Only digital ledger numbers change instantly in both banks' secure computer databases."
+              "wrong": "Your money travels physically across the internet wires like an email attachment.",
+              "right": "Your bank simply updates numbers in a ledger, subtracting value from your account."
+            },
+            "link": "Notifies the receiver bank to credit funds"
+          },
+          {
+            "id": "cx_mwj3wwd6:4",
+            "cue": "Receiver bank credits funds",
+            "answer": "The receiver bank adds the exact same amount to their customer account.",
+            "why": "Completing both updates simultaneously ensures money is neither created nor lost in transit.",
+            "scene": "An empty glass cup suddenly fills to the brim with sparkling golden liquid.",
+            "glyphs": [
+              "📈",
+              "💰",
+              "✨"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "The money arrives instantly because cash is physically handed over behind the scenes.",
+              "right": "The money arrives instantly because both banks update their digital ledgers at the same time."
             }
           }
         ]
@@ -927,82 +927,82 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 5899,
-      "wallMs": 6004,
+      "serverMs": 2247,
+      "wallMs": 2315,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi73xge",
-        "title": "How an Indian bill becomes law",
+        "id": "cx_mwj3x05t",
+        "title": "How a bill becomes law in India",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi73xge:0",
+            "id": "cx_mwj3x05t:0",
             "cue": "Drafting the proposed bill",
-            "answer": "A new legal idea is drafted into a formal text called a bill before parliament reviews it.",
-            "why": "Clear written proposals prevent confusion and give lawmakers a precise text to debate and improve.",
-            "scene": "A giant quill pen writes glowing words onto a massive floating scroll in mid-air.",
+            "answer": "A new legal idea is drafted into a formal text called a bill before introduction.",
+            "why": "Clear legal drafting ensures the proposed rule has precise language and clear legal scope.",
+            "scene": "A giant silver quill scribbles glowing text onto a massive scroll of parchment.",
             "glyphs": [
               "📜",
-              "✍️"
+              "✒️"
             ],
             "order": 0,
             "check": {
-              "wrong": "Any citizen can directly submit a bill straight into the parliament floor for an immediate vote.",
-              "right": "Bills must be officially introduced by ministers or authorized members following strict parliamentary procedures."
+              "wrong": "Any ordinary citizen can directly walk into parliament and introduce a bill themselves.",
+              "right": "Only a minister or a qualified member of parliament can formally introduce a bill."
             },
-            "link": "Introduced in either parliament house"
+            "link": "Introduced in either house of parliament"
           },
           {
-            "id": "cx_mwi73xge:1",
-            "cue": "Debate in both houses",
-            "answer": "The bill is debated, scrutinized, and voted on in both the Lok Sabha and the Rajya Sabha.",
-            "why": "Dual-house review ensures diverse viewpoints are heard and prevents rushed or flawed legislation from passing.",
-            "scene": "Two rows of people in a giant stadium throw glowing paper airplanes back and forth across a chasm.",
+            "id": "cx_mwj3x05t:1",
+            "cue": "Debate and voting process",
+            "answer": "The bill is debated extensively and voted upon in one house of parliament.",
+            "why": "Thorough debate allows lawmakers to examine flaws, suggest amendments, and represent public interest.",
+            "scene": "A glowing beehive hums loudly as hundreds of tiny winged representatives argue enthusiastically.",
             "glyphs": [
-              "🏛️",
-              "🗣️"
+              "🗣️",
+              "🗳️"
             ],
             "order": 1,
             "check": {
-              "wrong": "Only the prime minister decides whether a bill passes without needing votes from other politicians.",
-              "right": "Both houses of parliament must thoroughly debate and approve the bill through majority votes."
+              "wrong": "A bill automatically becomes law if the majority party simply supports it on day one.",
+              "right": "Every bill must go through multiple distinct readings, detailed committee scrutiny, and formal voting."
             },
-            "link": "Sent to the president"
+            "link": "Sent to the other house"
           },
           {
-            "id": "cx_mwi73xge:2",
+            "id": "cx_mwj3x05t:2",
+            "cue": "Approval by second house",
+            "answer": "The bill moves to the second house where it undergoes the exact same review.",
+            "why": "Dual-chamber review prevents hasty decisions by forcing a second layer of legislative checks.",
+            "scene": "A giant tennis ball bounces across a glowing net from one grand balcony to another.",
+            "glyphs": [
+              "🎾",
+              "🏛️"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Passing the lower house means the bill is already fully approved and legally active.",
+              "right": "Both the lower and upper houses must independently approve the exact same version of the bill."
+            },
+            "link": "Presented to the president"
+          },
+          {
+            "id": "cx_mwj3x05t:3",
             "cue": "Presidential assent granted",
-            "answer": "The President of India reviews the approved bill and signs it to grant official assent.",
-            "why": "This final executive check ensures the new legislation aligns with constitutional principles and national interests.",
-            "scene": "A golden crown stamps a giant glowing red wax seal onto the bottom of a tall scroll.",
+            "answer": "The president signs the approved bill, officially turning it into a binding national law.",
+            "why": "Presidential signature represents the final constitutional stamp of approval for the entire nation.",
+            "scene": "A golden crown stamps a glowing red seal onto the document with a heavy thud.",
             "glyphs": [
               "👑",
               "✍️"
             ],
-            "order": 2,
-            "check": {
-              "wrong": "The president can rewrite parts of the bill before signing it into law.",
-              "right": "The president can only approve the bill, reject it, or request reconsideration without altering the text."
-            },
-            "link": "Published in official gazette"
-          },
-          {
-            "id": "cx_mwi73xge:3",
-            "cue": "Enacted into active law",
-            "answer": "The signed bill is published in the official gazette and officially becomes active law.",
-            "why": "Public notification ensures all citizens and courts know the exact rules they must now follow.",
-            "scene": "A towering printing press shoots brilliant fireworks into the sky as fresh newspapers fly everywhere.",
-            "glyphs": [
-              "📰",
-              "🎆"
-            ],
             "order": 3,
             "check": {
-              "wrong": "A law becomes active the exact moment the parliament first thinks of the original idea.",
-              "right": "A law only becomes active after receiving presidential assent and official publication."
+              "wrong": "The president can permanently veto any bill passed by parliament without giving any reason.",
+              "right": "The president can only ask parliament to reconsider once, and must sign if passed again."
             }
           }
         ]
@@ -1020,11 +1020,11 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6379,
-      "wallMs": 6443,
+      "serverMs": 2525,
+      "wallMs": 2598,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi743ll",
+        "id": "cx_mwj3x3hp",
         "title": "How a contract is formed",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -1032,70 +1032,70 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi743ll:0",
-            "cue": "The initial offer is made",
-            "answer": "One party proposes a clear promise to do or provide something specific to another party.",
-            "why": "Clear terms are essential because both people must know exactly what they are agreeing to trade.",
-            "scene": "A giant glowing neon sign hovers in the air, spelling out an offer to sell a bicycle for fifty dollars.",
+            "id": "cx_mwj3x3hp:0",
+            "cue": "The initial offer",
+            "answer": "One party proposes a clear and definite promise to do or provide something.",
+            "why": "It establishes the exact terms so both people know precisely what they are agreeing to.",
+            "scene": "A giant glowing neon sign floats in the air, spelling out an exact promise in bright letters.",
             "glyphs": [
               "💡",
-              "🚲"
+              "📝"
             ],
             "order": 0,
             "check": {
-              "wrong": "Any casual mention of selling an item in a conversation legally counts as a binding offer.",
-              "right": "Only a specific, serious proposal intended to create legal obligations counts as a valid offer."
+              "wrong": "Merely mentioning a casual idea or a vague wish creates a binding legal offer.",
+              "right": "An offer requires a clear, intentional willingness to be bound by specific terms."
             },
-            "link": "The offer travels across the room to the second person."
+            "link": "passed directly to the other party"
           },
           {
-            "id": "cx_mwi743ll:1",
-            "cue": "Clear acceptance is given",
-            "answer": "The second party agrees completely to the exact terms of the proposal without changing them.",
-            "why": "Mirroring the exact terms ensures both minds meet on the exact same agreement.",
-            "scene": "A massive heavy stamp slams down on a floating paper, stamping the word accepted in bright green ink.",
+            "id": "cx_mwj3x3hp:1",
+            "cue": "Clear acceptance given",
+            "answer": "The second party agrees unconditionally to every single term presented in the offer.",
+            "why": "Mirroring the exact terms ensures both parties share the exact same mutual understanding.",
+            "scene": "A massive mirror reflects the glowing sign perfectly, locking the reflection into place with a click.",
             "glyphs": [
-              "📝",
-              "✅"
+              "🪞",
+              "🤝"
             ],
             "order": 1,
             "check": {
-              "wrong": "Accepting an offer while changing some of the conditions still creates a valid legal agreement.",
-              "right": "Changing any terms acts as a rejection and creates a brand new counter offer instead."
+              "wrong": "Accepting only some terms while changing others still forms a valid contract automatically.",
+              "right": "Changing any term acts as a rejection and creates a brand new counteroffer instead."
             },
-            "link": "Acceptance triggers the exchange of value."
+            "link": "unlocked by adding mutual value"
           },
           {
-            "id": "cx_mwi743ll:2",
-            "cue": "Valuable consideration is exchanged",
-            "answer": "Each side gives up something of value, such as money, property, or a legal promise.",
-            "why": "The law requires a two-way street of exchange so the agreement is a trade and not a gift.",
-            "scene": "Two robotic hands swap a shiny gold coin for a heavy iron key in midair.",
+            "id": "cx_mwj3x3hp:2",
+            "cue": "Exchanging legal consideration",
+            "answer": "Both sides provide something of value, such as money, services, or goods, to each other.",
+            "why": "The law requires a trade of value to prove the agreement is a serious bargain, not a gift.",
+            "scene": "Two people toss heavy gold coins back and forth across a glowing bridge of light.",
             "glyphs": [
               "🪙",
-              "🔑"
+              "🌉"
             ],
             "order": 2,
             "check": {
-              "wrong": "Giving a simple free promise without expecting anything in return creates a legally binding contract.",
-              "right": "A promise to make a gift without any return value is not enforceable as a contract."
+              "wrong": "Promising to give a free gift later creates a legally enforceable contract immediately.",
+              "right": "A pure gift lacks mutual exchange, meaning it has no consideration and is not a contract."
             },
-            "link": "The completed exchange locks the agreement into place."
+            "link": "sealed to create binding law"
           },
           {
-            "id": "cx_mwi743ll:3",
-            "cue": "Mutual intent creates binding law",
-            "answer": "Both parties intend for their agreed exchange to carry serious legal consequences if broken.",
-            "why": "This mutual understanding transforms a simple social promise into a legally protected agreement.",
-            "scene": "A glowing glass shield snaps shut around the participants, sealing their agreement into solid law.",
+            "id": "cx_mwj3x3hp:3",
+            "cue": "Binding agreement finalized",
+            "answer": "The mutual promises and exchanged value lock into a legally enforceable contract.",
+            "why": "Courts can now enforce the agreement because all necessary legal ingredients are fully present.",
+            "scene": "A giant golden padlock snaps shut on the floating bridge, securing the whole structure firmly.",
             "glyphs": [
-              "🛡️",
-              "⚖️"
+              "🔒",
+              "📜"
             ],
             "order": 3,
             "check": {
-              "wrong": "Friends making a casual weekend dinner promise automatically form a legally binding contract.",
-              "right": "Social and domestic promises lack the intent to create legal relations, so they are not contracts."
+              "wrong": "A contract only becomes legally binding if it is officially printed on stamped government paper.",
+              "right": "Oral or digital agreements are fully binding as long as offer, acceptance, and consideration exist."
             }
           }
         ]
@@ -1113,11 +1113,11 @@
       "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 8027,
-      "wallMs": 8095,
+      "serverMs": 2891,
+      "wallMs": 3040,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi74a48",
+        "id": "cx_mwj3x71r",
         "title": "From Arrest to Criminal Verdict",
         "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -1125,45 +1125,45 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi74a48:0",
-            "cue": "The Arrest and Booking",
-            "answer": "Police arrest a suspect based on probable cause and officially log the charges at the station.",
-            "why": "Booking creates a permanent administrative record and ensures the accused is informed of their constitutional rights.",
-            "scene": "A towering stack of fingerprint ink pads slowly consumes a shiny steel booking desk, ticking like a clock.",
+            "id": "cx_mwj3x71r:0",
+            "cue": "Arrest and Booking",
+            "answer": "Police take a suspect into custody based on probable cause and record their personal details.",
+            "why": "This official entry into the justice system ensures accountability and protects the rights of the accused.",
+            "scene": "A glowing neon handcuffs icon snaps shut around a giant leather ledger book.",
             "glyphs": [
-              "👮",
-              "💂"
+              "🚔",
+              "📖"
             ],
             "order": 0,
             "check": {
-              "wrong": "An arrest means the suspect has been formally convicted of a crime by the police.",
-              "right": "An arrest only means police have probable cause to suspect someone committed a crime."
+              "wrong": "Police can keep an arrested person in jail indefinitely without telling anyone why.",
+              "right": "Police must promptly book the suspect and inform them of the specific charges against them."
             },
-            "link": "leads to the formal initial court appearance"
+            "link": "Triggers the formal filing of charges."
           },
           {
-            "id": "cx_mwi74a48:1",
-            "cue": "The Arraignment Hearing",
-            "answer": "The defendant appears before a judge to hear the charges, enter a plea, and discuss bail.",
-            "why": "This ensures the accused understands the accusations and secures their right to legal representation promptly.",
-            "scene": "A giant silver gavel swings back and forth like a pendulum above a tiny courtroom bench.",
+            "id": "cx_mwj3x71r:1",
+            "cue": "Charging and Arraignment",
+            "answer": "Prosecutors formally file charges and the defendant enters a plea before a judge.",
+            "why": "This informs the accused of the exact allegations so they can begin preparing a defense.",
+            "scene": "A tiny wooden gavel smashes down onto a floating digital scroll of paper charges.",
             "glyphs": [
               "⚖️",
               "📜"
             ],
             "order": 1,
             "check": {
-              "wrong": "Defendants must prove their innocence to the judge during the initial arraignment.",
-              "right": "Defendants enter a plea of guilty or not guilty and do not need to prove innocence yet."
+              "wrong": "Defendants are forced to prove their innocence immediately during their first court appearance.",
+              "right": "Defendants simply enter a plea of guilty or not guilty and are appointed an attorney if needed."
             },
-            "link": "leads to pre-trial evidence discovery"
+            "link": "Leads to pre-trial evidence discovery."
           },
           {
-            "id": "cx_mwi74a48:2",
-            "cue": "Evidence Discovery and Motions",
-            "answer": "Both prosecution and defense share evidence and file legal motions to shape the upcoming trial.",
-            "why": "Exchanging information prevents surprise evidence and ensures a fair trial for both sides.",
-            "scene": "A glowing glass puzzle splits itself neatly into two identical piles on a polished oak table.",
+            "id": "cx_mwj3x71r:2",
+            "cue": "Discovery and Pre-trial",
+            "answer": "Both sides exchange evidence, witness lists, and legal arguments before the trial begins.",
+            "why": "Sharing information prevents trial by ambush and gives both parties a fair chance to prepare.",
+            "scene": "Two magnifying glasses float in mid-air, trading sparkling puzzle pieces back and forth.",
             "glyphs": [
               "🔍",
               "🧩"
@@ -1171,41 +1171,41 @@
             "order": 2,
             "check": {
               "wrong": "Prosecutors are allowed to hide helpful evidence that might prove the defendant is innocent.",
-              "right": "Prosecutors must share all evidence, including any exculpatory material, with the defense."
+              "right": "Prosecutors must legally share all evidence, including anything that might help the defense."
             },
-            "link": "leads to the trial proceedings"
+            "link": "Paves the way for the courtroom trial."
           },
           {
-            "id": "cx_mwi74a48:3",
-            "cue": "The Trial Proceedings",
-            "answer": "Attorneys present witnesses and evidence to a jury or judge who evaluates the facts.",
-            "why": "Testing evidence through cross-examination allows the neutral fact-finder to determine what actually happened.",
-            "scene": "A glowing wooden fortress gate swings open as tiny glowing shields bounce off each other.",
+            "id": "cx_mwj3x71r:3",
+            "cue": "The Trial",
+            "answer": "Attorneys present evidence, question witnesses, and make arguments before a judge or jury.",
+            "why": "Testing evidence through debate ensures the truth emerges through a transparent public process.",
+            "scene": "A glowing witness stand spins around rapidly while miniature jurors take notes on tablets.",
             "glyphs": [
-              "🏟️",
-              "🗡️"
+              "🏛️",
+              "📝"
             ],
             "order": 3,
             "check": {
-              "wrong": "The defendant must testify on their own behalf to prove they are innocent.",
-              "right": "The defendant has the absolute right to remain silent and cannot be forced to testify."
+              "wrong": "The defendant must testify on their own behalf to prove to the court that they are innocent.",
+              "right": "The defendant has the absolute right to remain silent and the state must prove guilt."
             },
-            "link": "leads to the final jury verdict"
+            "link": "Triggers the final jury deliberation."
           },
           {
-            "id": "cx_mwi74a48:4",
-            "cue": "The Verdict and Judgment",
-            "answer": "The jury deliberates in secret and delivers a final verdict of guilty or not guilty.",
-            "why": "Unanimous agreement among peers ensures high confidence before the state applies serious legal consequences.",
-            "scene": "A massive gold scale tips dramatically to one side, releasing a shower of bright white confetti.",
+            "id": "cx_mwj3x71r:4",
+            "cue": "Deliberation and Verdict",
+            "answer": "The jury reviews the evidence in secret and decides if the defendant is guilty or not guilty.",
+            "why": "Unanimous group agreement minimizes individual bias and maintains high confidence in the final outcome.",
+            "scene": "A giant glowing scale balances heavy gold coins labeled guilty and not guilty.",
             "glyphs": [
-              "🏆",
-              "📃"
+              "⚖️",
+              "🔒"
             ],
             "order": 4,
             "check": {
-              "wrong": "A verdict of not guilty means the court has proven the defendant is completely innocent.",
-              "right": "A verdict of not guilty means the prosecution failed to prove guilt beyond a reasonable doubt."
+              "wrong": "A jury can declare a defendant guilty even if there is still reasonable doubt about the crime.",
+              "right": "A jury can only convict if they are convinced of guilt beyond a reasonable doubt."
             }
           }
         ]
@@ -1219,103 +1219,90 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 5,
-      "mythChecks": 5,
+      "stages": 4,
+      "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6114,
-      "wallMs": 6187,
+      "serverMs": 2587,
+      "wallMs": 2692,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi74hx9",
+        "id": "cx_mwj3xaxh",
         "title": "How HTTPS keeps a connection private",
-        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi74hx9:0",
-            "cue": "Client says hello",
-            "answer": "Your browser starts the secure connection by saying hello and sharing supported security codes.",
-            "why": "This handshake begins the process of establishing trust and encryption parameters before any data moves.",
-            "scene": "A tiny knight knocks on a giant glowing castle door, holding up a list of secret handshakes.",
+            "id": "cx_mwj3xaxh:0",
+            "cue": "The browser says hello",
+            "answer": "Your browser starts the secure visit by saying hello and sharing security codes it can use.",
+            "why": "This handshake step ensures both sides agree on the mathematical rules they will use to scramble data.",
+            "scene": "A glowing silver robot knocks on a giant wooden door, sliding a secret notebook underneath.",
             "glyphs": [
+              "🤖",
               "🚪",
-              "📜"
+              "📔"
             ],
             "order": 0,
             "check": {
-              "wrong": "Your browser sends your actual password during this first greeting to prove who you are.",
-              "right": "Your browser only sends a random number and supported security codes, never your password."
+              "wrong": "HTTPS encrypts every single piece of data using the exact same permanent password forever.",
+              "right": "HTTPS creates a brand new, unique temporary key for every single individual browsing session."
             },
-            "link": "Server replies with its digital certificate"
+            "link": "triggers the server to show its digital certificate"
           },
           {
-            "id": "cx_mwi74hx9:1",
-            "cue": "Server presents its certificate",
-            "answer": "The website replies with its digital certificate to prove its true identity.",
-            "why": "Websites must prove they are who they claim to be so you do not accidentally send data to an impostor.",
-            "scene": "The castle guard holds up an official royal passport stamped by a trusted kingdom authority.",
+            "id": "cx_mwj3xaxh:1",
+            "cue": "The server proves identity",
+            "answer": "The website server replies by showing a digital certificate to prove it is truly who it claims.",
+            "why": "Websites must prove their identity so scammers cannot trick your browser into talking to a fake copy.",
+            "scene": "A royal guard holds up a glowing neon passport stamped by a trusted global authority.",
             "glyphs": [
-              "🛡️",
-              "📜"
+              "💂",
+              "🛂",
+              "✨"
             ],
             "order": 1,
             "check": {
-              "wrong": "The website certificate is just a simple password created by the website owner yesterday.",
-              "right": "The certificate is a cryptographic document verified by a trusted third-party organization."
+              "wrong": "Websites verify their own identity certificates without needing any outside trusted third-party companies.",
+              "right": "Independent security authorities verify and sign website certificates to guarantee they are genuine."
             },
-            "link": "Browser verifies the certificate"
+            "link": "allows the browser to check the official seal"
           },
           {
-            "id": "cx_mwi74hx9:2",
-            "cue": "Browser checks certificate trust",
-            "answer": "Your browser checks if a trusted authority vouches for the website certificate.",
-            "why": "If the validator is unknown, your browser warns you that the connection might be unsafe.",
-            "scene": "A wise owl inspects the royal passport with a magnifying glass, checking the official wax seal.",
+            "id": "cx_mwj3xaxh:2",
+            "cue": "Creating the secret key",
+            "answer": "Your browser uses the website certificate to create a shared secret key known only to you two.",
+            "why": "Public and private key math lets two strangers securely agree on a secret without ever meeting.",
+            "scene": "Two wizards across an ocean snap their fingers, and identical diamond keys appear in their palms.",
             "glyphs": [
-              "🦉",
-              "🔍"
+              "🧙",
+              "🌊",
+              "💎"
             ],
             "order": 2,
             "check": {
-              "wrong": "Your browser calls the website owner directly on the phone to confirm their identity.",
-              "right": "Your browser mathematically verifies pre-installed digital signatures from trusted security companies."
+              "wrong": "The server sends its permanent master password across the internet openly for the browser to use.",
+              "right": "They use advanced asymmetric cryptography to securely invent a shared secret without revealing it."
             },
-            "link": "Both create a secret key"
+            "link": "locks the connection into total privacy"
           },
           {
-            "id": "cx_mwi74hx9:3",
-            "cue": "Secret encryption key created",
-            "answer": "Both sides use a secure math trick to create a shared secret key.",
-            "why": "This temporary key is known only to your device and the server, keeping hackers completely blind.",
-            "scene": "Two people whisper a secret formula into opposite ends of a magical glowing pipe.",
+            "id": "cx_mwj3xaxh:3",
+            "cue": "Scrambling the data traffic",
+            "answer": "All sent and received web data is thoroughly scrambled using that shared secret key.",
+            "why": "Scrambled data looks like absolute gibberish to internet providers or hackers snooping on the wires.",
+            "scene": "A blender shreds love letters into colorful confetti that dances wildly in a glass tube.",
             "glyphs": [
-              "🔮",
-              "🗝️"
+              "🌪️",
+              "💌",
+              "🔀"
             ],
             "order": 3,
             "check": {
-              "wrong": "The website sends the secret key openly across the internet for your browser to use.",
-              "right": "Both sides generate the secret key locally using math, without ever sending the key itself."
-            },
-            "link": "Encrypted data starts flowing"
-          },
-          {
-            "id": "cx_mwi74hx9:4",
-            "cue": "Encrypted data flows safely",
-            "answer": "All web traffic is locked with the secret key into unreadable scrambled code.",
-            "why": "Even if intercepted, the jumbled data is useless without the specific key to unlock it.",
-            "scene": "A messenger drops a diary into a shredder, and it reassembles as a glowing locked puzzle box.",
-            "glyphs": [
-              "📦",
-              "🔒"
-            ],
-            "order": 4,
-            "check": {
-              "wrong": "HTTPS makes your internet connection invisible so nobody can tell you are visiting a website.",
-              "right": "HTTPS scrambles the contents of your traffic, though observers can still see which website you visit."
+              "wrong": "Encryption makes internet data completely invisible so that it travels instantly without any packets.",
+              "right": "Encryption scrambles the data contents into ciphertext, but the scrambled packets still travel across the network."
             }
           }
         ]
@@ -1329,99 +1316,85 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 5,
-      "mythChecks": 5,
+      "stages": 4,
+      "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6385,
-      "wallMs": 6487,
+      "serverMs": 2066,
+      "wallMs": 2148,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi74o8m",
-        "title": "How a language model predicts words",
-        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "id": "cx_mwj3xek9",
+        "title": "How LLMs predict the next word",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi74o8m:0",
-            "cue": "Tokenizing the input text",
-            "answer": "The model splits incoming text into smaller chunks called tokens, which can be words or parts of words.",
-            "why": "Computers cannot process raw human letters directly, so converting text into numerical tokens is the necessary first step.",
-            "scene": "A giant paper shredder chops sentences into colorful numbered puzzle pieces floating in the air.",
+            "id": "cx_mwj3xek9:0",
+            "cue": "Turning words into numbers",
+            "answer": "The text is converted into numbers called tokens so computers can process it.",
+            "why": "Computers cannot read human letters directly, so every word or part of a word gets a numeric ID.",
+            "scene": "A giant paper shredder chops books into little numbered tickets fluttering into baskets.",
             "glyphs": [
-              "✂️"
+              "📄"
             ],
             "order": 0,
             "check": {
-              "wrong": "Large language models read human sentences just like people do, word by word.",
-              "right": "Models actually read text as numerical codes representing fragments of words called tokens."
+              "wrong": "Large language models read human sentences naturally just like a human reader does.",
+              "right": "Large language models convert all text into numerical tokens before doing any math."
             },
-            "link": "Converts tokens into dense numerical coordinates"
+            "link": "passes numbers into the pattern finder"
           },
           {
-            "id": "cx_mwi74o8m:1",
-            "cue": "Mapping meaning into vectors",
-            "answer": "Each token is converted into a vector, which is a long list of numbers representing its meaning.",
-            "why": "Numbers allow the computer to calculate relationships, placing words with similar meanings close together in a geometric space.",
-            "scene": "Thousands of glowing glowing coordinates shifting like stars inside a giant 3D transparent globe.",
+            "id": "cx_mwj3xek9:1",
+            "cue": "Mapping meaning in space",
+            "answer": "Numbers are placed in a giant mathematical space where similar meanings sit close together.",
+            "why": "This geometric arrangement allows the model to calculate relationships between concepts like royalty and gender.",
+            "scene": "Thousands of glowing glowing glowing floating orbs cluster together in a dark room by color.",
             "glyphs": [
-              "⭐"
+              "🌌",
+              "📍"
             ],
             "order": 1,
             "check": {
-              "wrong": "Words are stored inside the computer as exact dictionary definitions and rigid rulebooks.",
-              "right": "Words are translated into floating numerical coordinates that represent their contextual meanings."
+              "wrong": "The model uses a strict dictionary definition to look up the meaning of each word.",
+              "right": "The model places words in a geometric space where distance represents similarity of meaning."
             },
-            "link": "Passes vectors through attention layers"
+            "link": "flows through the attention layers"
           },
           {
-            "id": "cx_mwi74o8m:2",
-            "cue": "Weighing context with attention",
-            "answer": "Attention mechanisms calculate how strongly every token relates to all other tokens in the prompt.",
-            "why": "This allows the model to understand ambiguous words by looking at surrounding clues, like knowing a bank refers to a river.",
-            "scene": "A bustling switchboard operator with a thousand glowing telephone wires connecting words across the room.",
+            "id": "cx_mwj3xek9:2",
+            "cue": "Weighing word connections",
+            "answer": "Attention mechanisms calculate which surrounding words matter most for the current prediction.",
+            "why": "Context changes meaning, so the model must dynamically link pronouns to their correct nouns.",
+            "scene": "A massive switchboard of glowing laser threads connects related words across sentences.",
             "glyphs": [
-              "❓"
+              "🔌",
+              "💡"
             ],
             "order": 2,
             "check": {
-              "wrong": "Every word in a sentence has an isolated meaning regardless of the surrounding text.",
-              "right": "The meaning of each token shifts dynamically based on surrounding context and relationships."
+              "wrong": "Every word in the sentence contributes equally to predicting the very next word.",
+              "right": "Attention layers dynamically weigh which surrounding words matter most for the current context."
             },
-            "link": "Calculates probabilities for candidate tokens"
+            "link": "feeds into the probability generator"
           },
           {
-            "id": "cx_mwi74o8m:3",
-            "cue": "Calculating the next probability",
-            "answer": "The model scores every possible vocabulary token to determine how likely it is to appear next.",
-            "why": "These raw scores, called logits, reflect patterns learned from reading billions of pages of human writing.",
-            "scene": "A massive horse race starting gate where thousands of numbered horses strain forward in neon lights.",
+            "id": "cx_mwj3xek9:3",
+            "cue": "Calculating final probabilities",
+            "answer": "The model scores every possible next word in its vocabulary with a percentage chance.",
+            "why": "Converting internal math into ranked options allows the system to select a logical continuation.",
+            "scene": "A towering slot machine spins thousands of word tiles until one winning phrase locks in.",
             "glyphs": [
-              "❓",
-              "👂"
+              "🎰",
+              "📊"
             ],
             "order": 3,
             "check": {
-              "wrong": "The computer invents completely original thoughts from scratch without relying on past statistics.",
-              "right": "The model calculates statistical probabilities of the next token based on learned writing patterns."
-            },
-            "link": "Selects the final output token"
-          },
-          {
-            "id": "cx_mwi74o8m:4",
-            "cue": "Selecting the final token",
-            "answer": "The model picks one token from the probability distribution and adds it to the output text.",
-            "why": "Repeating this single step one word at a time allows the system to generate coherent paragraphs.",
-            "scene": "A mechanical stamping press slamming down to print a single glowing word onto an endless scroll.",
-            "glyphs": [
-              "✍️"
-            ],
-            "order": 4,
-            "check": {
-              "wrong": "The model writes an entire paragraph all at once in a single creative flash.",
-              "right": "The model generates text strictly one token at a time in a continuous loop."
+              "wrong": "The model searches the internet for the exact next sentence to copy.",
+              "right": "The model calculates statistical probabilities for every possible next word in its vocabulary."
             }
           }
         ]
@@ -1435,84 +1408,101 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 4,
-      "mythChecks": 4,
+      "stages": 5,
+      "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 5840,
-      "wallMs": 6855,
+      "serverMs": 3288,
+      "wallMs": 3720,
       "attempts": 2,
       "deck": {
-        "id": "cx_mwi7fd95",
+        "id": "cx_mwj48yha",
         "title": "How Git records and merges changes",
-        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7fd95:0",
-            "cue": "Creating a local commit",
-            "answer": "Git saves a snapshot of your project files as a commit object when you explicitly record changes.",
-            "why": "Snapshots let you travel back in time to any previous state without storing duplicate files.",
-            "scene": "A glowing camera takes a 3D hologram of a desk covered in papers.",
+            "id": "cx_mwj48yha:0",
+            "cue": "Creating a snapshot",
+            "answer": "Git takes a compressed snapshot of all tracked files every time you save a commit.",
+            "why": "Unlike older systems that store file differences, snapshots allow Git to instantly access the complete project state.",
+            "scene": "A giant camera flashes inside a filing cabinet, instantly freezing a stack of papers into solid glass blocks.",
             "glyphs": [
               "🔥",
-              "🍽️"
+              "⏰"
             ],
             "order": 0,
             "check": {
-              "wrong": "Git records every single keystroke you make as you type your code.",
-              "right": "Git only records snapshots when you explicitly choose to save a commit."
+              "wrong": "Git records every single keystroke you type as you write your program code.",
+              "right": "Git only records a complete snapshot of your files when you explicitly create a commit."
             },
-            "link": "pushes the snapshot onto a timeline branch"
+            "link": "leads to tracking changes over time"
           },
           {
-            "id": "cx_mwi7fd95:1",
-            "cue": "Branching the timeline",
-            "answer": "A branch points to a specific commit, creating an independent line of development.",
-            "why": "Branches allow you to build new features safely without breaking the main working code.",
-            "scene": "A glowing tree branch splits into two separate glowing paths in mid-air.",
+            "id": "cx_mwj48yha:1",
+            "cue": "Building a tree graph",
+            "answer": "Every commit points to its parent commit, creating an unbreakable chronological chain of history.",
+            "why": "This parent-child relationship guarantees that history cannot be altered without breaking all subsequent records.",
+            "scene": "An old oak tree grows backwards in fast-motion, with each new branch firmly gripping the one below it.",
             "glyphs": [
-              "⏰",
-              "🍽️"
+              "🌳",
+              "🏠"
             ],
             "order": 1,
             "check": {
-              "wrong": "Branches create entirely separate physical copies of your project folder on your computer.",
-              "right": "Branches are just lightweight movable pointers pointing to specific commits."
+              "wrong": "Commits float independently in a random pile until you sort them manually by date.",
+              "right": "Each commit permanently links to its parent commit, forming an unbroken chronological chain of history."
             },
-            "link": "leads to making changes on the new branch"
+            "link": "leads to branching for new features"
           },
           {
-            "id": "cx_mwi7fd95:2",
-            "cue": "Merging two branches",
-            "answer": "Git combines the history of two different branches when you ask to bring changes together.",
-            "why": "Merging unites separate efforts into a single unified version of the project.",
-            "scene": "Two separate glowing rivers flow together into one wide, bright stream.",
+            "id": "cx_mwj48yha:2",
+            "cue": "Branching into parallel paths",
+            "answer": "Branches are lightweight movable pointers that let you develop new features without risking working code.",
+            "why": "Isolating experimental work prevents bugs from breaking the main software until they are fully ready.",
+            "scene": "A train track splits mechanically into two separate glowing paths floating over a bottomless canyon.",
             "glyphs": [
-              "🥈"
+              "💡",
+              "🍎"
             ],
             "order": 2,
             "check": {
-              "wrong": "Merging automatically rewrites all older history to match the newest branch.",
-              "right": "Merging creates a new commit that combines the histories of both branches."
+              "wrong": "Creating a branch duplicates your entire project folder on your computer's hard drive.",
+              "right": "Branches are simply lightweight movable pointers pointing to a specific commit in the project history."
             },
-            "link": "triggers an automatic comparison of the files"
+            "link": "leads to merging different paths"
           },
           {
-            "id": "cx_mwi7fd95:3",
-            "cue": "Resolving a merge conflict",
-            "answer": "Git pauses and asks you to manually choose which changes to keep when edits overlap.",
-            "why": "Computers cannot safely guess your design intent when two people edit the exact same line.",
-            "scene": "A giant glowing traffic cop stops two trains heading toward the same track.",
+            "id": "cx_mwj48yha:3",
+            "cue": "Merging divergent histories",
+            "answer": "Git combines separate branches by finding their common ancestor and automatically integrating the new changes.",
+            "why": "Automatic integration saves developers from manually copying and pasting code updates between different versions.",
+            "scene": "Two glowing rivers flow toward each other and seamlessly blend into a single wider stream.",
             "glyphs": [
-              "🔮"
+              "📱"
             ],
             "order": 3,
             "check": {
-              "wrong": "Git randomly deletes one of the conflicting edits to finish the merge automatically.",
-              "right": "Git pauses the merge and makes you manually choose which version to keep."
+              "wrong": "Merging automatically deletes all older versions of your code so they can never be recovered.",
+              "right": "Merging combines separate branches by integrating their changes while preserving the full commit history."
+            },
+            "link": "leads to resolving conflicts"
+          },
+          {
+            "id": "cx_mwj48yha:4",
+            "cue": "Resolving merge conflicts",
+            "answer": "When the same code line changes in both branches, Git pauses and asks you to choose the final version.",
+            "why": "Computers cannot guess human intent, so developers must manually decide which conflicting change to keep.",
+            "scene": "Two construction workers argue over a single doorway while holding opposite blueprints in a maze.",
+            "glyphs": [
+              "💻"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Git randomly deletes one of the conflicting changes without telling you when a merge clash occurs.",
+              "right": "Git pauses the merge and asks a human developer to manually choose which conflicting version to keep."
             }
           }
         ]
@@ -1528,13 +1518,13 @@
       "error": "",
       "stages": 4,
       "mythChecks": 4,
-      "repaired": 0,
+      "repaired": 1,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 5772,
-      "wallMs": 5855,
+      "serverMs": 2517,
+      "wallMs": 2705,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi7fjd9",
+        "id": "cx_mwj492pj",
         "title": "How a refrigerator keeps food cold",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -1542,74 +1532,74 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7fjd9:0",
-            "cue": "Compressor squeezes cold gas",
-            "answer": "An electric compressor squeezes the refrigerant gas, raising its temperature and pressure.",
-            "why": "Compressing a gas forces its molecules closer together, which rapidly generates heat energy.",
-            "scene": "A giant silver fist inside the fridge wall crushes a cloud of glowing blue gas into a tiny, hot glowing ball.",
+            "id": "cx_mwj492pj:0",
+            "cue": "Compressor squeezes liquid refrigerant",
+            "answer": "A motorized pump increases the pressure of a special cooling fluid, making it hot.",
+            "why": "Compressing a gas forces its molecules closer together, which rapidly concentrates heat energy and raises its temperature.",
+            "scene": "A tiny mechanical fist tightly squeezing a glowing silver tube until it steams with heat.",
             "glyphs": [
               "✊",
-              "🔥",
+              "🌡️",
               "💨"
             ],
             "order": 0,
             "check": {
-              "wrong": "The compressor creates cold air directly and blows it into the food compartments.",
-              "right": "The compressor only pressurizes gas to change its temperature and drive the cooling cycle."
+              "wrong": "The compressor creates cold air from nothing to chill the inside of the fridge.",
+              "right": "The compressor only squeezes the refrigerant to increase its pressure and temperature."
             },
-            "link": "pushes the hot gas into the condenser coils"
+            "link": "flows into the condenser coils outside"
           },
           {
-            "id": "cx_mwi7fjd9:1",
+            "id": "cx_mwj492pj:1",
             "cue": "Condenser coils release heat",
-            "answer": "The hot gas flows through coils outside the back, releasing its heat into the room.",
-            "why": "Heat naturally moves from a warmer area to a cooler room, turning the gas into a liquid.",
-            "scene": "A copper snake on the back of the fridge sweats glowing red droplets of pure heat onto the kitchen floor.",
+            "answer": "The hot fluid flows through black metal grids behind the fridge, dumping its heat into the room.",
+            "why": "Heat naturally flows from a warmer area to a cooler room, allowing the fluid to cool down and turn into a liquid.",
+            "scene": "A giant radiator sweating visible waves of shimmering orange heat into a cool bedroom.",
             "glyphs": [
+              "🔥",
               "🐍",
-              "🌡️",
-              "💧"
+              "🏠"
             ],
             "order": 1,
             "check": {
-              "wrong": "The coils absorb heat from the kitchen to keep the outside walls warm.",
-              "right": "The coils expel heat from inside the fridge out into the surrounding room."
+              "wrong": "The coils behind the fridge are designed to capture heat and trap it inside the walls.",
+              "right": "The coils release the absorbed heat out into the surrounding room air."
             },
-            "link": "flows liquid refrigerant to the expansion valve"
+            "link": "rushes through the expansion valve"
           },
           {
-            "id": "cx_mwi7fjd9:2",
+            "id": "cx_mwj492pj:2",
             "cue": "Expansion valve drops pressure",
-            "answer": "The liquid passes through a tiny valve, causing its pressure and temperature to drop sharply.",
-            "why": "Rapid expansion forces the liquid to instantly cool down well below freezing point.",
-            "scene": "A microscopic bouncer guards a narrow doorway, spraying a freezing cold mist of sparkling diamond dust.",
+            "answer": "The liquid passes through a tiny pinhole, causing its pressure to drop instantly and turning it freezing cold.",
+            "why": "When a pressurized liquid suddenly expands into a wider space, it absorbs a massive amount of energy to change state.",
+            "scene": "Picture expansion valve drops pressure happening right in front of you, glowing as it goes.",
             "glyphs": [
-              "🚪",
+              "🎯",
               "❄️",
-              "✨"
+              "💨"
             ],
             "order": 2,
             "check": {
-              "wrong": "The valve adds cold chemicals to the liquid to make it lose its heat.",
-              "right": "The sudden drop in pressure alone causes the liquid to become extremely cold."
+              "wrong": "The valve adds cold chemicals into the liquid to make the temperature drop.",
+              "right": "The sudden drop in pressure forces the liquid to expand and become freezing cold."
             },
-            "link": "feeds the freezing liquid into evaporator coils"
+            "link": "enters the evaporator coils inside"
           },
           {
-            "id": "cx_mwi7fjd9:3",
-            "cue": "Evaporator absorbs food heat",
-            "answer": "The freezing liquid flows through coils inside the fridge, absorbing heat from your food.",
-            "why": "Heat from inside the fridge transfers into the cold liquid, boiling it back into a gas.",
-            "scene": "An iceberg shaped like a sponge inside the walls eagerly drinks up red waves of heat radiating from milk cartons.",
+            "id": "cx_mwj492pj:3",
+            "cue": "Evaporator coils absorb heat",
+            "answer": "The freezing fluid travels through tubes inside the fridge, absorbing heat from your food and air.",
+            "why": "Heat from inside the refrigerator moves into the freezing cold coils, leaving the interior chilled.",
+            "scene": "A glowing red apple handing its warmth to a freezing blue snake wrapped around it.",
             "glyphs": [
+              "🍎",
               "🧊",
-              "🧽",
-              "🥛"
+              "🔄"
             ],
             "order": 3,
             "check": {
-              "wrong": "The fridge creates coldness by pumping ice-cold air from a hidden freezer block.",
-              "right": "The fridge removes heat by letting evaporating liquid absorb warmth from the interior."
+              "wrong": "Cold air is pumped in from an icebox hidden at the very bottom.",
+              "right": "The cold coils absorb heat from the interior air, leaving the space chilled."
             }
           }
         ]
@@ -1623,86 +1613,126 @@
       "ok": true,
       "status": 200,
       "error": "",
-      "stages": 4,
-      "mythChecks": 4,
+      "stages": 6,
+      "mythChecks": 6,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6149,
-      "wallMs": 6226,
+      "serverMs": 3710,
+      "wallMs": 3841,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi7fpfn",
+        "id": "cx_mwj496an",
         "title": "How a flush toilet works",
-        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7fpfn:0",
-            "cue": "Pressing the flush handle",
-            "answer": "Pushing the handle rotates a metal arm inside the tank.",
-            "why": "This mechanical rotation lifts the connected chain, which pulls the flapper plug open.",
-            "scene": "A tiny crane operator inside the ceramic tank pulls a heavy steel lever to lift a rubber seal.",
+            "id": "cx_mwj496an:0",
+            "cue": "Pressing the handle",
+            "answer": "Pushing the flush handle lifts a connected chain attached to a rubber flapper valve at the bottom of the tank.",
+            "why": "Lifting this valve opens the main escape route, allowing water to rush downward quickly using gravity.",
+            "scene": "A tiny knight pulls a lever, yanking open a massive trapdoor at the bottom of a glass water tower.",
             "glyphs": [
-              "🕹️",
-              "⛓️"
+              "🔗",
+              "🚪",
+              "💧"
             ],
             "order": 0,
             "check": {
-              "wrong": "The handle directly pushes water down the drain using air pressure.",
-              "right": "The handle only lifts a plug to release water stored in the tank."
+              "wrong": "The handle directly pushes the water out of the tank with mechanical force.",
+              "right": "The handle only opens a valve, letting gravity pull the water down."
             },
-            "link": "lifts the rubber flapper"
+            "link": "Water rushes rapidly down into the bowl below."
           },
           {
-            "id": "cx_mwi7fpfn:1",
-            "cue": "Water rushes downward",
-            "answer": "Stored water gravity-drains rapidly through the open flush valve into the bowl.",
-            "why": "Rapid volume overwhelms the trapway, creating a sudden surge that initiates the siphon effect.",
-            "scene": "A waterfall of crystal clear water plunges from a high cliff into a porcelain canyon.",
+            "id": "cx_mwj496an:1",
+            "cue": "Water rushes the bowl",
+            "answer": "Stored tank water surges through hidden rim holes and a siphon jet, quickly filling the porcelain bowl.",
+            "why": "This sudden, large volume of water overwhelms the trap, creating the necessary conditions to trigger a siphon.",
+            "scene": "A hundred tiny firehoses suddenly blast water around the inside rim of a giant white bowl.",
             "glyphs": [
               "🌊",
-              "🚽"
+              "🛁",
+              "🚿"
             ],
             "order": 1,
             "check": {
-              "wrong": "The water is pumped into the bowl under high pressure from the city mains.",
-              "right": "The water falls entirely by gravity from the tank above."
+              "wrong": "Water slowly trickles in to push the waste out by weight alone.",
+              "right": "Water surges in rapidly to fill the bowl and activate the siphon effect."
             },
-            "link": "triggers the siphon"
+            "link": "Rising water creates a powerful suction in the hidden trap."
           },
           {
-            "id": "cx_mwi7fpfn:2",
-            "cue": "Siphon pulls waste away",
-            "answer": "The sudden rush of water fills the curved S-shaped pipe, creating suction.",
-            "why": "This suction pulls bowl contents downward and over the bend faster than normal gravity flow.",
-            "scene": "A giant invisible vacuum cleaner sucks everything out of the bowl through a curved glass tube.",
+            "id": "cx_mwj496an:2",
+            "cue": "Siphon pulls everything down",
+            "answer": "An S-shaped pipe creates a siphon, sucking all the water and waste out of the bowl into the drain.",
+            "why": "The downward curve of the pipe removes air, and gravity pulls the liquid column down, creating suction.",
+            "scene": "An energetic blue elephant uses its trunk to drink the entire contents of the bowl in one gulp.",
             "glyphs": [
+              "🐘",
               "🌀",
-              "💨"
+              "🚽"
             ],
             "order": 2,
             "check": {
-              "wrong": "Waste is pushed down the drain purely by the physical force of the falling water.",
-              "right": "Waste is pulled down by a vacuum suction created in the curved pipe."
+              "wrong": "Waste is pushed down the drain entirely by the sheer water pressure from above.",
+              "right": "Waste is sucked down because the curved drain pipe creates a vacuum siphon."
             },
-            "link": "empties the bowl"
+            "link": "An empty tank and empty bowl trigger the refill mechanism."
           },
           {
-            "id": "cx_mwi7fpfn:3",
-            "cue": "Refilling the tank",
-            "answer": "As water level drops, a hollow plastic float falls and opens the fill valve.",
-            "why": "Fresh water rushes in to refill both the tank and the bowl for the next flush.",
-            "scene": "A bright yellow rubber duck drops down, turning on a hidden garden hose inside the tank.",
+            "id": "cx_mwj496an:3",
+            "cue": "Floating ball drops down",
+            "answer": "As the water level inside the tank falls, a hollow plastic float drops down with the surface.",
+            "why": "This floating ball acts as a sensor, tracking the water level to know when the tank needs refilling.",
+            "scene": "A bright yellow rubber duck rides an elevator downward as the water level rapidly shrinks.",
             "glyphs": [
               "🦆",
-              "🚰"
+              "📉",
+              "🔻"
             ],
             "order": 3,
             "check": {
-              "wrong": "The toilet refills itself automatically using moisture pulled from the bathroom air.",
-              "right": "The toilet refills using fresh water from the building supply pipe."
+              "wrong": "The float stays at the top until a timer tells the tank to start filling.",
+              "right": "The float physically drops as the water level falls, triggering the fill valve."
+            },
+            "link": "A dropping float opens the fill valve to let new water in."
+          },
+          {
+            "id": "cx_mwj496an:4",
+            "cue": "Refilling the tank",
+            "answer": "The dropped float opens a fill valve, letting fresh water rush into the tank and refill it.",
+            "why": "This restores the water supply so the toilet is ready for the next flush.",
+            "scene": "A garden hose blasts fresh sparkling water back into the glass tank while a valve hisses loudly.",
+            "glyphs": [
+              "🚿",
+              "🔄",
+              "✨"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Fresh water fills the bowl directly instead of going into the tank first.",
+              "right": "Fresh water fills the tank first to store energy for the next flush."
+            },
+            "link": "Rising water lifts the float back to its original position."
+          },
+          {
+            "id": "cx_mwj496an:5",
+            "cue": "Float shuts off water",
+            "answer": "As the water rises, the float rises with it until it shuts the fill valve completely.",
+            "why": "This stops the water flow automatically, preventing the tank from overflowing onto the bathroom floor.",
+            "scene": "A sleepy guard rises on a platform and slams a heavy vault door shut just in time.",
+            "glyphs": [
+              "🛡️",
+              "🛑",
+              "🔒"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "You have to manually turn off the water supply after every single flush.",
+              "right": "The rising float automatically shuts off the valve when the water reaches the right level."
             }
           }
         ]
@@ -1720,11 +1750,11 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 4294,
-      "wallMs": 4368,
+      "serverMs": 2495,
+      "wallMs": 2598,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi7fvs4",
+        "id": "cx_mwj49arc",
         "title": "How noise-cancelling headphones work",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -1732,70 +1762,74 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7fvs4:0",
-            "cue": "Microphone captures outside sound",
-            "answer": "A tiny microphone on the outside of the ear cup listens to ambient noise in the room.",
-            "why": "The system must intercept sound waves before they reach your eardrum to neutralize them in time.",
-            "scene": "A tiny metal ear with a giant golden hearing horn strapped to the outside, greedily swallowing room sounds.",
+            "id": "cx_mwj49arc:0",
+            "cue": "External microphone captures sound",
+            "answer": "A tiny microphone on the outside of the ear cup listens to environmental noise in real time.",
+            "why": "The system must intercept sound waves before they reach your eardrum so it has time to process them.",
+            "scene": "A tiny golden ear pressed against the outside of the headphone shell, straining to listen to the rushing traffic outside.",
             "glyphs": [
-              "🎧",
-              "👂"
+              "👂",
+              "🎤",
+              "🚗"
             ],
             "order": 0,
             "check": {
-              "wrong": "The microphone blocks sound physically by acting like a tiny soundproof wall.",
-              "right": "The microphone only records the sound waves to send them into a tiny computer chip."
+              "wrong": "The microphone blocks the sound waves from physically entering the headphone cushion.",
+              "right": "The microphone only records the sound waves to let the internal computer analyze them."
             },
-            "link": "Sends the audio wave to the internal microchip."
+            "link": "Sends the recorded sound wave into the digital processor."
           },
           {
-            "id": "cx_mwi7fvs4:1",
-            "cue": "Inverting the sound wave",
-            "answer": "A digital processor flips the recorded sound wave upside down to create an exact opposite wave.",
-            "why": "An inverted wave mirrors the original, matching every peak with a valley and every valley with a peak.",
-            "scene": "An acrobat standing on the ceiling inside the headphone cup, perfectly mirroring every move of a dancer below.",
+            "id": "cx_mwj49arc:1",
+            "cue": "Processor inverts the wave",
+            "answer": "A digital chip instantly flips the incoming sound wave upside down, creating an exact mirror image.",
+            "why": "Inverted waves have peaks where the original has troughs, setting up the conditions for cancellation.",
+            "scene": "A tiny acrobat doing a vertical flip on a tightrope, turning every right-side-up wave completely upside down.",
             "glyphs": [
               "🤸",
-              "🪞"
+              "🔄",
+              "📉"
             ],
             "order": 1,
             "check": {
-              "wrong": "The chip deletes the sound wave by multiplying its volume by zero instantly.",
-              "right": "The chip creates a mathematical mirror image of the sound wave without erasing anything yet."
+              "wrong": "The processor deletes the sound data entirely to keep it from reaching your ear.",
+              "right": "The processor transforms the sound data by inverting its phase into a mirror image."
             },
-            "link": "Pumps the inverted wave into the speaker driver."
+            "link": "Feeds the inverted wave to the internal speaker driver."
           },
           {
-            "id": "cx_mwi7fvs4:2",
-            "cue": "Generating anti-noise",
-            "answer": "The headphone speaker plays this flipped wave, known as anti-noise, directly into your ear canal.",
-            "why": "Sound waves can overlap and combine, a physical property known as superposition that alters total volume.",
-            "scene": "A cheerful ghost blowing soap bubbles that pop and swallow incoming room noise like tiny vacuum cleaners.",
+            "id": "cx_mwj49arc:2",
+            "cue": "Speaker plays anti-noise",
+            "answer": "The headphone speaker plays this inverted wave, known as anti-noise, directly into your ear canal.",
+            "why": "Playing the opposite wave primes the sound fields to collide and neutralize each other.",
+            "scene": "A miniature brass trumpet inside the speaker cone blasts out silent, upside-down ripples of sound.",
             "glyphs": [
-              "👻",
-              "🫧"
+              "📢",
+              "🎵",
+              "🔊"
             ],
             "order": 2,
             "check": {
-              "wrong": "The speaker blasts loud static noise to drown out the outside sounds by sheer force.",
-              "right": "The speaker plays a precise, customized anti-sound wave specifically shaped to cancel the background murmur."
+              "wrong": "The speaker plays louder music to drown out the annoying outside sounds.",
+              "right": "The speaker plays a precise anti-noise wave designed specifically to combat the ambient hum."
             },
-            "link": "Collides with incoming noise at the eardrum."
+            "link": "Triggers destructive interference in the open air."
           },
           {
-            "id": "cx_mwi7fvs4:3",
-            "cue": "Destructive interference occurs",
-            "answer": "The peak of the outside noise meets the valley of the anti-noise and they cancel each other out.",
-            "why": "Opposite pressures neutralize one another in the air, resulting in silence rather than louder sound.",
-            "scene": "Two sumo wrestlers pushing against each other with identical force until both suddenly vanish into thin air.",
+            "id": "cx_mwj49arc:3",
+            "cue": "Waves cancel each other",
+            "answer": "The peak of the outside noise meets the trough of the anti-noise, causing them to cancel out.",
+            "why": "When opposite wave values add together, they flatten to zero through destructive interference.",
+            "scene": "Two ocean waves crashing into each other head-on and instantly flattening the water into a sheet of glass.",
             "glyphs": [
-              "🤼",
-              "💨"
+              "🌊",
+              "💥",
+              "➖"
             ],
             "order": 3,
             "check": {
-              "wrong": "The two sounds bounce off each other like billiard balls and fly away from your head.",
-              "right": "The two opposite waves combine and flatten each other out, leaving a quiet zone at your ear."
+              "wrong": "The two opposing sounds combine to create a much louder, combined mega-wave.",
+              "right": "The two opposing waves subtract from each other, effectively silencing the ambient drone."
             }
           }
         ]
@@ -1813,11 +1847,11 @@
       "mythChecks": 5,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 6486,
-      "wallMs": 6571,
+      "serverMs": 2897,
+      "wallMs": 3013,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi7g0pi",
+        "id": "cx_mwj49ec9",
         "title": "How the Water Cycle Works",
         "subtitle": "5 linked stages, taught by the Palace Architect",
         "ordered": true,
@@ -1825,11 +1859,11 @@
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7g0pi:0",
+            "id": "cx_mwj49ec9:0",
             "cue": "Sun heats the water",
-            "answer": "The sun heats oceans and lakes, turning liquid water into an invisible gas called water vapour.",
-            "why": "Solar energy breaks the bonds holding water molecules together, giving them enough energy to escape into the air.",
-            "scene": "A giant glowing cartoon sun wearing sunglasses blows a hairdryer directly at a blue swimming pool.",
+            "answer": "The sun warms up oceans and lakes, turning liquid water into invisible water vapour that rises.",
+            "why": "Heat gives water molecules enough energy to break free from the liquid and float into the air as a gas.",
+            "scene": "A giant smiling sun uses a huge red straw to slurp invisible steam off a sizzling ocean.",
             "glyphs": [
               "☀️",
               "🌊",
@@ -1838,16 +1872,16 @@
             "order": 0,
             "check": {
               "wrong": "Water evaporates because boiling bubbles push the steam up into the sky.",
-              "right": "Water evaporates slowly at normal temperatures when individual molecules gain enough energy to escape."
+              "right": "Water evaporates slowly at normal temperatures when invisible vapour molecules escape into the air."
             },
-            "link": "Rising vapour fuels plant water loss"
+            "link": "hot vapour rises high into the colder sky"
           },
           {
-            "id": "cx_mwi7g0pi:1",
+            "id": "cx_mwj49ec9:1",
             "cue": "Plants release hidden water",
-            "answer": "Plants pull water from the soil and release it from their leaves as vapour through transpiration.",
-            "why": "This acts like a natural pump, helping plants stay cool and moving water from the ground into the sky.",
-            "scene": "A massive green fern sweating profusely with tiny yellow droplets pouring off every single leaf.",
+            "answer": "Plants suck water from soil and push it out of their leaves as invisible vapour.",
+            "why": "This process called transpiration acts like a giant natural pump, moving water from underground up into the sky.",
+            "scene": "A dramatic green fern sweating tiny glowing sweatbands off every single leaf.",
             "glyphs": [
               "🌿",
               "💧",
@@ -1855,17 +1889,17 @@
             ],
             "order": 1,
             "check": {
-              "wrong": "Plants sweat just like animals do to cool down their skin during hot weather.",
-              "right": "Plants pull water up through tubes from roots to leaves, releasing it through tiny pores called stomata."
+              "wrong": "Plants sweat water just like humans do to cool down on a hot day.",
+              "right": "Plants pull water through their roots and release vapour through leaf pores to move nutrients."
             },
-            "link": "Cooling vapour condenses into clouds"
+            "link": "vapour meets cold air high above"
           },
           {
-            "id": "cx_mwi7g0pi:2",
-            "cue": "Vapour forms fluffy clouds",
-            "answer": "Rising water vapour cools high in the atmosphere and condenses around tiny dust specks to form clouds.",
-            "why": "Cold air holds less moisture, forcing the gas to turn back into microscopic liquid droplets.",
-            "scene": "A fluffy white cloud wearing a tiny winter scarf while shivering next to floating dust bunnies.",
+            "id": "cx_mwj49ec9:2",
+            "cue": "Clouds form in the sky",
+            "answer": "Rising water vapour cools down high in the atmosphere and sticks to tiny dust specks to form clouds.",
+            "why": "Cooling slows the vapour molecules down, causing them to bunch back together into liquid droplets.",
+            "scene": "A fluffy white cloud wearing tiny spectacles, diligently knitting itself out of stray steam wisps.",
             "glyphs": [
               "☁️",
               "❄️",
@@ -1873,44 +1907,43 @@
             ],
             "order": 2,
             "check": {
-              "wrong": "Clouds are giant floating sponges soaked up from oceans by the wind.",
-              "right": "Clouds are massive collections of tiny liquid water droplets and ice crystals floating in the air."
+              "wrong": "Clouds are solid cotton-candy objects floating high up in the atmosphere.",
+              "right": "Clouds are actually huge collections of trillions of microscopic liquid water droplets and ice crystals."
             },
-            "link": "Heavy droplets fall as rain"
+            "link": "droplets grow too heavy and fall"
           },
           {
-            "id": "cx_mwi7g0pi:3",
-            "cue": "Droplets fall as rain",
-            "answer": "Cloud droplets collide and grow heavy, eventually falling back to Earth as rain, snow, or hail.",
-            "why": "Gravity pulls down the oversized droplets once they become too heavy for the rising air to support.",
-            "scene": "An angry grey cloud squeezing out giant cartoon raindrops like a wet kitchen sponge.",
+            "id": "cx_mwj49ec9:3",
+            "cue": "Rain falls as precipitation",
+            "answer": "Cloud droplets collide and stick together until they become too heavy, falling down as rain.",
+            "why": "Gravity pulls the massive water clusters back to Earth because the rising air can no longer hold them up.",
+            "scene": "A grumpy cloud squeezing a massive blue sponge, making a huge puddle splash down below.",
             "glyphs": [
               "🌧️",
-              "☔",
-              "🌍"
+              "🧽"
             ],
             "order": 3,
             "check": {
-              "wrong": "Rain falls because clouds get heavy and squeeze water out like a wet cloth.",
-              "right": "Cloud droplets grow by bumping into each other until gravity pulls them down through the air."
+              "wrong": "Clouds squeeze their water out like wet towels when the wind blows hard.",
+              "right": "Rain happens because tiny cloud droplets combine until gravity pulls the heavy drops down."
             },
-            "link": "Water flows downhill as runoff"
+            "link": "water flows across the ground into rivers"
           },
           {
-            "id": "cx_mwi7g0pi:4",
-            "cue": "Water flows and soaks",
-            "answer": "Rainwater flows over the ground as runoff or soaks into the soil as infiltration to become groundwater.",
-            "why": "Gravity guides water across the landscape, feeding rivers and filling underground spaces before returning to the sea.",
-            "scene": "A happy puddle doing parkour down a grassy hill and diving straight into an underground sponge cave.",
+            "id": "cx_mwj49ec9:4",
+            "cue": "Rivers flow back home",
+            "answer": "Water flows downhill across the land and through underground rocks, eventually returning to the ocean.",
+            "why": "Gravity pulls all surface runoff and hidden groundwater downward, completing the endless loop.",
+            "scene": "A goofy river wearing tiny running shoes, sprinting rapidly down a steep green mountain.",
             "glyphs": [
               "🏞️",
-              "🌊",
-              "🕳️"
+              "👟",
+              "🌊"
             ],
             "order": 4,
             "check": {
-              "wrong": "Groundwater stays trapped underground forever in deep underground lakes that never move.",
-              "right": "Groundwater slowly flows through underground rocks and soil, eventually feeding back into rivers and oceans."
+              "wrong": "Water sinks into the ground and stays trapped underground forever.",
+              "right": "Underground water slowly flows through rocks and soil, eventually feeding rivers that lead back to the sea."
             }
           }
         ]
@@ -1928,82 +1961,84 @@
       "mythChecks": 4,
       "repaired": 0,
       "model": "gemini-3.5-flash-lite",
-      "serverMs": 2544,
-      "wallMs": 2635,
+      "serverMs": 5169,
+      "wallMs": 5245,
       "attempts": 1,
       "deck": {
-        "id": "cx_mwi7g7br",
-        "title": "Why the sky is blue",
+        "id": "cx_mwj49i6h",
+        "title": "Why is the sky blue?",
         "subtitle": "4 linked stages, taught by the Palace Architect",
         "ordered": true,
         "source": "architect",
         "kind": "concept",
         "items": [
           {
-            "id": "cx_mwi7g7br:0",
+            "id": "cx_mwj49i6h:0",
             "cue": "Sunlight has all colors",
-            "answer": "Sunlight looks white, but it is actually made of every color of the rainbow mixed together.",
-            "why": "White light from the sun carries all the colors of light traveling through space as waves.",
-            "scene": "A giant sun wearing a superhero cape made of all the colors of the rainbow, spinning around.",
+            "answer": "Sunlight looks white to us, but it is actually made of every color of the rainbow mixed together.",
+            "why": "White light from the sun carries all the colors of the light spectrum travelling together in waves.",
+            "scene": "A giant glowing sun squeezes a rainbow toothpaste tube across the whole sky.",
             "glyphs": [
               "☀️",
               "🌈"
             ],
             "order": 0,
             "check": {
-              "wrong": "Sunlight is pure white light that contains no other colors until it hits a cloud.",
-              "right": "Sunlight is secretly made of all the colors of the rainbow mixed together."
+              "wrong": "Sunlight is purely white light and contains no other colors inside it.",
+              "right": "Sunlight is actually a mixture of all the colors of the rainbow combined."
             },
-            "link": "travels through space"
+            "link": "travels down to touch the air"
           },
           {
-            "id": "cx_mwi7g7br:1",
+            "id": "cx_mwj49i6h:1",
             "cue": "Light hits the air",
-            "answer": "The colorful sunlight reaches Earth and crashes into tiny invisible gas pieces in the sky.",
-            "why": "Earth is wrapped in an atmosphere full of tiny invisible bits of air called molecules that trap and bounce light.",
-            "scene": "A million tiny bouncy green trampoline sponges floating in the air, catching bouncing laser beams.",
+            "answer": "The sunbeams crash into tiny invisible gas particles floating all around our planet.",
+            "why": "Earth is wrapped in a thick blanket of air made of gases like nitrogen and oxygen.",
+            "scene": "Bouncing pinballs made of sunlight crash into millions of tiny floating soap bubbles.",
             "glyphs": [
-              "🌍",
+              "⚽",
               "💨"
             ],
             "order": 1,
             "check": {
-              "wrong": "Sunlight passes straight through the air without touching anything until it reaches the ground.",
-              "right": "Sunlight crashes into tiny gas pieces floating all around in the air."
+              "wrong": "Sunlight passes straight through the air without touching any gases or particles.",
+              "right": "Sunlight constantly crashes into tiny gas particles floating everywhere in the air."
             },
-            "link": "bounces off gas"
+            "link": "bounces blue light away"
           },
           {
-            "id": "cx_mwi7g7br:2",
-            "cue": "Blue light scatters",
-            "answer": "Blue light waves travel in tiny short steps, so they bounce off the gas pieces in every direction.",
-            "why": "Short light waves bump into tiny things much easier than long red waves, making blue bounce away fast.",
-            "scene": "Tiny blue bouncy balls pinballing everywhere in a giant room full of sleeping giant clouds.",
+            "id": "cx_mwj49i6h:2",
+            "cue": "Blue bounces around",
+            "answer": "Blue light travels in short, choppy waves that crash into gas and scatter in every direction.",
+            "why": "Shorter light waves hit obstacles much easier than long waves, causing them to bounce wildly.",
+            "scene": "Little blue frogs hop crazily in every direction off tiny trampoline clouds.",
             "glyphs": [
-              "🔵",
-              "🏓"
+              "🐸",
+              "🟦",
+              "☁️"
             ],
             "order": 2,
             "check": {
-              "wrong": "Red light bounces around the most because it is the strongest color in sunlight.",
-              "right": "Blue light bounces around the most because its waves are short and easy to scatter."
+              "wrong": "Blue light travels in long straight lines and passes through the air without scattering.",
+              "right": "Blue light travels in short waves that scatter in every direction when hitting gas."
             },
-            "link": "fills the sky"
+            "link": "fills the sky above"
           },
           {
-            "id": "cx_mwi7g7br:3",
-            "cue": "We see blue overhead",
-            "answer": "All the scattered blue light spreads across the whole sky, and our eyes see it from everywhere.",
-            "why": "When we look up, we are seeing all that bounced blue light shining down on us from the air.",
-            "scene": "A happy child wearing giant blue sunglasses, looking up at a sky made of sparkling blue paint.",
+            "id": "cx_mwj49i6h:3",
+            "cue": "We see blue sky",
+            "answer": "Our eyes catch all this scattered blue light bouncing around above us, so the sky looks blue.",
+            "why": "The scattered blue light spreads all across the sky dome before reaching our eyes.",
+            "scene": "A happy child wearing giant blue sunglasses looks up and smiles at the glowing roof.",
             "glyphs": [
               "👀",
+              "👦",
               "💙"
             ],
             "order": 3,
             "check": {
-              "wrong": "The sky is blue because it is acting like a giant mirror reflecting the salty ocean.",
-              "right": "The sky is blue because air scatters blue light waves all around us."
+              "wrong": "The sky looks blue because it reflects the color of the deep ocean water.",
+              "right": "The sky looks blue because scattered blue sunlight reaches our eyes from everywhere."
             }
           }
         ]
