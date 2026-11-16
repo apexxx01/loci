@@ -25,6 +25,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 - **Your room becomes the model.** Using Quest scene understanding, each stage lands on a real object: your couch, your lamp, your shelf. A ring of light traces the surface it rests on, and a gold thread joins the stages in causal order, so walking the room is walking the mechanism. When the palace is ready the thread ignites, stage by stage, with rising tones.
 - **Learning, not just reading.** Stages rest as small glowing labels with one headline. Pinch to open the full stage. On recall, a stage turns into a myth check: two statements, one true and one a common misconception. Pinch the true one. Wrong answers show the correction and come back sooner.
 - **Rebuild the chain.** The thread goes dark and the numbers hide; pinch the stages in the order things happen and relight it link by link.
+- **It checks its own work.** A second pass fact-checks every generated stage; anything doubtful says what to verify. In our eval it passed all 6 shipped concepts clean and caught 6 of 6 planted errors on the right stage.
 - **It brings you back.** Spaced repetition (FSRS) decides when each stage returns. Persistent anchors keep every stage on the same piece of furniture between sessions. A stage missed twice gets a brand-new picture from the Architect.
 - **Built for sitting down.** Everything stays within a comfortable seated view. Hands only, no controllers. Look-to-select, read-aloud, high contrast, larger tiles and calm motion are one panel away.
 - **The website is a palace too.** A living room drawn in lines of light: scroll and the gold thread draws from object to object, each holding a stage with its myth check. At the door you explain it back in your own words and the Architect grades which stages you covered and names any misconception. Then put it in your room.
@@ -48,7 +49,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 
 - A learning loop that uses the room itself: stages on real furniture, a causal thread, myth checks, rebuilding the chain, and spaced returns.
 - End-to-end emulator suite passing, including asking, building, the myth check, the thread, and restoring every stage to within a millimetre after re-entering.
-- 20 of 20 live Architect topics produced a full concept in our eval.
+- 20 of 20 live Architect topics produced a full concept in our eval, and the fact-check pass caught 6 of 6 planted errors on the right stage with no false alarms on the shipped concepts.
 
 ## What we learned
 
