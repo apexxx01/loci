@@ -71,4 +71,4 @@ Everything is reachable while seated.
 
 ## Built with
 
-IWSDK, WebXR, Three.js, TypeScript, Vite, Gemini API, Vercel, ts-fsrs, zod, vitest, Playwright, Immersive Web Emulator.
+IWSDK, WebXR, Three.js, TypeScript, Vite, Gemini API, Vercel, ts-fsrs, zod, vitest, Immersive Web Emulator (driven through the IWSDK CLI).

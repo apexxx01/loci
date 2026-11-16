@@ -531,4 +531,5 @@ button { font-family: inherit; }
 
 .station .doubt { color: var(--gold) !important; font-size: 14px; padding-left: 12px; box-shadow: inset 2px 0 0 var(--gold); }
 .station .doubt[hidden] { display: none; }
+.station .doubt.doubt--ok { color: var(--mint, #7ef0c4) !important; box-shadow: inset 2px 0 0 var(--mint, #7ef0c4); }
 .ask__check { margin-top: 6px !important; }

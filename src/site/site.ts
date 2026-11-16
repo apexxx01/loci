@@ -461,8 +461,11 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       q('[data-why]').textContent = !many && it.why ? `Why: ${it.why}` : '';
       q('[data-scene]').textContent = !many ? `Picture it: ${it.scene}` : '';
       const doubts = idx.map((k) => d.items[k].doubt).filter(Boolean);
-      q('[data-doubt]').hidden = !doubts.length;
-      q('[data-doubt]').textContent = doubts.length ? `Double-check this one: ${doubts.join(' ')}` : '';
+      const clean = !doubts.length && idx.every((k) => d.items[k].checked);
+      const dEl = q('[data-doubt]');
+      dEl.hidden = !doubts.length && !clean;
+      dEl.classList.toggle('doubt--ok', clean);
+      dEl.textContent = doubts.length ? `Double-check this one: ${doubts.join(' ')}` : clean ? 'Fact-checked: nothing wrong found here.' : '';
       const last = d.items[idx[idx.length - 1]];
       const next = d.items[idx[idx.length - 1] + 1];
       q('[data-link]').textContent = last.link && next ? `${cap(last.link)} → ${next.cue}` : '';

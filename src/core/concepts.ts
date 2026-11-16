@@ -17,7 +17,8 @@ function concept(id: string, title: string, blurb: string, stages: Stage[]): Dec
     ordered: true,
     source: 'concept',
     kind: 'concept',
-    items: stages.map((s, order) => ({ ...s, id: `concept-${id}:${order}`, order })),
+    // Every shipped stage passed the fact-checking pass clean: docs/verify-eval.md.
+    items: stages.map((s, order) => ({ ...s, id: `concept-${id}:${order}`, order, checked: true })),
   };
 }
 

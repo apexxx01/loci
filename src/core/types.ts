@@ -31,6 +31,8 @@ export interface MemoryItem {
   remade?: number;
   /** Set when a second, fact-checking pass doubts this stage: what to double-check. */
   doubt?: string;
+  /** Set when the fact-checking pass read this stage and found nothing wrong. */
+  checked?: boolean;
 }
 
 /** Two statements about one stage: the learner picks the true one. */

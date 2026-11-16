@@ -6,7 +6,7 @@
  *   npx vite-node scripts/eval-verify.ts
  */
 import { writeFileSync } from 'node:fs';
-import { CONCEPTS } from '../src/core/concepts.js';
+import { CONCEPTS, LOCI_METHOD } from '../src/core/concepts.js';
 
 const API = 'https://loci-vr.vercel.app/api/architect';
 // One false claim per concept, on the stage given.
@@ -16,6 +16,7 @@ const PLANTED: Record<string, [number, string]> = {
   'concept-seasons': [4, 'Earth is closest to the Sun in early July, during northern summer.'],
   'concept-vaccine': [2, 'Antibodies are made by red blood cells and fit every germ equally well.'],
   'concept-water': [2, 'Clouds are made of invisible water vapour, not droplets.'],
+  'concept-method': [3, 'Making a palace in a virtual room gives no measurable benefit over studying flat flashcards.'],
   'concept-web': [0, 'Your browser finds a website by sending its name directly to every computer on the internet.'],
 };
 
@@ -38,7 +39,8 @@ async function verify(title: string, stages: unknown[]): Promise<{ flags: Flag[]
 const rows: string[] = [];
 let cleanPass = 0, caught = 0, onStage = 0;
 const ms: number[] = [];
-for (const deck of CONCEPTS) {
+const DECKS = [...CONCEPTS, LOCI_METHOD];
+for (const deck of DECKS) {
   const stages = deck.items.map((it) => ({ cue: it.cue, answer: it.answer, why: it.why, myth: it.check?.wrong, fact: it.check?.right }));
   const clean = await verify(deck.title, stages);
   ms.push(clean.ms);
@@ -63,8 +65,8 @@ const when = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 writeFileSync(
   'docs/verify-eval.md',
   `# Fact-check eval\n\nRun ${when} IST against ${API} with \`npx vite-node scripts/eval-verify.ts\`.\n\n` +
-    `- Shipped concepts passing clean: **${cleanPass} of ${CONCEPTS.length}**\n` +
-    `- Planted errors flagged: **${caught} of ${CONCEPTS.length}**, on the planted stage: **${onStage} of ${CONCEPTS.length}**\n` +
+    `- Shipped concepts passing clean: **${cleanPass} of ${DECKS.length}**\n` +
+    `- Planted errors flagged: **${caught} of ${DECKS.length}**, on the planted stage: **${onStage} of ${DECKS.length}**\n` +
     `- Median server time: **${ms[Math.floor(ms.length / 2)]} ms**\n\n` +
     `| Concept | As shipped | With one planted error | What it said |\n|---|---|---|---|\n${rows.join('\n')}\n`,
 );

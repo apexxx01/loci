@@ -187,7 +187,7 @@ export async function verifyConcept(deck: Deck): Promise<Deck | null> {
     const { status, data } = await post({ mode: 'verify', title: deck.title, stages });
     if (status !== 200 || !Array.isArray(data.flags)) return null;
     const flags = new Map((data.flags as { index: number; issue: string }[]).map((f) => [f.index, String(f.issue).slice(0, 240)]));
-    return { ...deck, items: deck.items.map((it, i) => (flags.has(i) ? { ...it, doubt: flags.get(i) } : { ...it, doubt: undefined })) };
+    return { ...deck, items: deck.items.map((it, i) => (flags.has(i) ? { ...it, doubt: flags.get(i), checked: false } : { ...it, doubt: undefined, checked: true })) };
   } catch {
     return null;
   }

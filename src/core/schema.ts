@@ -21,6 +21,7 @@ export const MemoryItemSchema = z.object({
   link: z.string().max(120).optional(),
   remade: z.number().int().min(0).max(99).optional(),
   doubt: z.string().max(240).optional(),
+  checked: z.boolean().optional(),
 });
 
 export const DeckSchema = z.object({

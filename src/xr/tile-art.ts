@@ -364,6 +364,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     y = block(item.answer, y + 2, 30, 22, 4, ink);
     if (item.why) y = block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
     if (item.doubt) y = block(`Double-check: ${item.doubt}`, y + 4, 21, 17, 2, accent, 500);
+    else if (item.checked) y = block('Fact-checked: nothing wrong found.', y + 4, 21, 17, 1, style.contrast ? '#fff' : C.mint, 500);
     const room = Math.floor((h - 120 - y) / 30);
     if (room >= 1) block(item.scene, y + 4, 23, 19, Math.min(3, room), soft, 300);
     hint(item.link && style.next ? `${item.link} → ${style.next}` : style.dwell ? 'look away to close' : 'pinch to close', h - 52);

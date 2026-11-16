@@ -329,17 +329,16 @@ export class HubSystem extends createSystem({}) {
     const palace = app.palace;
     if (!v || !palace || palace.deck.id !== res.deck.id) return;
     const doubted = v.items.filter((it) => it.doubt);
-    if (!doubted.length) return setStatus('Double-checked: no mistakes found in any stage.');
     let next = palace;
-    for (const it of doubted) {
+    for (const it of v.items) {
       const cur = next.deck.items.find((x) => x.id === it.id);
-      if (cur) next = replaceItem(next, { ...cur, doubt: it.doubt });
+      if (cur) next = replaceItem(next, { ...cur, doubt: it.doubt, checked: it.checked });
     }
     app.palace = next;
     const store = getStorage();
     if (store) savePalace(store, next);
     const sys = this.world.getSystem(PalaceSystem);
-    for (const it of doubted) {
+    for (const it of v.items) {
       const rec = sys?.records.get(it.id);
       const item = next.deck.items.find((x) => x.id === it.id);
       if (!rec || !item) continue;
@@ -348,6 +347,7 @@ export class HubSystem extends createSystem({}) {
       sys!.renderTile(rec);
     }
     bus.emit({ type: 'palace-changed' });
+    if (!doubted.length) return setStatus('Double-checked: no mistakes found in any stage. Each card now says so.');
     setStatus(`Double-checked: ${doubted.length} ${doubted.length === 1 ? 'stage says' : 'stages say'} what to verify when you open ${doubted.length === 1 ? 'it' : 'them'}.`);
   }
 
