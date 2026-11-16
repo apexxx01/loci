@@ -76,8 +76,11 @@ export class TraceSystem extends createSystem({}) {
         if (d < bd) (bd = d), (best = s);
       }
       if (!best) return;
+      // Rings lie on tops only: on a wall or a shelf face the ring stands
+      // upright behind the card and cuts straight through it.
+      if (Math.abs(best.normal[1]) < 0.7) return;
       used.add(best.id);
-      const r = Math.max(0.12, Math.min(0.6, Math.min(best.extent[0], best.extent[1]) * 0.45));
+      const r = Math.max(0.12, Math.min(0.42, Math.min(best.extent[0], best.extent[1]) * 0.45));
       const geo = new RingGeometry(r * 0.94, r, 72, 1);
       const mat = new ShaderMaterial({
         vertexShader: VERT,

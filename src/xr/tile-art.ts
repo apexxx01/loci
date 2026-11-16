@@ -308,7 +308,10 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
   const hint = (text: string, y: number, color = accent) => {
     ctx.textAlign = 'center';
     ctx.fillStyle = color;
-    ctx.font = `500 26px ${UI_FONT}`;
+    // As large as fits: this line is read from across the room.
+    let px = 36;
+    ctx.font = `500 ${px}px ${UI_FONT}`;
+    while (px > 26 && ctx.measureText(text).width > w - 44) ctx.font = `500 ${(px -= 2)}px ${UI_FONT}`;
     ctx.fillText(text, cx, y);
   };
   const left = 60;
@@ -330,7 +333,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     const f = fitText(ctx, title, w - 150, 2, 62, 44, 400, DISPLAY_FONT);
     const lh = f.px * 1.18;
     const boxH = 120 + lh * f.lines.length;
-    const y0 = h - 70 - boxH;
+    const y0 = h - 80 - boxH;
     glass(ctx, 24, y0, w - 48, boxH, 44, due || fresh ? 1 : 0.15, style.contrast);
     // Stage number in a ring.
     ctx.beginPath();

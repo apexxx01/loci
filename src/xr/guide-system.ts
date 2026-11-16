@@ -13,13 +13,14 @@ import {
   Vector3,
 } from '@iwsdk/core';
 import { app } from './app-state.js';
-import { MemoryTile } from './components.js';
+import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
 
 /** Half-angle (deg) inside which a memory counts as "in view". */
 const VIEW_HALF_ANGLE = 30;
 const CHEVRON_DISTANCE = 0.6;
-const CHEVRON_RADIUS = 0.13;
+// About 21 degrees off centre: at the edge of vision, clear of whatever you are reading.
+const CHEVRON_RADIUS = 0.23;
 
 export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] } }) {
   private palaceSys!: PalaceSystem;
@@ -71,7 +72,8 @@ export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] 
     this.toTarget.sub(this.camPos);
     const angle = (this.camFwd.angleTo(this.toTarget) * 180) / Math.PI;
 
-    if (angle <= VIEW_HALF_ANGLE) {
+    // While a card is open you are reading it; the arrow can wait.
+    if (angle <= VIEW_HALF_ANGLE || this.reading()) {
       this.fadeChevron(delta, 0);
       return;
     }
@@ -94,6 +96,15 @@ export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] 
     const m = this.chevronMat;
     m.opacity += (target - m.opacity) * Math.min(1, delta * 6);
     this.chevron.visible = m.opacity > 0.02;
+  }
+
+  /** True while any card is open (bloomed, checking or showing a verdict). */
+  private reading(): boolean {
+    for (const rec of this.palaceSys.records.values()) {
+      const f = rec.entity.getValue(MemoryTile, 'face');
+      if (f !== undefined && f !== TileFace.Cue && f !== TileFace.Learn) return true;
+    }
+    return false;
   }
 
   /** Lowest route position among due, settled, un-grabbed tiles. */
