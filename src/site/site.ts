@@ -168,6 +168,12 @@ const html = () => `
       <p class="kicker">At the door</p>
       <h2 id="st-door">Now explain it back.</h2>
       <p data-door-lede>In your own words, how does it work? A sentence or two is enough.</p>
+      <div class="order" data-order>
+        <p class="order__q">Or first, put the stages back in order:</p>
+        <ol class="order__slots" data-slots></ol>
+        <div class="order__pool" data-pool></div>
+        <p class="order__v" role="status" aria-live="polite" data-order-v></p>
+      </div>
       <form class="explain" data-explain autocomplete="off">
         <textarea rows="4" data-explain-input data-lenis-prevent aria-labelledby="st-door"></textarea>
         <div class="explain__go"><button class="b" type="submit" data-explain-go>Check my explanation</button>
@@ -699,6 +705,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   const explainGo = $<HTMLButtonElement>('[data-explain-go]');
   const result = $('[data-result]');
   function resetDoor() {
+    paintOrder();
     explainInput.value = '';
     result.hidden = true;
     explain.closest('.station')?.classList.remove('is-checked');
@@ -737,6 +744,44 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       scrollTo(0);
       setTimeout(() => askInput.focus({ preventScroll: true }), 1600);
     });
+  });
+  /* ---------- the door: rebuild the chain */
+  let placed = 0;
+  let slips = 0;
+  function paintOrder() {
+    placed = 0;
+    slips = 0;
+    const items = concept.items;
+    $('[data-slots]').innerHTML = items.map((_, i) => `<li data-slot="${i}"><span>${i + 1}</span></li>`).join('');
+    const shuffled = items.map((it, i) => ({ it, i, k: Math.random() })).sort((a, b) => a.k - b.k);
+    $('[data-pool]').innerHTML = shuffled.map(({ it, i }) => `<button type="button" data-link-stage="${i}">${esc(it.cue)}</button>`).join('');
+    $('[data-order-v]').textContent = '';
+  }
+  $('[data-pool]').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-link-stage]");
+    if (!b || b.disabled) return;
+    const i = Number(b.dataset.linkStage);
+    const v = $('[data-order-v]');
+    if (i !== placed) {
+      slips++;
+      b.classList.remove('is-wrong');
+      void b.offsetWidth;
+      b.classList.add('is-wrong');
+      const prev = concept.items[placed - 1];
+      v.textContent = placed === 0 ? 'Not the first stage. Where does it all begin?' : `Not yet. What happens right after ${prev.cue.toLowerCase()}?`;
+      chime('soft');
+      return;
+    }
+    b.disabled = true;
+    const slot = root.querySelector<HTMLElement>(`[data-slot="${i}"]`)!;
+    slot.innerHTML = `<span>${i + 1}</span>${esc(concept.items[i].cue)}`;
+    slot.classList.add('is-on');
+    placed++;
+    chime('good');
+    if (placed === concept.items.length) {
+      v.textContent = slips === 0 ? 'Every stage in order, first try. Now say how it works.' : `Rebuilt with ${slips} ${slips === 1 ? 'slip' : 'slips'}. Now say how it works.`;
+      explainInput.focus({ preventScroll: true });
+    } else v.textContent = 'Right. What comes next?';
   });
   $('[data-walk-again]').addEventListener('click', () => scrollTo(stationY(1) + 2));
 
