@@ -4,10 +4,11 @@
 
 ## Images to upload (in this order)
 
-1. `docs/headset-closeup.png`: a stage on a real couch, the gold thread, the ring of light.
-2. `docs/headset-concept.png`: the whole chain around the room.
-3. `docs/walk-stage.jpg`: the website walk.
-4. `docs/walk-explain-back.jpg`: explain-back graded.
+1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the tops they rest on.
+2. `docs/headset-card.png`: a stage pinched open: the claim, why it is true, the fact-check line and the link to the next stage.
+3. `docs/headset-concept.png`: the whole chain around the room.
+4. `docs/walk-stage.jpg`: the website walk.
+5. `docs/walk-explain-back.jpg`: explain-back graded.
 
 ## Tagline
 
@@ -22,7 +23,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 ## What it does
 
 - **Ask anything, or paste your notes.** The Palace Architect explains it as 4 to 7 linked stages. Each stage has the claim, *why* it is true, a vivid picture, the link to the next stage, and one common misconception.
-- **Your room becomes the model.** Using Quest scene understanding, each stage lands on a real object: your couch, your lamp, your shelf. A ring of light traces the surface it rests on, and a gold thread joins the stages in causal order, so walking the room is walking the mechanism. When the palace is ready the thread ignites, stage by stage, with rising tones.
+- **Your room becomes the model.** Using Quest scene understanding, each stage lands on a real object: your couch, your lamp, your shelf. A ring of light traces the top it rests on, and a gold thread joins the stages in causal order, so walking the room is walking the mechanism. When the palace is ready the thread ignites, stage by stage, with rising tones.
 - **Learning, not just reading.** Stages rest as small glowing labels with one headline. Pinch to open the full stage. On recall, a stage turns into a myth check: two statements, one true and one a common misconception. Pinch the true one. Wrong answers show the correction and come back sooner.
 - **Rebuild the chain.** The thread goes dark and the numbers hide; pinch the stages in the order things happen and relight it link by link.
 - **It checks its own work.** A second pass fact-checks every generated stage; anything doubtful says what to verify. In our eval it passed all 6 shipped concepts clean and caught 6 of 6 planted errors on the right stage.

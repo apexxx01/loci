@@ -18,6 +18,8 @@ import { PalaceSystem, type TileRecord } from './palace-system.js';
 
 /** Half-angle (deg) inside which a memory counts as "in view". */
 const VIEW_HALF_ANGLE = 30;
+/** A stage this close to the centre of view is being read, so the arrow stays away. */
+const READING_HALF_ANGLE_RAD = (15 * Math.PI) / 180;
 const CHEVRON_DISTANCE = 0.6;
 // About 21 degrees off centre: at the edge of vision, clear of whatever you are reading.
 const CHEVRON_RADIUS = 0.23;
@@ -73,7 +75,7 @@ export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] 
     const angle = (this.camFwd.angleTo(this.toTarget) * 180) / Math.PI;
 
     // While a card is open you are reading it; the arrow can wait.
-    if (angle <= VIEW_HALF_ANGLE || this.reading()) {
+    if (angle <= VIEW_HALF_ANGLE || this.reading() || this.lookingAtAStage()) {
       this.fadeChevron(delta, 0);
       return;
     }
@@ -103,6 +105,17 @@ export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] 
     for (const rec of this.palaceSys.records.values()) {
       const f = rec.entity.getValue(MemoryTile, 'face');
       if (f !== undefined && f !== TileFace.Cue && f !== TileFace.Learn) return true;
+    }
+    return false;
+  }
+
+  private probe = new Vector3();
+  /** True when any stage sits near the centre of view: you are reading it, and the thread leads on. */
+  private lookingAtAStage(): boolean {
+    for (const rec of this.palaceSys.records.values()) {
+      if (!rec.tile.root.visible) continue;
+      rec.tile.root.getWorldPosition(this.probe).sub(this.camPos);
+      if (this.camFwd.angleTo(this.probe) < READING_HALF_ANGLE_RAD) return true;
     }
     return false;
   }

@@ -311,7 +311,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     // As large as fits: this line is read from across the room.
     let px = 36;
     ctx.font = `500 ${px}px ${UI_FONT}`;
-    while (px > 26 && ctx.measureText(text).width > w - 44) ctx.font = `500 ${(px -= 2)}px ${UI_FONT}`;
+    while (px > 22 && ctx.measureText(text).width > w - 44) ctx.font = `500 ${(px -= 2)}px ${UI_FONT}`;
     ctx.fillText(text, cx, y);
   };
   const left = 60;
@@ -368,9 +368,11 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     if (item.why) y = block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
     if (item.doubt) y = block(`Double-check: ${item.doubt}`, y + 4, 21, 17, 2, accent, 500);
     else if (item.checked) y = block('Fact-checked: nothing wrong found.', y + 4, 21, 17, 1, style.contrast ? '#fff' : C.mint, 500);
-    const room = Math.floor((h - 120 - y) / 30);
+    const room = Math.floor((h - (item.link && style.next ? 150 : 120) - y) / 30);
     if (room >= 1) block(item.scene, y + 4, 23, 19, Math.min(3, room), soft, 300);
-    hint(item.link && style.next ? `${item.link} → ${style.next}` : style.dwell ? 'look away to close' : 'pinch to close', h - 52);
+    // The link to the next stage can run long: wrap it rather than run off the card.
+    if (item.link && style.next) block(`${item.link} → ${style.next}`, h - 104, 24, 18, 2, accent, 500);
+    else hint(style.dwell ? 'look away to close' : 'pinch to close', h - 52);
     return;
   }
 
