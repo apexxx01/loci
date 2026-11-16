@@ -74,14 +74,44 @@ export async function bindScenes(items: BindInput[]): Promise<{ scenes: string[]
 }
 
 /* ------------------------------------------------------------------ teach, grade, re-imagine */
-export type TeachResult = { ok: true; deck: Deck; ms: number; repaired: number; offline?: boolean } | { ok: false; error: string };
+export type TeachResult = { ok: true; deck: Deck; ms: number; repaired: number; offline?: boolean; cached?: boolean } | { ok: false; error: string };
+
+const TEACH_CACHE = 'loci.teachcache.v1';
+const cacheKey = (topic: string, audience: Audience) => `${audience}|${topic.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`;
+function cached(key: string): Deck | null {
+  try {
+    const all = JSON.parse(localStorage.getItem(TEACH_CACHE) ?? '{}') as Record<string, unknown>;
+    const p = DeckSchema.safeParse(all[key]);
+    return p.success ? (p.data as Deck) : null;
+  } catch {
+    return null;
+  }
+}
+function remember(key: string, deck: Deck): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(TEACH_CACHE) ?? '{}') as Record<string, unknown>;
+    all[key] = deck;
+    const keys = Object.keys(all);
+    for (const k of keys.slice(0, Math.max(0, keys.length - 30))) delete all[k];
+    localStorage.setItem(TEACH_CACHE, JSON.stringify(all));
+  } catch {
+    /* private browsing or full */
+  }
+}
 
 export async function teachConcept(topic: string, audience: Audience = 'adult'): Promise<TeachResult> {
   if (topic.trim().length < 3) return { ok: false, error: 'Name something to understand first.' };
+  // Asking the same thing again on this device is instant.
+  const key = cacheKey(topic, audience);
+  const hit = cached(key);
+  if (hit) return { ok: true, deck: hit, ms: 0, repaired: 0, cached: true };
   try {
     const { status, data } = await post({ mode: 'teach', topic, audience });
     const parsed = DeckSchema.safeParse(data.deck);
-    if (status === 200 && parsed.success) return { ok: true, deck: parsed.data as Deck, ms: Number(data.ms) || 0, repaired: Number(data.repaired) || 0 };
+    if (status === 200 && parsed.success) {
+      remember(key, parsed.data as Deck);
+      return { ok: true, deck: parsed.data as Deck, ms: Number(data.ms) || 0, repaired: Number(data.repaired) || 0, cached: Boolean(data.cached) };
+    }
     if (status >= 500 || status === 429) return offlineConcept(topic, String(data.error ?? ''));
     return { ok: false, error: String(data.error ?? 'The Palace Architect could not explain that one. Try asking it a different way.') };
   } catch (e) {

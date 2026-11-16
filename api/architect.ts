@@ -74,6 +74,8 @@ let lastModel = MODEL;
 
 /** Start the next model in the chain if the current ones haven't answered by then. */
 const HEDGE_AFTER_MS = 2_500;
+/** Recent concepts on this warm instance, oldest first (a small LRU by insertion). */
+const TEACH_CACHE = new Map<string, unknown>();
 
 /**
  * Hedged requests: launch the primary model, and every HEDGE_AFTER_MS without
@@ -204,11 +206,17 @@ export async function POST(request: Request): Promise<Response> {
     if (body.mode === 'teach') {
       const topic = typeof body.topic === 'string' ? body.topic : '';
       if (topic.trim().length < 3) return json(400, { error: 'Name something to understand first.' });
+      // Warm instances remember recent concepts, so a repeated question is instant.
+      const key = `${audienceOf(body.audience)}|${topic.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`;
+      const hit = TEACH_CACHE.get(key);
+      if (hit) return json(200, { deck: hit, repaired: 0, model: 'cache', cached: true, ms: Date.now() - started });
       const id = `cx_${Date.now().toString(36)}`;
       const prompt = teachPrompt(topic, audienceOf(body.audience));
       let vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
       if (!vetted) vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
       if (!vetted) return json(502, { error: 'The Architect could not explain that one. Try naming it a little differently.' });
+      TEACH_CACHE.set(key, vetted.deck);
+      if (TEACH_CACHE.size > 200) TEACH_CACHE.delete(TEACH_CACHE.keys().next().value as string);
       return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: lastModel, ms: Date.now() - started });
     }
 

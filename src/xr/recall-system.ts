@@ -19,6 +19,7 @@ import { app, bus, getStorage, setStatus } from './app-state.js';
 import { MemoryTile, TileFace } from './components.js';
 import { PalaceSystem, type TileRecord } from './palace-system.js';
 import { CheckSystem } from './check-system.js';
+import { ChainSystem } from './chain-system.js';
 import { reimagineScene } from '../net/architect-client.js';
 import { replaceItem } from '../core/palace.js';
 import { settings, speak } from './settings.js';
@@ -203,6 +204,10 @@ export class RecallSystem extends createSystem({
     const result = isTap ? 'tap' : classifyToss(v);
     app.lastRelease = { held, travel, v, result };
     if (result === 'tap') {
+      if (app.chainMode) {
+        this.world.getSystem(ChainSystem)?.pick(rec);
+        return;
+      }
       this.flip(rec);
       return;
     }

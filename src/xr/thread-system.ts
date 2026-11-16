@@ -39,7 +39,7 @@ const VERT = /* glsl */ `
 const FRAG = /* glsl */ `
   precision mediump float;
   varying float vT; varying float vSide;
-  uniform float uTime, uIgnite, uFade, uCalm;
+  uniform float uTime, uIgnite, uFade, uCalm, uBase;
   uniform float uLit[${MAX_NODES}];
   uniform vec3 uGold, uRose;
   void main(){
@@ -54,7 +54,7 @@ const FRAG = /* glsl */ `
     float lit = 0.;
     for (int i = 0; i < ${MAX_NODES}; i++) if (float(i) == link) lit = uLit[i];
     vec3 col = mix(uGold, uRose, t) * (1. + lit * .8);
-    float a = (core * (.55 + .35 * lit) + core * flow * .5 + head * 1.4) * drawn * uFade;
+    float a = (core * (.55 * uBase + .35 * lit + .2 * lit * (1. - uBase)) + core * flow * .5 + head * 1.4) * drawn * uFade;
     gl_FragColor = vec4(col * (1. + head * 1.5), a);
   }`;
 
@@ -110,6 +110,7 @@ export class ThreadSystem extends createSystem({}) {
         uIgnite: { value: 99 },
         uFade: { value: 0 },
         uCalm: { value: 0 },
+        uBase: { value: 1 },
         uLit: { value: new Array(MAX_NODES).fill(0) },
         uGold: { value: new Color('#ffcf7a') },
         uRose: { value: new Color('#fff0d2') },
@@ -128,6 +129,11 @@ export class ThreadSystem extends createSystem({}) {
         else if (e.type === 'palace-changed' || e.type === 'new-palace') this.collect(false);
         else if (e.type === 'stage-checked') this.light(e.memoryId, e.correct);
         else if (e.type === 'rated') this.maybeComplete();
+        else if (e.type === 'chain') {
+          // Chain practice: the thread goes dark and relights link by link.
+          this.baseTarget = e.on ? 0.12 : 1;
+          if (e.on) (this.mat.uniforms.uLit.value as number[]).fill(0);
+        } else if (e.type === 'chain-link' && e.index > 0) (this.mat.uniforms.uLit.value as number[])[e.index - 1] = 1;
       }),
     );
   }
@@ -155,6 +161,7 @@ export class ThreadSystem extends createSystem({}) {
   }
 
   private celebrated = new Set<string>();
+  private baseTarget = 1;
 
   /** The first time every stage has been checked, the whole chain lights up once more. */
   private maybeComplete(): void {
@@ -198,6 +205,7 @@ export class ThreadSystem extends createSystem({}) {
     this.time += delta;
     this.mat.uniforms.uTime.value = this.time;
     this.mat.uniforms.uCalm.value = settings.calm ? 1 : 0;
+    this.mat.uniforms.uBase.value += (this.baseTarget - this.mat.uniforms.uBase.value) * Math.min(1, delta * 3);
 
     // Where each stage sits right now: just under its card.
     for (let i = 0; i < n; i++) {

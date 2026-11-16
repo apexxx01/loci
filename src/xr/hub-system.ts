@@ -14,6 +14,7 @@ import { app, bus, getStorage, setStatus } from './app-state.js';
 import { onSettings, settings, toggleSetting, type Settings } from './settings.js';
 import { playClick } from './sound.js';
 import { PalaceSystem } from './palace-system.js';
+import { ChainSystem } from './chain-system.js';
 
 const ACCESS: { key: keyof Settings; id: string; label: string; on: string; off: string; say: [string, string] }[] = [
   { key: 'dwell', id: 'acc-dwell', label: 'Look to select', on: 'on', off: 'off', say: ['Look at a memory for a moment to flip it; look at a button to rate it.', 'Look to select is off. Pinch and grab as usual.'] },
@@ -37,6 +38,23 @@ const HUB_DROP = 0.22;
 /** Docked: out of the line of sight, like a tray by your left hand. */
 const DOCK_YAW = (-38 * Math.PI) / 180;
 const DOCK_DISTANCE = 0.5;
+/** Finished questions offered as you type in the headset. */
+const SUGGEST = [
+  'How does the heart pump blood?', 'How does photosynthesis work?', 'How do vaccines work?', 'How does the internet work?',
+  'How does a bill become a law?', 'How does compound interest work?', 'How does inflation work?', 'How do tides work?',
+  'How do volcanoes erupt?', 'How do earthquakes happen?', 'How does memory work?', 'How does sleep work?',
+  'How does a credit score work?', 'How do stocks work?', 'How does a car engine work?', 'How do airplanes fly?',
+  'How does GPS work?', 'How does Wi-Fi work?', 'How do batteries work?', 'How does digestion work?',
+  'How do muscles grow?', 'How does the immune system work?', 'How does DNA copy itself?', 'How do antibiotics work?',
+  'How does a rainbow form?', 'How does electricity reach my home?', 'How does a fridge keep food cold?',
+  'How does machine learning work?', 'How does encryption work?', 'How does a search engine work?',
+  'Why do we have seasons?', 'Why is the sky blue?', 'Why do we dream?', 'Why do we yawn?', 'Why do leaves change colour?',
+  'Why does the moon change shape?', 'Why do prices go up?', 'Why do we need sleep?',
+  'What is a black hole?', 'What is climate change?', 'What is a recession?', 'What is the water cycle?', 'What is gravity?',
+  'Explain supply and demand', 'Explain the French Revolution', 'Explain how a bill is passed', 'Explain the Krebs cycle',
+  'Explain how neurons fire', 'Explain plate tectonics', 'Explain the stock market',
+];
+
 const DOCK_DROP = 0.42;
 const GLIDE_SPEED = 5;
 
@@ -111,6 +129,7 @@ export class HubSystem extends createSystem({}) {
       if (on) this.paintAsk();
     };
     bind('btn-ask', () => showAsk(true));
+    bind('btn-chain', () => this.world.getSystem(ChainSystem)?.toggle());
     bind('ask-cancel', () => showAsk(false));
     bind('btn-browse', () => {
       this.browsing = !this.browsing;
@@ -129,13 +148,16 @@ export class HubSystem extends createSystem({}) {
       this.askText = this.askText.slice(0, -1);
       this.paintAsk();
     });
-    for (const [id, text] of [['pre-how', 'How does '], ['pre-why', 'Why do '], ['pre-what', 'What is '], ['pre-explain', 'Explain ']] as const)
+    // The four chips start as openers ("How does") and turn into finished
+    // questions as you type, so most questions take a handful of pinches.
+    ['pre-how', 'pre-why', 'pre-what', 'pre-explain'].forEach((id, i) =>
       bind(id, () => {
-        if (!this.askText) {
-          this.askText = text;
-          this.paintAsk();
-        }
-      });
+        const pick = this.chips()[i];
+        if (!pick) return;
+        this.askText = pick.endsWith(' ') ? pick : pick;
+        this.paintAsk();
+      }),
+    );
     bind('ask-go', () => void this.teach());
     for (let i = 0; i < 3; i++)
       bind(`recent-${i}`, () => {
@@ -167,7 +189,7 @@ export class HubSystem extends createSystem({}) {
     this.cleanupFuncs.push(
       bus.on((e) => {
         if (e.type === 'status') this.setText('hub-status', (this.lastStatus = e.text));
-        if (e.type === 'palace-changed' || e.type === 'start-deck' || e.type === 'new-palace') this.refresh();
+        if (e.type === 'palace-changed' || e.type === 'start-deck' || e.type === 'new-palace' || e.type === 'chain') this.refresh();
         if (e.type === 'palace-changed' && app.palace && !this.docked) this.dock(true);
         if (e.type === 'new-palace') this.dock(false);
         this.coach(e);
@@ -245,7 +267,19 @@ export class HubSystem extends createSystem({}) {
     }
   }
 
+  private chips(): string[] {
+    const t = this.askText.trim().toLowerCase();
+    if (t.length < 2) return ['How does ', 'Why do ', 'What is ', 'Explain '];
+    const hits = SUGGEST.filter((q) => q.toLowerCase().startsWith(t) || q.toLowerCase().split(' ').some((w) => w.startsWith(t.split(' ').pop() ?? '') && t.split(' ').length === 1 && t.length >= 3));
+    return hits.slice(0, 4);
+  }
+
   private paintAsk(): void {
+    const chips = this.chips();
+    ['pre-how', 'pre-why', 'pre-what', 'pre-explain'].forEach((id, i) => {
+      this.setDisplay(id, Boolean(chips[i]));
+      if (chips[i]) this.setText(`${id}-label`, chips[i].trim());
+    });
     this.setText('ask-text', this.askText ? `${this.askText}|` : 'Type with a pinch on each key');
     this.setText('ask-go-label', this.askBusy ? 'Thinking' : 'Teach me');
   }
@@ -345,6 +379,8 @@ export class HubSystem extends createSystem({}) {
   private refresh(): void {
     const palace = app.palace;
     this.setDisplay('section-decks', !palace && !this.asking);
+    this.setDisplay('btn-chain', palace?.deck.kind === 'concept');
+    this.setText('btn-chain-label', app.chainMode ? 'Stop chain practice' : 'Rebuild the chain');
     this.setDisplay('section-ask', !palace && this.asking);
     this.setDisplay('browse-block', this.browsing);
     const recent = this.recent();

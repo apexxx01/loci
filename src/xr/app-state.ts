@@ -15,6 +15,10 @@ export type AppEvent =
   | { type: 'palace-ready'; restored: boolean }
   /** A concept stage was answered on recall: lights or dims its thread. */
   | { type: 'stage-checked'; memoryId: string; correct: boolean }
+  /** Rebuild-the-chain practice started or ended. */
+  | { type: 'chain'; on: boolean }
+  /** In chain practice, the link into stage `index` was rebuilt (index 0 = the first stage found). */
+  | { type: 'chain-link'; index: number }
   | { type: 'status'; text: string }
   | { type: 'own-notes' }
   | { type: 'flipped'; face: number; label: string }
@@ -50,6 +54,8 @@ export const app = {
   lastVerify: null as null | { checked: number; matched: number },
   /** Latest hub status line. */
   status: 'Ready.',
+  /** Rebuild-the-chain practice: stage numbers hidden, pinch the stages in order. */
+  chainMode: false,
   /** Last grab release, for tuning and tests. */
   lastRelease: null as null | { held: number; travel: number; v: [number, number, number]; result: string },
 };

@@ -13,6 +13,7 @@ import { ThreadSystem } from './xr/thread-system.js';
 import { CheckSystem } from './xr/check-system.js';
 import { TraceSystem } from './xr/trace-system.js';
 import { OnboardSystem } from './xr/onboard-system.js';
+import { ChainSystem } from './xr/chain-system.js';
 import { mountSite } from './site/site.js';
 
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
@@ -24,6 +25,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       .registerSystem(CheckSystem)
       .registerSystem(TraceSystem)
       .registerSystem(OnboardSystem)
+      .registerSystem(ChainSystem)
       .registerSystem(RecallSystem)
       .registerSystem(GuideSystem)
       .registerSystem(AccessSystem)

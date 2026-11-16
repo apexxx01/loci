@@ -9,7 +9,7 @@
   .key { flex-grow: 1; flex-basis: 0; min-width: 0px; height: 46px; padding-left: 0px; padding-right: 0px; justify-content: center; background-color: #241b4a; }
   .key:dark { background-color: #241b4a; }
   .keys { flex-direction: row; gap: 4px; width: 100%; }
-  .chip { flex-grow: 1; height: 40px; justify-content: center; background-color: #2e2358; }
+  .chip { flex-grow: 1; flex-basis: 0; min-width: 0px; height: 44px; justify-content: center; background-color: #2e2358; }
   .chip:dark { background-color: #2e2358; }
   .space { flex-grow: 2; justify-content: center; }
   .go { background-color: #9a6418; }
@@ -94,10 +94,12 @@
   <div id="section-ask" class="section">
     <div class="field"><div id="ask-text" class="field-text">Type with a pinch on each key</div></div>
     <div class="row">
-      <Button id="pre-how" class="chip"><ButtonLabel>How does</ButtonLabel></Button>
-      <Button id="pre-why" class="chip"><ButtonLabel>Why do</ButtonLabel></Button>
-      <Button id="pre-what" class="chip"><ButtonLabel>What is</ButtonLabel></Button>
-      <Button id="pre-explain" class="chip"><ButtonLabel>Explain</ButtonLabel></Button>
+      <Button id="pre-how" class="chip"><ButtonLabel id="pre-how-label">How does</ButtonLabel></Button>
+      <Button id="pre-why" class="chip"><ButtonLabel id="pre-why-label">Why do</ButtonLabel></Button>
+    </div>
+    <div class="row">
+      <Button id="pre-what" class="chip"><ButtonLabel id="pre-what-label">What is</ButtonLabel></Button>
+      <Button id="pre-explain" class="chip"><ButtonLabel id="pre-explain-label">Explain</ButtonLabel></Button>
     </div>
     <div class="keys"><Button id="key-q" class="key"><ButtonLabel>Q</ButtonLabel></Button><Button id="key-w" class="key"><ButtonLabel>W</ButtonLabel></Button><Button id="key-e" class="key"><ButtonLabel>E</ButtonLabel></Button><Button id="key-r" class="key"><ButtonLabel>R</ButtonLabel></Button><Button id="key-t" class="key"><ButtonLabel>T</ButtonLabel></Button><Button id="key-y" class="key"><ButtonLabel>Y</ButtonLabel></Button><Button id="key-u" class="key"><ButtonLabel>U</ButtonLabel></Button><Button id="key-i" class="key"><ButtonLabel>I</ButtonLabel></Button><Button id="key-o" class="key"><ButtonLabel>O</ButtonLabel></Button><Button id="key-p" class="key"><ButtonLabel>P</ButtonLabel></Button></div>
     <div class="keys"><Button id="key-a" class="key"><ButtonLabel>A</ButtonLabel></Button><Button id="key-s" class="key"><ButtonLabel>S</ButtonLabel></Button><Button id="key-d" class="key"><ButtonLabel>D</ButtonLabel></Button><Button id="key-f" class="key"><ButtonLabel>F</ButtonLabel></Button><Button id="key-g" class="key"><ButtonLabel>G</ButtonLabel></Button><Button id="key-h" class="key"><ButtonLabel>H</ButtonLabel></Button><Button id="key-j" class="key"><ButtonLabel>J</ButtonLabel></Button><Button id="key-k" class="key"><ButtonLabel>K</ButtonLabel></Button><Button id="key-l" class="key"><ButtonLabel>L</ButtonLabel></Button></div>
@@ -129,6 +131,10 @@
       </div>
     </div>
     <div id="palace-howto" class="hint">Pinch a memory to turn it over.</div>
+    <Button id="btn-chain" class="btn">
+      <ButtonIcon><Link></Link></ButtonIcon>
+      <ButtonLabel id="btn-chain-label">Rebuild the chain</ButtonLabel>
+    </Button>
     <div class="row">
       <Button id="btn-refit" class="btn">
         <ButtonIcon><RefreshCw></RefreshCw></ButtonIcon>

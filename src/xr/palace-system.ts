@@ -569,6 +569,7 @@ export class PalaceSystem extends createSystem({
       mastered: Boolean(card && card.state === 2 && card.stability >= 3),
       blind: Boolean(due && card && card.state === 2 && card.stability >= 3),
       concept: palace?.deck.kind === 'concept',
+      hideOrder: app.chainMode,
       lastCheck: rec.lastCheck,
       wrongFirst: rec.wrongFirst,
       next: palace?.deck.kind === 'concept' ? palace.deck.items.find((i) => i.order === rec.item.order + 1)?.cue : undefined,

@@ -500,3 +500,11 @@ button { font-family: inherit; }
 .xr-now[hidden] { display: none; }
 .xr-now p { margin: 0; flex: 1; color: #fff !important; font-size: 17px; }
 .foot .linkish { margin-bottom: 6px; }
+
+.ask__mic { cursor: pointer; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  display: inline-grid; place-items: center; transition: background 0.3s, box-shadow 0.3s; }
+.ask__mic[hidden] { display: none; }
+.ask__mic i { width: 10px; height: 16px; border-radius: 6px; box-shadow: inset 0 0 0 2px var(--soft); position: relative; }
+.ask__mic i::after { content: ''; position: absolute; left: -4px; right: -4px; bottom: -6px; height: 8px; border: 2px solid var(--soft); border-top: 0; border-radius: 0 0 10px 10px; }
+.ask__mic:hover { box-shadow: inset 0 0 0 1px rgba(255, 207, 122, 0.7); }
+.ask__mic[aria-pressed='true'] { background: rgba(255, 207, 122, 0.2); box-shadow: inset 0 0 0 1px var(--gold), 0 0 20px -4px rgba(255, 207, 122, 0.8); animation: pulse 1.2s ease-in-out infinite; }

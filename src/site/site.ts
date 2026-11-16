@@ -134,6 +134,7 @@ const html = () => `
               <button type="button" data-hero-aud="adult" aria-pressed="true">an adult</button>
             </div>
             <span class="ask__meta" data-ask-meta>Drop a text file or paste notes</span>
+            <button class="ask__mic" type="button" data-mic hidden aria-pressed="false" aria-label="Ask out loud"><i></i></button>
             <button class="b" type="submit" data-ask-go>Teach me</button>
           </div>
         </div>
@@ -553,6 +554,39 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     if (calm) ghost.textContent = EXAMPLES[0];
     else setInterval(tick, 55);
   }
+  // Ask out loud, where the browser can listen.
+  {
+    type Rec = { lang: string; interimResults: boolean; continuous: boolean; start(): void; stop(): void;
+      onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null };
+    const W = window as unknown as { SpeechRecognition?: new () => Rec; webkitSpeechRecognition?: new () => Rec };
+    const SR = W.SpeechRecognition ?? W.webkitSpeechRecognition;
+    const mic = $<HTMLButtonElement>('[data-mic]');
+    if (SR) {
+      mic.hidden = false;
+      let rec: Rec | null = null;
+      mic.addEventListener('click', () => {
+        if (rec) return rec.stop();
+        rec = new SR();
+        rec.lang = navigator.language || 'en-US';
+        rec.interimResults = true;
+        rec.continuous = false;
+        const before = askInput.value ? `${askInput.value.trim()} ` : '';
+        rec.onresult = (e) => {
+          askInput.value = before + Array.from(e.results).map((r) => r[0].transcript).join(' ');
+          grow();
+        };
+        rec.onend = rec.onerror = () => {
+          rec = null;
+          mic.setAttribute('aria-pressed', 'false');
+          askInput.focus();
+        };
+        mic.setAttribute('aria-pressed', 'true');
+        askStatus.textContent = 'Listening. Ask your question out loud.';
+        rec.start();
+      });
+    }
+  }
+
   // Drop a text file of notes onto the box.
   askBox.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -651,7 +685,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     showConcept(res.deck);
     chime('good');
     askDone.hidden = false;
-    askDone.innerHTML = `<p><b>${esc(res.deck.title)}</b>: ${res.deck.items.length} stages, ${res.offline ? 'from the walks that ship with Loci, because the Palace Architect could not be reached' : `ready in ${secs} seconds`}.</p>
+    askDone.innerHTML = `<p><b>${esc(res.deck.title)}</b>: ${res.deck.items.length} stages, ${res.offline ? 'from the walks that ship with Loci, because the Palace Architect could not be reached' : res.cached ? 'remembered from the last time it was asked' : `ready in ${secs} seconds`}.</p>
       <div class="ask__go"><button class="b" type="button" data-walk-now>Walk through it</button>
       <button class="b b--line" type="button" data-room-mine>Put it in my room</button></div>
       <p class="small">${res.offline ? 'Checked by hand before it shipped.' : 'Written by the Palace Architect. It can be wrong, so check anything important against your own source.'}</p>`;

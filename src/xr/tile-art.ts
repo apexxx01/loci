@@ -32,6 +32,8 @@ export interface FaceStyle {
   wrongFirst?: boolean;
   /** Name of the next stage, for the thread line at the bottom. */
   next?: string;
+  /** Rebuild-the-chain practice: hide the stage number. */
+  hideOrder?: boolean;
 }
 
 const EMOJI_FONT = '"Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif';
@@ -339,13 +341,14 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     ctx.textAlign = 'center';
     ctx.fillStyle = due || fresh ? accent : soft;
     ctx.font = `400 30px ${DISPLAY_FONT}`;
-    ctx.fillText(String(item.order + 1), cx, y0 + 57);
+    ctx.fillText(style.hideOrder ? '?' : String(item.order + 1), cx, y0 + 57);
     ctx.fillStyle = due || fresh || style.contrast ? ink : 'rgba(255, 244, 230, 0.72)';
     f.lines.forEach((l, i) => {
       ctx.font = `400 ${f.px}px ${DISPLAY_FONT}`;
       ctx.fillText(l, cx, y0 + 96 + lh * 0.82 + i * lh);
     });
     const pinch = style.dwell ? 'look' : 'pinch';
+    if (style.hideOrder) return hint(`${pinch} if this comes next`, h - 26);
     hint(fresh ? (style.surfaceLabel ? `on your ${style.surfaceLabel}, ${pinch} to open` : `${pinch} to open`) : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 26, fresh || due ? accent : 'rgba(240,235,255,0.55)');
     return;
   }
