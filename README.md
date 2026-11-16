@@ -35,6 +35,12 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 - **Spaced repetition with FSRS.** Every recall goes into an FSRS scheduler ([ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs)), so each stage comes back just before you would forget it. Using the hint counts as a harder recall.
 - **The Palace Architect re-imagines a memory you miss twice.** When a stage lapses twice, its picture is rewritten around the object it sits on (a lamp heats, a couch sinks, a window fogs), up to two times per memory.
 - **Your own material.** Besides topics, you can paste notes, a list, a speech, names or numbers. Numbers are turned into pictures on the device and never leave it.
+- **Ask from inside the headset.** The panel opens on *Ask about anything* with a keyboard on the panel; its chips turn into finished questions as you type, so most questions take a handful of pinches. On the website you can also type, paste, drop a text file or (where the browser supports it) ask out loud.
+- **Rebuild the chain.** A second way to practise a concept: the thread goes dark, stage numbers hide, and you pinch the stages in the order things happen; each right pick relights the thread into that stage.
+- **It shows it found your furniture.** A ring of light traces each real surface a stage rests on, in step with the thread igniting, and each label says *on your couch*.
+- **A silent first lesson.** The first time, a small drawn hand pinches beside stage 1 and then beside the A and B answers. No text walls.
+- **A finish line.** When every stage has been checked, the whole chain lights up again and Loci says when it will come back.
+- **Instant repeats.** A concept asked for before comes back instantly from the device or a warm server; if the Architect cannot be reached, questions that match a shipped concept still get their walk.
 
 ## How it works
 
@@ -44,11 +50,11 @@ flowchart LR
     SU["Scene understanding<br/>XRPlane + XRMesh<br/>(Space Setup labels)"] --> RS["RoomSystem<br/>planes and meshes to Surfaces"]
     RS --> PS["Placement solver<br/>src/core/placement.ts"]
     PS --> AN["Persistent anchor<br/>palace saved in local storage"]
-    AN --> ECS["ECS systems<br/>palace, recall, thread, check,<br/>hub, access, guide"]
+    AN --> ECS["ECS systems<br/>palace, recall, thread, check,<br/>hub, access, guide, trace,<br/>chain, onboarding"]
     ECS --> FS["FSRS scheduler<br/>src/core/scheduler.ts"]
   end
   subgraph Vercel["Vercel serverless: /api/architect"]
-    AR["Palace Architect<br/>teach, build, grade,<br/>bind, reimagine"] --> GM["Gemini, hedged:<br/>primary model, then a fallback<br/>starts every 3.5 s without an answer"]
+    AR["Palace Architect<br/>teach, build, grade,<br/>bind, reimagine"] --> GM["Gemini, hedged:<br/>fast model first, a larger one<br/>starts after 2.5 s without an answer"]
     GM --> VET["Rule-based vetting<br/>schema, safety filter,<br/>myth checks dropped if unsafe"]
   end
   ECS -- "Teach me / reimagine" --> AR
