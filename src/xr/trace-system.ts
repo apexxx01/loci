@@ -80,7 +80,9 @@ export class TraceSystem extends createSystem({}) {
       // upright behind the card and cuts straight through it.
       if (Math.abs(best.normal[1]) < 0.7) return;
       used.add(best.id);
-      const r = Math.max(0.12, Math.min(0.42, Math.min(best.extent[0], best.extent[1]) * 0.45));
+      const r = Math.max(0.12, Math.min(0.32, Math.min(best.extent[0], best.extent[1]) * 0.4));
+      // One ring per stage: the traced surface replaces the small foot ring.
+      rec.tile.foot.visible = false;
       const geo = new RingGeometry(r * 0.94, r, 72, 1);
       const mat = new ShaderMaterial({
         vertexShader: VERT,

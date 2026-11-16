@@ -359,20 +359,84 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
   // Opened: the full stage blooms into a card.
   glass(ctx, 14, 14, w - 28, h - 28, 50, 0.6, style.contrast);
   if (face === 'hint') {
+    // One idea per card: the claim and why it holds, in type you can read at
+    // arm's length. The fact-check is a badge, and the way on is a chip.
     ctx.textAlign = 'left';
     ctx.fillStyle = accent;
     ctx.font = `500 24px ${UI_FONT}`;
-    ctx.fillText(`Stage ${item.order + 1}`, left, 92);
-    let y = block(item.cue, 100, 46, 32, 2, ink, 400, DISPLAY_FONT);
-    y = block(item.answer, y + 2, 30, 22, 4, ink);
-    if (item.why) y = block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
-    if (item.doubt) y = block(`Double-check: ${item.doubt}`, y + 4, 21, 17, 2, accent, 500);
-    else if (item.checked) y = block('Fact-checked: nothing wrong found.', y + 4, 21, 17, 1, style.contrast ? '#fff' : C.mint, 500);
-    const room = Math.floor((h - (item.link && style.next ? 150 : 120) - y) / 30);
-    if (room >= 1) block(item.scene, y + 4, 23, 19, Math.min(3, room), soft, 300);
-    // The link to the next stage can run long: wrap it rather than run off the card.
-    if (item.link && style.next) block(`${item.link} → ${style.next}`, h - 104, 24, 18, 2, accent, 500);
-    else hint(style.dwell ? 'look away to close' : 'pinch to close', h - 52);
+    ctx.fillText(`Stage ${item.order + 1}`, left, 82);
+    if (item.doubt || item.checked) {
+      const ok = !item.doubt;
+      const label = ok ? 'Fact-checked' : 'Double-check';
+      const tone = style.contrast ? '#ffffff' : ok ? C.mint : ROSE;
+      ctx.font = `600 21px ${UI_FONT}`;
+      const tw = ctx.measureText(label).width + 52;
+      const bx = w - left - tw;
+      ctx.fillStyle = ok ? 'rgba(126, 240, 196, 0.14)' : 'rgba(255, 158, 196, 0.16)';
+      roundRect(ctx, bx, 56, tw, 36, 18);
+      ctx.fill();
+      ctx.strokeStyle = tone;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      if (ok) {
+        ctx.moveTo(bx + 15, 74);
+        ctx.lineTo(bx + 21, 80);
+        ctx.lineTo(bx + 32, 67);
+      } else {
+        ctx.moveTo(bx + 23, 65);
+        ctx.lineTo(bx + 23, 75);
+        ctx.moveTo(bx + 23, 81);
+        ctx.lineTo(bx + 23, 82);
+      }
+      ctx.stroke();
+      ctx.fillStyle = tone;
+      ctx.fillText(label, bx + 40, 81);
+    }
+    const chip = Boolean(item.link && style.next);
+    const floor = chip ? h - 138 : h - 84;
+    let y = block(item.cue, 96, 50, 34, 2, ink, 400, DISPLAY_FONT);
+    y = block(item.answer, y + 4, 31, 24, 4, ink);
+    // The reason (or what to double-check) only if it fits at a readable size.
+    const second = item.doubt ?? item.why;
+    if (second) {
+      ctx.font = `500 23px ${UI_FONT}`;
+      const f = fitText(ctx, second, maxW, 3, 26, 20, 500);
+      const whole = !f.lines[f.lines.length - 1].endsWith('…');
+      if (whole && y + 6 + f.px * 1.25 * f.lines.length <= floor) y = block(second, y + 6, 26, 20, 3, style.contrast ? '#fff' : item.doubt ? ROSE : LILAC, 500);
+    }
+    if (chip) {
+      // The way on: a chip naming the next stage, which the thread leads to.
+      const text = `Next: ${style.next}`;
+      const chipY = h - 130;
+      ctx.font = `500 25px ${UI_FONT}`;
+      let px = 25;
+      while (px > 19 && ctx.measureText(text).width > w - left * 2 - 70) ctx.font = `500 ${(px -= 1)}px ${UI_FONT}`;
+      const tw = Math.min(w - left * 2, ctx.measureText(text).width + 70);
+      ctx.fillStyle = 'rgba(255, 207, 122, 0.13)';
+      roundRect(ctx, left, chipY, tw, 48, 24);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      ctx.fillText(text, left + 24, chipY + 32);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(left + tw - 34, chipY + 16);
+      ctx.lineTo(left + tw - 24, chipY + 24);
+      ctx.lineTo(left + tw - 34, chipY + 32);
+      ctx.stroke();
+    }
+    // The picture only when there is room for it to breathe.
+    // The picture too, but only whole: a cut-off image is worse than none.
+    if (item.scene) {
+      const f = fitText(ctx, item.scene, maxW, 2, 24, 20, 300);
+      const whole = !f.lines[f.lines.length - 1].endsWith('…');
+      if (whole && y + 4 + f.px * 1.25 * f.lines.length <= floor) block(item.scene, y + 4, 24, 20, 2, soft, 300);
+    }
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(240,235,255,0.5)';
+    ctx.font = `500 22px ${UI_FONT}`;
+    ctx.fillText(style.dwell ? 'look away to close' : 'pinch to close', cx, h - 40);
     return;
   }
 

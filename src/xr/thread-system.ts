@@ -207,12 +207,13 @@ export class ThreadSystem extends createSystem({}) {
     this.mat.uniforms.uCalm.value = settings.calm ? 1 : 0;
     this.mat.uniforms.uBase.value += (this.baseTarget - this.mat.uniforms.uBase.value) * Math.min(1, delta * 3);
 
-    // Where each stage sits right now: just under its card.
+    // Where each stage sits right now: on its tether, under the card.
     for (let i = 0; i < n; i++) {
       const rec = this.order[i];
       rec.tile.pivot.getWorldPosition(this.nodes[i]);
       const s = rec.tile.root.scale.y;
-      this.nodes[i].y -= TILE_SIZE.h * 0.5 * s + 0.015;
+      // Low enough that the rising arc clears the card's bottom line of text.
+      this.nodes[i].y -= TILE_SIZE.h * 0.5 * s + 0.055;
     }
     this.world.camera.getWorldPosition(this.cam);
 

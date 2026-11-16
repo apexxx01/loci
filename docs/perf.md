@@ -2,7 +2,7 @@
 
 **Read this first:** these numbers come from the Immersive Web Emulator (IWER, IWSDK's browser-based XR emulator) in a headless Chromium that renders with **SwiftShader, software GL on the CPU**. They are relative numbers for comparing one build with the next. They are **not Quest frame rates** and say nothing about how the app runs on a headset's GPU. Performance on a Quest 3 or 3S is still unmeasured.
 
-Ran 16 Nov 2026, 18:27 IST, with `python3 scripts/perf.py 300` (dev server up with `--allow-browser-automation`), on commit `7fff9d1`. Per-system times: `python3 scripts/perf.py 200 --systems`, 18:31 and 18:40 IST. Raw output: `.tmp/perf.json`, `.tmp/perf-systems.json`. The previous receipt (11:08 IST, before the trace-ring and hint changes) is kept in the comparison below.
+Ran 16 Nov 2026, 18:27 IST, with `python3 scripts/perf.py 300` (dev server up with `--allow-browser-automation`), on commit `7fff9d1`. Per-system times: `python3 scripts/perf.py 200 --systems`, 18:31 and 18:39 IST. Raw output: `.tmp/perf.json`, `.tmp/perf-systems.json`. The previous receipt (11:08 IST, before the trace-ring and hint changes) is kept in the comparison below.
 
 ## What was on screen
 
@@ -41,11 +41,11 @@ Compared with the 11:08 IST receipt (6.7 ms p50, 11.3 ms p95 for update + render
 | ScreenSpaceUISystem (framework) | 0 ms | 1.8 ms | 3.2 ms | 0.20 ms |
 | SceneUnderstandingSystem (framework) | 0.2 ms | 0.4 ms | 2.1 ms | 0.22 ms |
 | RoomSystem | 0.2 ms | 0.3 ms | 2.8 ms | 0.19 ms |
-| Every other system (23 more, including Thread, Recall, Guide, Palace, Trace, Check, Chain) | | 0.2 ms or less each | | 0.11 ms or less each |
+| Every other system (22 more, including Thread, Recall, Guide, Palace, Trace, Check, Chain) | | 0.2 ms or less each | | 0.11 ms or less each |
 
 `world.update()` over the same frames: p50 3.1 ms, p95 5.7 ms, mean 3.45 ms; the system means add up to 3.4 ms, so the wrappers account for the whole update. **Loci's own systems take well under 1 ms of a frame on average; the largest single cost is the framework's input system processing the emulated hands.**
 
-The first profile (18:31 IST) put HubSystem as the costliest Loci system: mean 0.41 ms, p95 1.0 ms, max 3.8 ms. Its two-second `refresh()` re-sent about 20 text and display properties to the UIKit panel even when nothing had changed, and UIKit re-lays out on each one. The hub now remembers the last value it wrote to each element and skips identical writes. Re-profiled at 18:40 IST: mean 0.26 ms, p95 0.7 ms, max 2.4 ms.
+The first profile (18:31 IST) put HubSystem as the costliest Loci system: mean 0.41 ms, p95 1.0 ms, max 3.8 ms. Its two-second `refresh()` re-sent about 20 text and display properties to the UIKit panel even when nothing had changed, and UIKit re-lays out on each one. The hub now remembers the last value it wrote to each element and skips identical writes. Re-profiled at 18:39 IST: mean 0.26 ms, p95 0.7 ms, max 2.4 ms.
 
 For scale only: a 72 Hz headset frame is 13.9 ms and a 90 Hz frame is 11.1 ms. The emulator's CPU is not a Quest's CPU, so this is a sanity check that nothing in the systems is wildly expensive, not a claim about headset headroom.
 

@@ -11,12 +11,12 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
   <img src="docs/walk-explain-back.jpg" width="49%" alt="The explain-back step at the door: 3 of 6 stages explained, graded on the device">
 </p>
 <p>
-  <img src="docs/headset-concept.png" width="70%" alt="In the headset emulator: the concept stages for how the heart pumps blood sit on furniture around a seated viewer, joined by a gold thread">
+  <img src="docs/headset-closeup.png" width="70%" alt="In the headset (emulator capture): stages glow on the table, couch and lamp, joined by the gold thread, with rings of light on the tops they rest on.">
 </p>
 
 ---
 
-<p align="center"><img src="docs/headset-closeup.png" width="49%" alt="In the headset (emulator capture): stages glow on the table, couch and lamp, joined by the gold thread, with rings of light on the tops they rest on." /> <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: a living room drawn in light, with the first stage and its myth check." /></p>
+<p align="center"><img src="docs/headset-card.png" width="49%" alt="In the headset (emulator capture): a stage pinched open, with the claim, why it holds, a Fact-checked badge and a chip naming the next stage." /> <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: a living room drawn in light, with the first stage and its myth check." /></p>
 
 ## Try it in 60 seconds
 
@@ -107,12 +107,12 @@ Every number here comes from a command that can be re-run. Generated 16 Nov 2026
 
 | What | Result | Reproduce |
 | --- | --- | --- |
-| Unit tests | **102 passing** in 10 files, 0 failing (16 Nov 2026, 18:15 IST), including a check that the per-frame hand-sample ring allocates nothing | `npx vitest run` |
+| Unit tests | **102 passing** in 10 files, 0 failing (16 Nov 2026, 20:17 IST), including a check that the per-frame hand-sample ring allocates nothing | `npx vitest run` |
 | Placement property test | **1,000 seeded random rooms**, 6 to 12 memories each, 9,037 placements: every memory placed, no two closer than the solver's own minimum spacing, every slot within 70 degrees of forward and none behind the viewer, heights within the solver's limits | `npx vitest run tests/placement-property.test.ts` |
-| Concept end-to-end in the Immersive Web Emulator | **15/15 checks** (16 Nov 2026, 17:37 IST, sunlit living room, depth sensing on): pick a concept, stages land on distinct furniture, threads join and light, myth checks record recalls, exit and re-enter restores everything; restore drift **under 1 mm** | `python3 scripts/e2e-concept.py` with the dev server up |
+| Concept end-to-end in the Immersive Web Emulator | **15/15 checks** (16 Nov 2026, 17:37 IST, sunlit living room): pick a concept, stages land on distinct furniture, threads join and light, myth checks record recalls, exit and re-enter restores everything; restore drift **under 1 mm** | `python3 scripts/e2e-concept.py` with the dev server up |
 | Ask and chain practice in the emulator | **8/8 checks** (16 Nov 2026, 19:34 IST): open Ask, type "How" with three key pinches and the chips become finished questions; build a concept; Rebuild the chain dims the thread and hides the numbers; a stage out of order is refused; the stages picked in order relight every link; finishing reports the run. [docs/e2e-chain-run.txt](docs/e2e-chain-run.txt) | `python3 scripts/e2e-chain.py` with the dev server up |
 | Room matrix in the emulator | **8 of 8 synthetic rooms pass all 15 checks on the first try** (bedroom, conference room, home office, kitchen, music studio, open office, open studio, sunlit living room), in one full pass with no re-runs. 47 of 48 stages landed on the room's furniture and walls, 1 on the seated arc; restore drift under 0.1 mm in every room. With no scene data at all, all 6 stages fell back to the seated arc and 15 of 15 checks passed. 16 Nov 2026, 15:50 to 18:07 IST. [docs/test-matrix.md](docs/test-matrix.md) | `python3 scripts/matrix.py --tag=pass1` with the dev server up |
-| Frame cost in the emulator | Concept palace on screen (6 stages, threads, 4 trace rings, hub open), 300 frames: world update + render **4.6 ms p50, 8.1 ms p95** of CPU; 64 draw calls, 21,668 triangles. Per system: Loci's own systems take well under 1 ms a frame on average; the largest cost is the framework's input system on emulated hands (2.1 ms mean). Profiling found the hub re-sending unchanged panel text every 2 s; skipping identical writes cut its mean from 0.41 to 0.26 ms. Software GL (SwiftShader), so relative numbers only, not Quest frame times. 16 Nov 2026, 18:27 to 18:40 IST. [docs/perf.md](docs/perf.md) | `python3 scripts/perf.py 300` and `--systems` with the dev server up |
+| Frame cost in the emulator | Concept palace on screen (6 stages, threads, 4 trace rings, hub open), 300 frames: world update + render **4.6 ms p50, 8.1 ms p95** of CPU; 64 draw calls, 21,668 triangles. Per system: Loci's own systems take well under 1 ms a frame on average; the largest cost is the framework's input system on emulated hands (2.1 ms mean). Profiling found the hub re-sending unchanged panel text every 2 s; skipping identical writes cut its mean from 0.41 to 0.26 ms. Software GL (SwiftShader), so relative numbers only, not Quest frame times. 16 Nov 2026, 18:27 to 18:39 IST. [docs/perf.md](docs/perf.md) | `python3 scripts/perf.py 300` and `--systems` with the dev server up |
 | Palace Architect, live teach mode | **20 of 20 topics** taught (science, history, finance, law, tech, everyday, pasted notes, a child audience); median 4 stages, **83 of 88 stages kept a myth check**, median **2.7 s** server time (2.8 s wall), 16 Nov 2026, 15:43 IST | `node scripts/eval-architect.mjs` |
 
 The full Architect run, with a per-topic table and two complete outputs, is in [docs/architect-eval.md](docs/architect-eval.md). In that run all 20 answers came from the primary model (`gemini-3.5-flash-lite`) inside the 2.5 s hedge window, so no fallback started. An earlier run, when a slower model led the chain, took a median 6.1 s and every answer came from the fallback, which is why the fast model now leads.

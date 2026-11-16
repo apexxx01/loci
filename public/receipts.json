@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-16T12:42:51.499Z",
+  "generatedAt": "2026-11-16T14:47:35.402Z",
   "command": "node scripts/receipts.mjs",
   "tests": 102,
   "testsTotal": 102,
@@ -149,16 +149,16 @@
     "frames": 300,
     "cpuMsP50": 4.6,
     "cpuMsP95": 8.1,
-    "worldUpdateMsP50": 3.0,
+    "worldUpdateMsP50": 3,
     "renderMsP50": 1.6,
     "drawCalls": 64,
     "triangles": 21668,
     "textures": 22,
     "geometries": 86,
-    "jsHeapUsedMB": 255.0,
+    "jsHeapUsedMB": 255,
     "systems": {
       "command": "python3 scripts/perf.py 200 --systems",
-      "ranAt": "2026-11-16 18:40 IST",
+      "ranAt": "2026-11-16 18:39 IST",
       "topFramework": {
         "name": "InputSystem",
         "meanMs": 2.08
@@ -168,7 +168,7 @@
         "meanMs": 0.255,
         "p95Ms": 0.7,
         "beforeMeanMs": 0.41,
-        "beforeP95Ms": 1.0
+        "beforeP95Ms": 1
       }
     }
   }

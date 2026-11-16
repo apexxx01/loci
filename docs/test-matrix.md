@@ -4,7 +4,7 @@ The concept end-to-end test (`scripts/e2e-concept.py`, 15 checks) run in every s
 
 ```sh
 python3 scripts/matrix.py --tag=pass1          # all 8 rooms + the empty room, 15:50 to 17:57 IST
-python3 scripts/matrix.py --tag=none2 none     # the empty room again after its check was corrected, 18:03 IST
+python3 scripts/matrix.py --tag=none2 none     # the empty room again after its check was corrected, 18:07 IST
 ```
 
 ## How rooms are switched
@@ -29,7 +29,7 @@ The empty room (`none`) calls `sem.deleteAll()` before and after entering XR, so
 | open_office | 32 (17 + 15) | 6 | 0 | other, desk, wall, shelf, couch, table | **15/15** | 0.0000 m | 764 s |
 | open_studio | 11 (9 + 2) | 5 | 1 | (arc), other, wall, wall, door, plant | **15/15** | 0.0000 m | 445 s |
 | sunlit_living_room | 28 (15 + 13) | 6 | 0 | window, lamp, table, couch, shelf, screen | **15/15** | 0.0000 m | 695 s |
-| none (no planes, no meshes) | 0 | 0 | 6 | all six on the arc | **15/15** (re-run 18:03 IST) | 0.0000 m | 237 s |
+| none (no planes, no meshes) | 0 | 0 | 6 | all six on the arc | **15/15** (re-run 18:07 IST) | 0.0000 m | 237 s |
 
 **All 8 synthetic rooms passed all 15 checks on the first try**, in one full pass with no re-runs; in those rooms 47 of 48 stages landed on a real surface and 1 on the arc. The earlier pass (11:34 IST) needed second runs for kitchen and music_studio; the fix was holding the emulated pinch for 1.4 s in `aim_select` (`scripts/e2e.py`), longer than the emulator's p95 frame interval. A second back-to-back full pass was started and stopped after its first room, because a full pass takes about two hours at one emulator frame a second.
 
