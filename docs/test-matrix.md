@@ -39,6 +39,10 @@ Logs: `.tmp/matrix-pass1-<room>.log` (one per room, with `ranAt`), `.tmp/matrix-
 
 ## Failures and their causes
 
+### sunlit_living_room, 20:20 IST regression run: palace re-fitted on re-entering (fixed in the app)
+
+A single-room regression run after the card and thread changes failed "stages restored in place after re-entering" with a 1.93 m drift; the restored stages had moved to different furniture. A second run with no change passed 15/15. Cause: after re-entering XR, `verifyRestore` in `src/xr/palace-system.ts` judged whether the room still matched 1.5 s of frame time after the anchors attached. At one emulator frame a second the surface list can still be filling in then, so too few stages found their labelled furniture and the app re-fitted a palace that was fine. It now waits until the surface count has held still for 1.5 s (within a 10 s window) before judging. Re-run at 20:58 IST on the fix: 15/15, restore drift 0.0000 m (`python3 scripts/matrix.py --tag=final3 sunlit_living_room`).
+
 ### Empty room: "stages spread across distinct objects" (fixed in the test)
 
 The check in `scripts/e2e-concept.py` asserts `len(set(labels)) >= 4` over the placement labels. With no scene data, `planPlacement` in `src/core/placement.ts` falls back entirely to `arcSlots()`, which creates every slot with `label: ''` (there is no object to name). So the six labels are all empty and the set has one member. The app did what the README promises for an unscanned room (an even arc, status "No furniture found yet, so memories are floating around you. Run Space Setup for a room-anchored palace."); the check is a furniture assertion that does not apply when there is no furniture. The other 14 checks, including restore and threads, passed.

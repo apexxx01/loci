@@ -68,6 +68,8 @@ export class PalaceSystem extends createSystem({
   private needsBind = false;
   /** Seconds left to verify a restored palace against the scanned room. */
   private verifyFor = 0;
+  private verifyCount = -1;
+  private verifyStill = 0;
   private lastSurfaceVersion = -1;
   private stableFor = 0;
   private dueTimer = 0;
@@ -425,7 +427,9 @@ export class PalaceSystem extends createSystem({
         r.pendingLocal = undefined;
       }
       this.phase = 'ready';
-      this.verifyFor = 5;
+      this.verifyFor = 10;
+      this.verifyCount = -1;
+      this.verifyStill = 0;
       setStatus(this.welcomeBackText());
       bus.emit({ type: 'palace-changed' });
       bus.emit({ type: 'palace-ready', restored: true });
@@ -486,8 +490,15 @@ export class PalaceSystem extends createSystem({
    */
   private verifyRestore(delta: number): void {
     this.verifyFor -= delta;
-    if (!app.surfaces.length && this.verifyFor > 0) return; // wait for scene data
-    const settled = this.verifyFor <= 3.5 || this.verifyFor <= 0;
+    // Scene data arrives in pieces after re-entering; judging the room on a
+    // half-loaded list would re-fit a palace that was fine. Wait until the
+    // surface count has held still for 1.5 s (or the window runs out).
+    const n = app.surfaces.length;
+    if (n !== this.verifyCount) {
+      this.verifyCount = n;
+      this.verifyStill = 0;
+    } else this.verifyStill += delta;
+    const settled = (n > 0 && this.verifyStill >= 1.5) || this.verifyFor <= 0;
     if (!settled) return;
     this.verifyFor = 0;
     if (!app.surfaces.length) return; // no Space Setup: nothing to compare against
