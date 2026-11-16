@@ -9,6 +9,7 @@ concept palace left by scripts/e2e-concept.py (six stages, threads lit, trace
 rings, hub open):
 
     python3 scripts/perf.py [frames=300]
+    python3 scripts/perf.py 300 --systems   # per-system update() times instead
 
 It wraps the two calls the IWSDK render loop makes every frame (world.update
 and renderer.render, see setupRenderLoop in @iwsdk/core
@@ -29,7 +30,71 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, 'scripts')
 from ev import ev  # noqa: E402
 
-FRAMES = int(sys.argv[1]) if len(sys.argv) > 1 else 300
+ARGS = [a for a in sys.argv[1:] if not a.startswith('--')]
+FRAMES = int(ARGS[0]) if ARGS else 300
+# --systems: time every registered ECS system's update() separately (writes .tmp/perf-systems.json)
+SYSTEMS = '--systems' in sys.argv
+
+# Per-system sampler. elics World.update() loops over world.systems and calls
+# system.update(delta, time) on each unpaused one, so an own-property wrapper
+# on each instance sees every call. Samples go into preallocated
+# Float64Arrays (one slot per frame) so the sampler adds no per-frame garbage.
+INSTALL_SYSTEMS = """
+const w = window.__loci?.world;
+if (!w?.systems) return { error: 'window.__loci.world.systems not found' };
+if (window.__perfSys && !window.__perfSys.done) return { error: 'a sampler is already running' };
+const N = %d, list = [...w.systems];
+const P = window.__perfSys = { N, done: false, frame: 0, started: performance.now(), sys: [], world: new Float64Array(N) };
+for (const s of list) {
+  const own = Object.prototype.hasOwnProperty.call(s, 'update');
+  const orig = s.update;
+  const rec = { name: s.constructor?.name || '(anonymous)', priority: s.priority ?? null, ms: new Float64Array(N), calls: new Uint8Array(N), s, own, orig };
+  P.sys.push(rec);
+  s.update = function (d, t) {
+    const t0 = performance.now();
+    const out = orig.call(this, d, t);
+    if (P.frame < N) { rec.ms[P.frame] += performance.now() - t0; rec.calls[P.frame]++; }
+    return out;
+  };
+}
+const origUpdate = w.update;
+const restore = () => {
+  w.update = origUpdate;
+  for (const r of P.sys) { if (r.own) r.s.update = r.orig; else delete r.s.update; }
+  P.done = true; P.ended = performance.now();
+};
+P.abort = restore;
+w.update = function (...a) {
+  const t0 = performance.now();
+  const out = origUpdate.apply(this, a);
+  if (P.frame < N) P.world[P.frame] = performance.now() - t0;
+  if (++P.frame >= N) restore();
+  return out;
+};
+// Timer resolution in this page: the smallest non-zero step performance.now() takes.
+let res = Infinity, a = performance.now();
+for (let i = 0; i < 20000; i++) { const b = performance.now(); if (b > a) { res = Math.min(res, b - a); a = b; } }
+P.resolutionMs = res;
+return { installed: true, N, systems: P.sys.map(r => r.name), resolutionMs: res };
+"""
+
+COLLECT_SYSTEMS = """
+const P = window.__perfSys; if (!P) return null;
+if (!P.done) return { done: false, n: P.frame };
+const q = (xs, p) => { const s = [...xs].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null; };
+const f = (v) => +v.toFixed(3);
+const stat = (xs) => ({ p50: f(q(xs, .5)), p95: f(q(xs, .95)), max: f(Math.max(...xs)), mean: f(xs.reduce((x, y) => x + y, 0) / xs.length) });
+const n = Math.min(P.frame, P.N);
+const world = Array.from(P.world.subarray(0, n));
+const sumMean = P.sys.reduce((acc, r) => acc + Array.from(r.ms.subarray(0, n)).reduce((x, y) => x + y, 0) / n, 0);
+const systems = P.sys.map((r) => {
+  const ms = Array.from(r.ms.subarray(0, n)), calls = Array.from(r.calls.subarray(0, n));
+  return { name: r.name, priority: r.priority, framesCalled: calls.filter((c) => c > 0).length, ...stat(ms),
+           totalMs: f(ms.reduce((x, y) => x + y, 0)) };
+}).sort((a, b) => b.p95 - a.p95 || b.mean - a.mean);
+return { done: true, frames: n, seconds: +((P.ended - P.started) / 1000).toFixed(1), timerResolutionMs: P.resolutionMs,
+  worldUpdateMs: stat(world), sumOfSystemMeansMs: f(sumMean), systems };
+"""
 
 INSTALL = """
 const w = window.__loci?.world;
@@ -106,10 +171,45 @@ return { done: true, frames: P.update.length, seconds: +((P.ended - P.started) /
 """
 
 
+def poll(collect, frames, abort):
+    deadline = time.time() + frames * 3 + 120
+    res = None
+    while time.time() < deadline:
+        time.sleep(15)
+        res = ev(collect)
+        if isinstance(res, dict) and res.get('done'):
+            return res
+        print('  frames so far:', (res or {}).get('n'), flush=True)
+    ev(abort)
+    return ev(collect)
+
+
+def main_systems(ran_at, scene):
+    r = ev(INSTALL_SYSTEMS % FRAMES)
+    if not isinstance(r, dict) or not r.get('installed'):
+        print('could not install the per-system sampler:', r)
+        return 1
+    print('sampling', r.get('N'), 'frames over', len(r.get('systems', [])), 'systems; timer resolution',
+          r.get('resolutionMs'), 'ms', flush=True)
+    res = poll(COLLECT_SYSTEMS, FRAMES, 'window.__perfSys?.abort?.(); return 1') or {}
+    out = {'ranAt': ran_at, 'command': f'python3 scripts/perf.py {FRAMES} --systems', 'scene': scene, **res}
+    out.pop('done', None)
+    with open('.tmp/perf-systems.json', 'w') as fh:
+        json.dump(out, fh, indent=2)
+        fh.write('\n')
+    print(json.dumps(out, indent=2))
+    print('\nsystem | p50 ms | p95 ms | max ms | mean ms')
+    for x in out.get('systems', []):
+        print(f"{x['name']} | {x['p50']} | {x['p95']} | {x['max']} | {x['mean']}")
+    return 0
+
+
 def main():
     ran_at = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M IST')
     scene = ev(SCENE)
     print('scene:', json.dumps(scene), flush=True)
+    if SYSTEMS:
+        return main_systems(ran_at, scene)
     r = ev(INSTALL % FRAMES)
     if not isinstance(r, dict) or not r.get('installed'):
         print('could not install the sampler:', r)

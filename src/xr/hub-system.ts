@@ -454,11 +454,29 @@ export class HubSystem extends createSystem({}) {
     }
   }
 
+  /**
+   * Last value written to each element. UIKit re-lays out on every
+   * setProperties call, even an identical one, and refresh() runs every two
+   * seconds; skipping unchanged writes keeps that refresh nearly free.
+   */
+  private shown = new Map<string, string>();
+
   private setText(id: string, text: string): void {
-    this.el(id)?.setProperties({ text });
+    const key = `t:${id}`;
+    if (this.shown.get(key) === text) return;
+    const el = this.el(id);
+    if (!el) return;
+    el.setProperties({ text });
+    this.shown.set(key, text);
   }
 
   private setDisplay(id: string, show: boolean): void {
-    this.el(id)?.setProperties({ display: show ? 'flex' : 'none' });
+    const key = `d:${id}`;
+    const display = show ? 'flex' : 'none';
+    if (this.shown.get(key) === display) return;
+    const el = this.el(id);
+    if (!el) return;
+    el.setProperties({ display });
+    this.shown.set(key, display);
   }
 }
