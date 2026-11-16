@@ -66,7 +66,12 @@ def aim_select(pos, duration=0.4):
         time.sleep(1.5)
     xr('look-at', {'device': dev, 'target': pos})
     time.sleep(2.5)  # let the pointer register a hover before pressing
-    xr('select', {'device': dev, 'duration': duration})
+    # Hold the press across at least two emulator frames: headless software GL
+    # draws about one frame a second, and a 0.4 s press can fall between them.
+    xr('set-select-value', {'device': dev, 'value': 1})
+    time.sleep(max(duration, 1.4))
+    xr('set-select-value', {'device': dev, 'value': 0})
+    time.sleep(0.6)
 
 
 def ensure_xr():

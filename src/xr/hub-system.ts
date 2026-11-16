@@ -192,6 +192,13 @@ export class HubSystem extends createSystem({}) {
         if (e.type === 'palace-changed' || e.type === 'start-deck' || e.type === 'new-palace' || e.type === 'chain') this.refresh();
         if (e.type === 'palace-changed' && app.palace && !this.docked) this.dock(true);
         if (e.type === 'new-palace') this.dock(false);
+        if (e.type === 'new-palace' || e.type === 'start-deck') {
+          // A fresh start opens on asking, with the ready-made list folded away.
+          this.browsing = false;
+          this.asking = false;
+          this.setText('btn-browse-label', 'Ready-made walks');
+          this.refresh();
+        }
         this.coach(e);
       }),
     );

@@ -112,10 +112,10 @@ export const AUDIENCES: { who: string; text: string }[] = [
  * Architect run in docs/architect-eval.md (`node scripts/eval-architect.mjs`).
  */
 export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
-  { n: '97', text: 'unit tests passing in 9 files, across placement, scheduling, concepts, safety, sharing and the library' },
+  { n: '99', text: 'unit tests passing in 10 files, across placement, scheduling, concepts, safety, sharing, the library and per-frame allocation' },
   { n: '1,000', text: 'random rooms in the placement property test: every memory placed, spaced apart, within a seated turn and never behind you' },
   { n: '15', unit: '/15', text: 'concept checks passing in the Immersive Web Emulator, from picking a topic to restoring the palace' },
-  { n: '<1', unit: 'mm', text: 'drift when a saved palace was restored in that test' },
+  { n: '8', unit: '/8', text: 'synthetic emulator rooms passing every concept check (two on a second run), with 47 of 48 stages on the room’s own furniture and walls' },
   { n: '20', unit: '/20', text: 'topics taught by the live Palace Architect in our test run, median 6.1 s each, with 82 of 87 stages keeping a myth check' },
   { n: '0', text: 'accounts. Palaces and progress stay in your browser, and share links carry the palace inside the link itself' },
 ];

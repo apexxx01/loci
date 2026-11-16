@@ -95,7 +95,16 @@ const receipts = {
   ...(e2eConcept ? { e2eConcept } : {}),
   ...(architect ? { architect } : {}),
 };
-writeFileSync(at('public/receipts.json'), JSON.stringify(receipts, null, 2) + '\n');
+// Keep sections this script does not compute (room matrix, perf), written by
+// scripts/matrix.py and scripts/perf.py, so a refresh never drops them.
+let previous = {};
+try {
+  previous = JSON.parse(readFileSync(at('public/receipts.json'), 'utf8'));
+} catch {
+  /* first run */
+}
+const merged = { ...previous, ...receipts };
+writeFileSync(at('public/receipts.json'), JSON.stringify(merged, null, 2) + '\n');
 console.log(JSON.stringify(receipts, null, 2));
 console.log('wrote public/receipts.json');
 

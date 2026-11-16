@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-11-15T19:09:37.489Z",
+  "generatedAt": "2026-11-16T08:11:15.178Z",
   "command": "node scripts/receipts.mjs",
-  "tests": 97,
-  "testsTotal": 97,
+  "tests": 99,
+  "testsTotal": 99,
   "testsFailed": 0,
-  "testFiles": 9,
+  "testFiles": 10,
   "placementProperty": {
     "rooms": 1000,
     "seed": 4289,
-    "idCollisions": 86,
+    "idCollisions": 0,
     "slots": 9037,
     "arc": 4335,
     "wall": 3439,
@@ -33,5 +33,133 @@
     "stages": 87,
     "ranAt": "2026-11-15T18:55:07.913Z",
     "command": "node scripts/eval-architect.mjs"
+  },
+  "roomMatrix": {
+    "command": "python3 scripts/matrix.py",
+    "doc": "docs/test-matrix.md",
+    "syntheticRooms": 8,
+    "syntheticRoomsAllPassed": 8,
+    "reruns": [
+      "kitchen",
+      "music_studio"
+    ],
+    "stagesOnSurfaces": 47,
+    "stagesOnArc": 1,
+    "emptyRoom": {
+      "passed": 14,
+      "checks": 15,
+      "onArc": 6,
+      "maxRestoreDriftM": 0.0
+    },
+    "rooms": [
+      {
+        "room": "bedroom",
+        "ranAt": "2026-11-16 11:34 IST",
+        "surfaces": 24,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "conference_room",
+        "ranAt": "2026-11-16 11:49 IST",
+        "surfaces": 23,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "home_office",
+        "ranAt": "2026-11-16 11:59 IST",
+        "surfaces": 21,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "kitchen",
+        "ranAt": "2026-11-16 13:13 IST",
+        "surfaces": 29,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0,
+        "rerun": true
+      },
+      {
+        "room": "music_studio",
+        "ranAt": "2026-11-16 13:28 IST",
+        "surfaces": 23,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0,
+        "rerun": true
+      },
+      {
+        "room": "open_office",
+        "ranAt": "2026-11-16 12:19 IST",
+        "surfaces": 32,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "open_studio",
+        "ranAt": "2026-11-16 12:35 IST",
+        "surfaces": 11,
+        "onSurfaces": 5,
+        "onArc": 1,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "sunlit_living_room",
+        "ranAt": "2026-11-16 12:46 IST",
+        "surfaces": 28,
+        "onSurfaces": 6,
+        "onArc": 0,
+        "passed": 15,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      },
+      {
+        "room": "none",
+        "ranAt": "2026-11-16 12:58 IST",
+        "surfaces": 0,
+        "onSurfaces": 0,
+        "onArc": 6,
+        "passed": 14,
+        "checks": 15,
+        "maxRestoreDriftM": 0.0
+      }
+    ]
+  },
+  "perf": {
+    "command": "python3 scripts/perf.py 300",
+    "ranAt": "2026-11-16 11:08 IST",
+    "doc": "docs/perf.md",
+    "note": "IWER emulator on SwiftShader software GL: relative numbers only, not Quest frame times",
+    "frames": 300,
+    "cpuMsP50": 6.7,
+    "cpuMsP95": 11.3,
+    "worldUpdateMsP50": 4.3,
+    "renderMsP50": 2,
+    "drawCalls": 76,
+    "triangles": 23492,
+    "textures": 22,
+    "geometries": 88,
+    "jsHeapUsedMB": 233.7
   }
 }
