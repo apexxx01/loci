@@ -528,3 +528,7 @@ button { font-family: inherit; }
 @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 .order__v { min-height: 1.4em; font-size: 14px; color: var(--soft) !important; margin: 8px 0 0; }
 .is-checked .order { display: none; }
+
+.station .doubt { color: var(--gold) !important; font-size: 14px; padding-left: 12px; box-shadow: inset 2px 0 0 var(--gold); }
+.station .doubt[hidden] { display: none; }
+.ask__check { margin-top: 6px !important; }

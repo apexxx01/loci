@@ -20,6 +20,7 @@ export const MemoryItemSchema = z.object({
   check: z.object({ wrong: z.string().min(1).max(200), right: z.string().min(1).max(200) }).optional(),
   link: z.string().max(120).optional(),
   remade: z.number().int().min(0).max(99).optional(),
+  doubt: z.string().max(240).optional(),
 });
 
 export const DeckSchema = z.object({
@@ -107,3 +108,8 @@ export const ArchitectGradeSchema = z.object({
 });
 
 export type ArchitectGrade = z.infer<typeof ArchitectGradeSchema>;
+
+/** The fact-checking pass: stages it doubts, by index, each with what to check. */
+export const ArchitectVerifySchema = z.object({
+  flags: z.array(z.object({ index: z.number().int().min(0).max(23), issue: z.string().min(4).max(240) })).max(24),
+});

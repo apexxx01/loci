@@ -176,3 +176,19 @@ const OFFLINE_KEYS: [string, string[]][] = [
   ['concept-water', ['water cycle', 'evaporat', 'precipitat', 'condensation', 'rain form']],
   ['concept-web', ['web page', 'website', 'browser', 'dns', 'http']],
 ];
+
+/**
+ * A second, fact-checking pass over a concept. Doubted stages get a short note
+ * of what to double-check; null means the check could not run.
+ */
+export async function verifyConcept(deck: Deck): Promise<Deck | null> {
+  try {
+    const stages = deck.items.map((it) => ({ cue: it.cue, answer: it.answer, why: it.why, myth: it.check?.wrong, fact: it.check?.right }));
+    const { status, data } = await post({ mode: 'verify', title: deck.title, stages });
+    if (status !== 200 || !Array.isArray(data.flags)) return null;
+    const flags = new Map((data.flags as { index: number; issue: string }[]).map((f) => [f.index, String(f.issue).slice(0, 240)]));
+    return { ...deck, items: deck.items.map((it, i) => (flags.has(i) ? { ...it, doubt: flags.get(i) } : { ...it, doubt: undefined })) };
+  } catch {
+    return null;
+  }
+}

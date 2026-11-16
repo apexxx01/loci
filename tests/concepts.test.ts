@@ -118,3 +118,22 @@ describe('explain-back grading', () => {
     expect(p).toContain('my explanation');
   });
 });
+
+describe('fact-check pass', () => {
+  const stages = CONCEPTS[0].items.map((i) => ({ cue: i.cue, answer: i.answer, why: i.why, myth: i.check?.wrong, fact: i.check?.right }));
+  it('keeps in-range, unique flags only', async () => {
+    const { vetVerify } = await import('../src/core/architect.js');
+    const flags = vetVerify({ flags: [{ index: 1, issue: 'The right ventricle sends blood to the lungs, not the body.' }, { index: 1, issue: 'duplicate one here' }, { index: 40, issue: 'out of range one' }] }, stages);
+    expect(flags.map((f) => f.index)).toEqual([1]);
+  });
+  it('returns nothing for malformed output', async () => {
+    const { vetVerify } = await import('../src/core/architect.js');
+    expect(vetVerify('nope', stages)).toEqual([]);
+  });
+  it('builds a prompt with every stage and its myth', async () => {
+    const { verifyPrompt } = await import('../src/core/architect.js');
+    const p = verifyPrompt('Heart', stages);
+    expect(p).toContain('0. Used blood comes home');
+    expect(p).toContain('myth: Blood without oxygen is blue.');
+  });
+});

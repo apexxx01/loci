@@ -27,6 +27,9 @@ import {
   vetBoundScenes,
   vetConceptOutput,
   vetGrade,
+  VERIFY_RESPONSE_SCHEMA,
+  verifyPrompt,
+  vetVerify,
 } from '../src/core/architect.js';
 
 /**
@@ -230,6 +233,17 @@ export async function POST(request: Request): Promise<Response> {
       const graded = vetGrade(await gemini(gradePrompt(str(body.title, 80), stages, explanation), GRADE_RESPONSE_SCHEMA), stages, explanation);
       if (!graded) return json(502, { error: 'The Architect could not grade that. Try again.' });
       return json(200, { ...graded, model: lastModel, ms: Date.now() - started });
+    }
+
+    if (body.mode === 'verify') {
+      const stages = Array.isArray(body.stages)
+        ? body.stages.slice(0, 12).map((st: Record<string, unknown>) => ({
+            cue: str(st?.cue, 80), answer: str(st?.answer, 200), why: str(st?.why, 240), myth: str(st?.myth, 200), fact: str(st?.fact, 200),
+          }))
+        : [];
+      if (!stages.length) return json(400, { error: 'Nothing to check.' });
+      const flags = vetVerify(await gemini(verifyPrompt(str(body.title, 80), stages), VERIFY_RESPONSE_SCHEMA), stages);
+      return json(200, { flags, model: lastModel, ms: Date.now() - started });
     }
 
     if (body.mode === 'reimagine') {

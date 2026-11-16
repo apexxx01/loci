@@ -29,6 +29,8 @@ export interface MemoryItem {
   link?: string;
   /** Times the Architect has re-imagined this memory after repeated misses. */
   remade?: number;
+  /** Set when a second, fact-checking pass doubts this stage: what to double-check. */
+  doubt?: string;
 }
 
 /** Two statements about one stage: the learner picks the true one. */

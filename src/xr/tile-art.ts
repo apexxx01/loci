@@ -363,6 +363,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     let y = block(item.cue, 100, 46, 32, 2, ink, 400, DISPLAY_FONT);
     y = block(item.answer, y + 2, 30, 22, 4, ink);
     if (item.why) y = block(item.why, y + 4, 25, 19, 3, style.contrast ? '#fff' : LILAC);
+    if (item.doubt) y = block(`Double-check: ${item.doubt}`, y + 4, 21, 17, 2, accent, 500);
     const room = Math.floor((h - 120 - y) / 30);
     if (room >= 1) block(item.scene, y + 4, 23, 19, Math.min(3, room), soft, 300);
     hint(item.link && style.next ? `${item.link} → ${style.next}` : style.dwell ? 'look away to close' : 'pinch to close', h - 52);

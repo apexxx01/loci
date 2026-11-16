@@ -6,7 +6,7 @@
 import { glyphsFor } from './glyphs.js';
 import { MAX_ITEMS } from './notes.js';
 import { checkMnemonic, sanitizeUserText } from './safety.js';
-import { ArchitectConceptSchema, ArchitectDeckSchema, ArchitectGradeSchema, type ArchitectDeck, type ArchitectGrade } from './schema.js';
+import { ArchitectConceptSchema, ArchitectDeckSchema, ArchitectGradeSchema, ArchitectVerifySchema, type ArchitectDeck, type ArchitectGrade } from './schema.js';
 import type { Deck, MemoryItem } from './types.js';
 
 export const ARCHITECT_RULES = `You are the Palace Architect inside Loci, a mixed-reality memory palace.
@@ -378,4 +378,49 @@ function clampConcept(raw: unknown): unknown {
         }))
       : r.stages,
   };
+}
+
+/* ------------------------------------------------------------------ fact-check pass
+ * A second, independent read of every stage, looking only for mistakes. It is
+ * conservative on purpose: it flags clear errors, not style or simplification.
+ */
+export const VERIFY_RULES = `You are a careful fact-checker for Loci, a learning app. You get the stages of a short explanation.
+For each stage, check the claim, the reason, and the two myth-check statements (the "myth" must be false and the "fact" must be true).
+Flag a stage ONLY if something in it is clearly factually wrong, or the myth is actually true, or the fact is actually false.
+Do not flag simplifications that are fine for a beginner, style, or missing detail. If everything is accurate, return an empty list.
+For each flag give the stage index and, in one short sentence (max 30 words), what is wrong and what is right. Return only JSON matching the schema.`;
+
+export const VERIFY_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    flags: { type: 'array', items: { type: 'object', properties: { index: { type: 'integer' }, issue: { type: 'string' } }, required: ['index', 'issue'] } },
+  },
+  required: ['flags'],
+} as const;
+
+export interface VerifyStage {
+  cue: string;
+  answer: string;
+  why?: string;
+  myth?: string;
+  fact?: string;
+}
+
+export function verifyPrompt(title: string, stages: VerifyStage[]): string {
+  const lines = stages
+    .map((s, i) => `${i}. ${s.cue}\n   claim: ${s.answer}\n   reason: ${s.why ?? ''}${s.myth ? `\n   myth: ${s.myth}\n   fact: ${s.fact ?? ''}` : ''}`)
+    .join('\n');
+  return `${VERIFY_RULES}\n\nTopic: ${sanitizeUserText(title, 80)}\nStages:\n${lines}`;
+}
+
+export function vetVerify(raw: unknown, stages: VerifyStage[]): { index: number; issue: string }[] {
+  const parsed = ArchitectVerifySchema.safeParse(raw);
+  if (!parsed.success) return [];
+  const seen = new Set<number>();
+  const source = stages.map((s) => `${s.cue} ${s.answer} ${s.why ?? ''} ${s.myth ?? ''} ${s.fact ?? ''}`).join(' ');
+  return parsed.data.flags.filter((f) => {
+    if (f.index < 0 || f.index >= stages.length || seen.has(f.index)) return false;
+    seen.add(f.index);
+    return checkMnemonic(f.issue, `${source} ${f.issue}`).reasons.every((r) => !/blocked|brand|unsafe/i.test(r));
+  });
 }

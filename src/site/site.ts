@@ -19,7 +19,7 @@ import { dueIds, mastery, nextDue, streak } from '../core/scheduler.js';
 import { DeckSchema, PalaceSchema } from '../core/schema.js';
 import { decodeDeck, encodeDeck } from '../core/share.js';
 import type { Deck, Palace, ReviewEvent } from '../core/types.js';
-import { buildDeck, gradeExplanation, teachConcept } from '../net/architect-client.js';
+import { buildDeck, gradeExplanation, teachConcept, verifyConcept } from '../net/architect-client.js';
 import { LOCI_METHOD } from '../core/concepts.js';
 import { ambientOn, breatheTone, chime, stopAmbient, toggleAmbient } from './parts/ambient.js';
 import { AUDIENCES, HEADSET, PIPELINE, RECEIPTS, ROADMAP, WEAVE } from './parts/features.js';
@@ -156,6 +156,7 @@ const html = () => `
         <p class="claim" data-claim></p>
         <p class="why" data-why></p>
         <p class="picture" data-scene></p>
+        <p class="doubt" data-doubt hidden></p>
         <div class="myth" data-myth>
           <p class="myth__q">Which is true?</p>
           <div class="myth__opts"><button type="button" data-opt="0"></button><button type="button" data-opt="1"></button></div>
@@ -459,6 +460,9 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       q('[data-claim]').textContent = many ? idx.map((k) => d.items[k].answer).join(' ') : it.answer;
       q('[data-why]').textContent = !many && it.why ? `Why: ${it.why}` : '';
       q('[data-scene]').textContent = !many ? `Picture it: ${it.scene}` : '';
+      const doubts = idx.map((k) => d.items[k].doubt).filter(Boolean);
+      q('[data-doubt]').hidden = !doubts.length;
+      q('[data-doubt]').textContent = doubts.length ? `Double-check this one: ${doubts.join(' ')}` : '';
       const last = d.items[idx[idx.length - 1]];
       const next = d.items[idx[idx.length - 1] + 1];
       q('[data-link]').textContent = last.link && next ? `${cap(last.link)} → ${next.cue}` : '';
@@ -693,10 +697,53 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     askDone.hidden = false;
     askDone.innerHTML = `<p><b>${esc(res.deck.title)}</b>: ${res.deck.items.length} stages, ${res.offline ? 'from the walks that ship with Loci, because the Palace Architect could not be reached' : res.cached ? 'remembered from the last time it was asked' : `ready in ${secs} seconds`}.</p>
       <div class="ask__go"><button class="b" type="button" data-walk-now>Walk through it</button>
-      <button class="b b--line" type="button" data-room-mine>Put it in my room</button></div>
+      <button class="b b--line" type="button" data-room-mine>Put it in my room</button>
+      <button class="linkish" type="button" data-share-mine>Copy a link</button>
+      <button class="linkish" type="button" data-cards-mine>Download as flashcards</button></div>
       <p class="small">${res.offline ? 'Checked by hand before it shipped.' : 'Written by the Palace Architect. It can be wrong, so check anything important against your own source.'}</p>`;
     askDone.querySelector('[data-walk-now]')?.addEventListener('click', () => scrollTo(stationY(1) + 2));
+    // A second pass reads every stage again, looking only for mistakes.
+    if (!res.offline) {
+      const check = document.createElement('p');
+      check.className = 'small ask__check';
+      check.textContent = 'Double-checking every stage for mistakes...';
+      askDone.appendChild(check);
+      void verifyConcept(res.deck).then((v) => {
+        if (!v) return void (check.textContent = 'The double-check could not run this time.');
+        const n = v.items.filter((it) => it.doubt).length;
+        check.textContent = n ? `Double-checked: ${n} ${n === 1 ? 'stage is' : 'stages are'} marked to verify on the walk.` : 'Double-checked: no mistakes found in any stage.';
+        if (concept.id === res.deck.id) showConcept(v);
+        if (chosen?.id === res.deck.id) choose(v);
+        try {
+          const mine = [v, ...readMine().filter((d) => d.title !== v.title)].slice(0, 4);
+          localStorage.setItem(MINE, JSON.stringify(mine));
+        } catch {
+          /* private browsing */
+        }
+      });
+    }
     askDone.querySelector('[data-room-mine]')?.addEventListener('click', () => enter());
+    askDone.querySelector('[data-share-mine]')?.addEventListener('click', async (ev) => {
+      const b = ev.currentTarget as HTMLButtonElement;
+      const url = `${location.origin}${location.pathname}#p=${await encodeDeck(chosen ?? res.deck)}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        b.textContent = 'Link copied';
+      } catch {
+        askStatus.textContent = url;
+      }
+    });
+    askDone.querySelector('[data-cards-mine]')?.addEventListener('click', () => {
+      // A CSV that flashcard apps (Anki and others) import: front, back.
+      const d = chosen ?? res.deck;
+      const q = (t: string) => `"${t.replace(/"/g, '""')}"`;
+      const rows = d.items.map((it) => [q(`${d.title}: ${it.cue}`), q([it.answer, it.why && `Why: ${it.why}`, it.check && `Myth: ${it.check.wrong} Fact: ${it.check.right}`].filter(Boolean).join('\n'))].join(','));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+      a.download = `loci-${d.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
   });
 
   /* ---------- the door: explain it back */
