@@ -4,6 +4,8 @@
  * room has changed, and keeps tiles in sync with the schedule.
  */
 import {
+  DepthOccludable,
+  OcclusionShadersMode,
   createSystem,
   DistanceGrabbable,
   MovementMode,
@@ -253,6 +255,8 @@ export class PalaceSystem extends createSystem({
       const tile = createTile(item);
       const entity = this.world.createTransformEntity(tile.root);
       entity.addComponent(MemoryTile, { memoryId: item.id, face: this.firstFace(item.id), due: true, arrive: 0.6 });
+      // A stage behind your real armchair is hidden by it, where the headset can sense depth.
+      entity.addComponent(DepthOccludable, { mode: OcclusionShadersMode.HardOcclusion });
       entity.addComponent(RayInteractable);
       entity.addComponent(DistanceGrabbable, {
         movementMode: MovementMode.MoveFromTarget,

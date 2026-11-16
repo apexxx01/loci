@@ -1,0 +1,10 @@
+PASS  XR session active  
+FAIL  typing turns the chips into finished questions  
+PASS  6 stages placed  6
+PASS  chain practice offered for a concept  
+PASS  chain mode on: thread dims  0.12
+PASS  a stage out of order is refused  Not the first stage. Where does it all begin?
+PASS  picking the stages in order relights every link  [1, 1, 1, 1, 1, 0]
+PASS  finishing ends practice and reports the run  Chain rebuilt in 282 seconds with 1 slip. Try it again to make it flawless.
+
+7/8 checks passed

@@ -37,6 +37,7 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 - **Your own material.** Besides topics, you can paste notes, a list, a speech, names or numbers. Numbers are turned into pictures on the device and never leave it.
 - **Ask from inside the headset.** The panel opens on *Ask about anything* with a keyboard on the panel; its chips turn into finished questions as you type, so most questions take a handful of pinches. On the website you can also type, paste, drop a text file or (where the browser supports it) ask out loud.
 - **Rebuild the chain.** A second way to practise a concept: the thread goes dark, stage numbers hide, and you pinch the stages in the order things happen; each right pick relights the thread into that stage.
+- **Real furniture hides what is behind it.** Where the headset can sense depth, stages are occluded by the real objects in front of them (requested as an optional feature, so headsets without depth still enter normally).
 - **It shows it found your furniture.** A ring of light traces each real surface a stage rests on, in step with the thread igniting, and each label says *on your couch*.
 - **A silent first lesson.** The first time, a small drawn hand pinches beside stage 1 and then beside the A and B answers. No text walls.
 - **A finish line.** When every stage has been checked, the whole chain lights up again and Loci says when it will come back.

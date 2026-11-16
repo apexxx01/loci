@@ -50,7 +50,7 @@ export class ChainSystem extends createSystem({}) {
       sys.renderTile(rec);
     });
     bus.emit({ type: 'chain', on: true });
-    setStatus(`Rebuild the chain: pinch the stage where ${palace.deck.title.toLowerCase().replace(/^how /, '').replace(/^why /, '')} begins.`);
+    setStatus(`Rebuild the chain: pinch the stage where "${palace.deck.title}" begins, then each one after it.`);
   }
 
   stop(silent = false): void {

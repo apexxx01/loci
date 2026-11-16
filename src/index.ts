@@ -1,4 +1,4 @@
-import { VisibilityState, World } from '@iwsdk/core';
+import { DepthSensingSystem, VisibilityState, World } from '@iwsdk/core';
 import projectOptions from 'virtual:iwsdk-project';
 import { deletePalace, listPalaces, reviewInLibrary, savePalace } from './core/palace.js';
 import { app, bus, getStorage } from './xr/app-state.js';
@@ -19,6 +19,7 @@ import { mountSite } from './site/site.js';
 World.create(document.getElementById('scene-container') as HTMLDivElement, projectOptions).then(
   (world) => {
     world
+      .registerSystem(DepthSensingSystem, { configData: { enableDepthTexture: true, enableOcclusion: true, useFloat32: true, blurRadius: 20 } })
       .registerSystem(RoomSystem)
       .registerSystem(PalaceSystem)
       .registerSystem(ThreadSystem)

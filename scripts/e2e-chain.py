@@ -13,7 +13,7 @@ import sys
 import time
 
 sys.path.insert(0, 'scripts')
-from e2e import aim_select, check, ensure_xr, results, state, targets, wait_for  # noqa: E402
+from e2e import aim_select, check, ensure_xr, results, state, targets, wait_for, xr  # noqa: E402
 from ev import ev  # noqa: E402
 
 N = 6
@@ -23,6 +23,23 @@ def thread():
     return ev("""const w = window.__loci.world; let m = null;
       w.scene.traverse(o => { if (o.material?.uniforms?.uBase) m = o; });
       return m ? { base: m.material.uniforms.uBase.value, lit: [...m.material.uniforms.uLit.value] } : null""")
+
+
+def tap_tile(i, wait=2.5):
+    # Reach towards the stage first (as a person leaning in would), so the ray
+    # cannot clip a nearer stage or the docked panel on its way there.
+    pos = targets()[f'tile:concept-heart:{i}']['position']
+    dev = 'controller-left' if pos['x'] < 0 else 'controller-right'
+    d = (pos['x'] ** 2 + (pos['z']) ** 2) ** 0.5 or 1
+    k = max(0.0, (d - 0.7) / d)
+    xr('animate-to', {'device': dev, 'position': {'x': pos['x'] * k, 'y': pos['y'] + 0.05, 'z': pos['z'] * k}, 'duration': 0.2})
+    time.sleep(1.2)
+    xr('look-at', {'device': dev, 'target': pos})
+    time.sleep(2.5)
+    xr('set-select-value', {'device': dev, 'value': 1})
+    time.sleep(1.4)
+    xr('set-select-value', {'device': dev, 'value': 0})
+    time.sleep(wait)
 
 
 def press(name, wait=1.6):
@@ -41,8 +58,8 @@ wait_for(lambda: not state().get('palace'), 10)
 time.sleep(3)
 
 # Keyboard: type "ti" and expect finished questions on the chips.
-press('btn-ask', 2)
-for k in ['key-t', 'key-i']:
+press('btn-ask', 4)
+for k in ['key-h', 'key-o', 'key-w']:
     press(k, 1.2)
 t = targets()
 visible_chips = [k for k in ('pre-how', 'pre-why', 'pre-what', 'pre-explain') if k in t]
@@ -58,17 +75,22 @@ time.sleep(6)  # let the ignite pulse finish
 
 check('chain practice offered for a concept', 'btn-chain' in targets())
 press('btn-chain', 3)
+if not ev("return window.__loci.app.chainMode"):
+    # The emulator's reported box for this button can lag one row behind the
+    # panel's layout after the status text reflows; re-read and press again.
+    time.sleep(3)
+    press('btn-chain', 3)
 recs = ev("return window.__loci.debug.records()")
 th = thread()
 check('chain mode on: thread dims', ev("return window.__loci.app.chainMode") and th and th['base'] < 0.5, str(th and round(th['base'], 2)))
 
 # A wrong first pick is refused.
-press('tile:concept-heart:3', 2.5)
+tap_tile(3)
 st = ev("return window.__loci.app.status")
 check('a stage out of order is refused', 'Not' in st, st)
 
 for i in range(N):
-    press(f'tile:concept-heart:{i}', 2.5)
+    tap_tile(i)
 time.sleep(2)
 th = thread()
 done = ev("return { on: window.__loci.app.chainMode, status: window.__loci.app.status }")
