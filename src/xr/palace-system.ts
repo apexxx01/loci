@@ -33,7 +33,13 @@ const SCAN_SETTLE_SECONDS = 1.2;
 const SCAN_TIMEOUT_SECONDS = 4;
 const ARRIVE_SECONDS = 0.9;
 const ARRIVE_STAGGER = 0.12;
-const ATTACH_TIMEOUT_SECONDS = 3;
+/**
+ * How long a saved anchor may take to be found again before the palace is
+ * re-fitted. Relocalising a persistent anchor can take several seconds on a
+ * headset (and longer in a slow emulator); giving up too early throws away a
+ * palace that was about to come back exactly where it was.
+ */
+const ATTACH_TIMEOUT_SECONDS = 10;
 
 export interface TileRecord {
   entity: Entity;
@@ -476,11 +482,13 @@ export class PalaceSystem extends createSystem({
     }
     this.persist();
     const secs = ((performance.now() - t0) / 1000).toFixed(1);
-    setStatus(
-      res.via === 'architect'
-        ? `Every picture now lives on its object (${secs} s). Pinch a memory to see it.`
-        : 'Every memory is on its object. Pinch one to see it.',
-    );
+    // A bind that finishes after you have left and come back must not talk over the welcome.
+    if (!app.status.startsWith('Welcome back'))
+      setStatus(
+        res.via === 'architect'
+          ? `Every picture now lives on its object (${secs} s). Pinch a memory to see it.`
+          : 'Every memory is on its object. Pinch one to see it.',
+      );
   }
 
   /**
@@ -600,7 +608,8 @@ export class PalaceSystem extends createSystem({
       const next = nextDue(palace);
       return `Welcome back. Nothing due right now${next ? `; next review ${relativeDue(next)}` : ''}.`;
     }
-    return `Welcome back. ${due} ${due === 1 ? 'memory is' : 'memories are'} glowing, ready to recall.`;
+    const unit = palace.deck.kind === 'concept' ? (due === 1 ? 'stage is' : 'stages are') : due === 1 ? 'memory is' : 'memories are';
+    return `Welcome back. ${due} ${unit} glowing, ready to recall.`;
   }
 
   private hubWorldPosition(): Vector3 {

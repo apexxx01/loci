@@ -200,6 +200,9 @@ export class HubSystem extends createSystem({}) {
         if (e.type === 'palace-changed' || e.type === 'start-deck' || e.type === 'new-palace' || e.type === 'chain') this.refresh();
         if (e.type === 'palace-changed' && app.palace && !this.docked) this.dock(true);
         if (e.type === 'new-palace') this.dock(false);
+        // Dock again once every stage stands where it will stay: restored
+        // stages only attach to their anchors after the first dock was chosen.
+        if (e.type === 'palace-ready' && app.palace) this.dock(true);
         if (e.type === 'new-palace' || e.type === 'start-deck') {
           // A fresh start opens on asking, with the ready-made list folded away.
           this.browsing = false;
@@ -369,9 +372,10 @@ export class HubSystem extends createSystem({}) {
     this.fwd.y = 0;
     if (this.fwd.lengthSq() < 1e-6) this.fwd.set(0, 0, -1);
     this.fwd.normalize();
-    const yaw = docked ? this.clearYaw() : 0;
+    const spot = docked ? this.clearSpot() : { yaw: 0, drop: HUB_DROP };
+    const yaw = spot.yaw;
     const dist = docked ? DOCK_DISTANCE : HUB_DISTANCE;
-    const drop = docked ? DOCK_DROP : HUB_DROP;
+    const drop = spot.drop;
     // Rotate forward on the floor plane; negative yaw swings it to the left.
     const c = Math.cos(yaw);
     const s = Math.sin(yaw);
@@ -385,26 +389,43 @@ export class HubSystem extends createSystem({}) {
   }
 
   /**
-   * Where to dock so the panel never hides a memory: try both sides at two
-   * angles and take the one with the fewest memories in that direction.
+   * Where to dock so the panel never hides a stage from your seat: try both
+   * sides at three angles and two heights, and take the spot whose angular
+   * rectangle (as seen from your eyes) covers the fewest stages. A stage only
+   * counts as hidden when it falls inside the panel both across and up-down,
+   * so a stage high on a wall above a low panel is not held against it.
    */
-  private clearYaw(): number {
+  private clearSpot(): { yaw: number; drop: number } {
     const recs = [...(this.world.getSystem(PalaceSystem)?.records.values() ?? [])];
-    if (!recs.length) return DOCK_YAW;
+    if (!recs.length) return { yaw: DOCK_YAW, drop: DOCK_DROP };
     const fwdYaw = Math.atan2(this.fwd.x, -this.fwd.z);
     const p = new Vector3();
-    const yaws = recs.map((r) => {
+    const dirs = recs.map((r) => {
       r.tile.root.getWorldPosition(p);
       let d = Math.atan2(p.x - this.tmp.x, -(p.z - this.tmp.z)) - fwdYaw;
       while (d > Math.PI) d -= Math.PI * 2;
       while (d < -Math.PI) d += Math.PI * 2;
-      // Negative is to the left, matching the dock rotation below.
-      return d;
+      const pitch = Math.atan2(p.y - this.tmp.y, Math.hypot(p.x - this.tmp.x, p.z - this.tmp.z));
+      // Negative yaw is to the left, matching the dock rotation below.
+      return { yaw: d, pitch };
     });
-    const options = [DOCK_YAW, (-60 * Math.PI) / 180, -DOCK_YAW, (60 * Math.PI) / 180, (-78 * Math.PI) / 180, (78 * Math.PI) / 180];
-    // The panel is about 0.5 m wide at 0.5 m away: it covers roughly 28 degrees either side of its centre.
-    const blocked = (y: number) => yaws.filter((t) => Math.abs(t - y) < (28 * Math.PI) / 180).length;
-    return options.reduce((best, y) => (blocked(y) < blocked(best) ? y : best), options[0]);
+    // The panel is about half a metre square; a little margin keeps labels clear of its edge.
+    const half = Math.atan2(0.27, DOCK_DISTANCE);
+    const yaws = [DOCK_YAW, -DOCK_YAW, (-60 * Math.PI) / 180, (60 * Math.PI) / 180, (-78 * Math.PI) / 180, (78 * Math.PI) / 180];
+    const drops = [DOCK_DROP, DOCK_DROP + 0.14];
+    let best = { yaw: DOCK_YAW, drop: DOCK_DROP };
+    let bestHidden = Infinity;
+    for (const drop of drops) {
+      for (const yaw of yaws) {
+        const pitch = Math.atan2(-drop, DOCK_DISTANCE);
+        const hidden = dirs.filter((d) => Math.abs(d.yaw - yaw) < half && Math.abs(d.pitch - pitch) < half).length;
+        if (hidden < bestHidden) {
+          bestHidden = hidden;
+          best = { yaw, drop };
+        }
+      }
+    }
+    return best;
   }
 
   /** On session start: centred to choose a deck, docked if a palace exists. */
@@ -445,8 +466,19 @@ export class HubSystem extends createSystem({}) {
     this.setText('palace-title', palace.deck.title.toUpperCase());
     this.setDisplay('stats-row', palace.history.length > 0);
     this.setText('stat-due', String(dueIds(palace, now).length));
-    this.setText('stat-mastery', `${Math.round(mastery(palace) * 100)}%`);
-    this.setText('stat-streak', String(streak(palace.history, now)));
+    // Early on, mastery and a streak are both zero, which reads as failure on a
+    // welcome-back screen. Show what is true and encouraging instead: how much
+    // has been studied, and how long you have been away.
+    const m = mastery(palace);
+    const total = palace.deck.items.length;
+    const studied = new Set(palace.history.map((h) => h.memoryId)).size;
+    this.setText('stat-mastery', m > 0 ? `${Math.round(m * 100)}%` : `${studied}/${total}`);
+    this.setText('stat-mastery-cap', m > 0 ? 'mastered' : 'studied');
+    const run = streak(palace.history, now);
+    const last = palace.history.length ? new Date(palace.history[palace.history.length - 1].at) : now;
+    const away = Math.floor((now.getTime() - last.getTime()) / 86_400_000);
+    this.setText('stat-streak', String(run > 0 ? run : away));
+    this.setText('stat-streak-cap', run > 0 ? 'day streak' : away === 1 ? 'day away' : 'days away');
     const store = getStorage();
     const count = store ? listPalaces(store).length : 1;
     this.setDisplay('btn-switch', count > 1);

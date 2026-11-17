@@ -128,11 +128,11 @@
       </div>
       <div class="stat">
         <div id="stat-mastery" class="stat-num">0%</div>
-        <div class="stat-cap">mastered</div>
+        <div id="stat-mastery-cap" class="stat-cap">mastered</div>
       </div>
       <div class="stat">
         <div id="stat-streak" class="stat-num">0</div>
-        <div class="stat-cap">day streak</div>
+        <div id="stat-streak-cap" class="stat-cap">day streak</div>
       </div>
     </div>
     <div id="palace-howto" class="hint">Pinch a memory to turn it over.</div>

@@ -1,14 +1,16 @@
-ranAt: 2026-11-17 14:14 IST
+ranAt: 2026-11-17 17:18 IST
 command: python3 scripts/e2e-return.py
-commit: bf2ba8e
+commit: 9dcd5ae plus the hub and welcome-back changes committed with this file
 
 PASS  heart palace built  
-PASS  right after studying, nothing is due  due 0; next dates [['0', '2026-11-20T08:47:34.331Z'], ['1', '2026-11-19T08:47:34.336Z'], ['2', '2026-11-19T08:47:34.343Z'], ['3', '2026-11-19T08:47:34.344Z'], ['4', '2026-11-19T08:47:34.350Z'], ['5', '2026-11-19T08:47:34.351Z']]
-   after moving the dates back 4 days, 6 of 6 stages are due by FSRS's own schedule
+PASS  right after studying, nothing is due  due 0; next dates [['0', '2026-11-17T12:02:10.990Z'], ['1', '2026-11-17T12:02:10.994Z'], ['2', '2026-11-17T12:02:10.996Z'], ['3', '2026-11-17T12:02:10.999Z'], ['4', '2026-11-17T12:02:11.001Z'], ['5', '2026-11-17T12:02:11.002Z']]
+   after moving the dates back 1 days, 6 of 6 stages are due by FSRS's own schedule
 PASS  coming back, every stage is where you left it  max drift 0.0000 m
-PASS  stages scheduled inside the gap are due again  due 6 of 6
-PASS  the panel greets you with what is waiting  Welcome back. 6 memories are glowing, ready to recall.
+PASS  the stages FSRS scheduled inside that time are due again  due 6 of 6
+PASS  the panel greets you with what is waiting  Welcome back. 6 stages are glowing, ready to recall.
 PASS  due stages are drawn awake and the rest still rest  1:awake, 2:awake, 3:awake, 4:awake, 5:awake, 6:awake
 PASS  the guide leads to the first stage waiting  guide -> stage 1, first due stage 1
+PASS  the docked panel hides none of the stages from your seat  panel -38 deg across, -40 deg down, 40 x 46 deg; behind it: none
+   panel stats: ['6', '6/6', 'studied', '1', 'day streak']
 
-7/7 checks passed in 393 s
+8/8 checks passed in 500 s
