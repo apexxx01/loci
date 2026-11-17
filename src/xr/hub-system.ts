@@ -202,7 +202,8 @@ export class HubSystem extends createSystem({}) {
         if (e.type === 'new-palace') this.dock(false);
         // Dock again once every stage stands where it will stay: restored
         // stages only attach to their anchors after the first dock was chosen.
-        if (e.type === 'palace-ready' && app.palace) this.dock(true);
+        // Only move if that hides fewer stages: a panel that shifts as you reach for it is worse.
+        if (e.type === 'palace-ready' && app.palace && this.docked) this.redockIfBetter();
         if (e.type === 'new-palace' || e.type === 'start-deck') {
           // A fresh start opens on asking, with the ready-made list folded away.
           this.browsing = false;
@@ -373,6 +374,7 @@ export class HubSystem extends createSystem({}) {
     if (this.fwd.lengthSq() < 1e-6) this.fwd.set(0, 0, -1);
     this.fwd.normalize();
     const spot = docked ? this.clearSpot() : { yaw: 0, drop: HUB_DROP };
+    if (docked) this.spot = spot;
     const yaw = spot.yaw;
     const dist = docked ? DOCK_DISTANCE : HUB_DISTANCE;
     const drop = spot.drop;
@@ -395,30 +397,51 @@ export class HubSystem extends createSystem({}) {
    * counts as hidden when it falls inside the panel both across and up-down,
    * so a stage high on a wall above a low panel is not held against it.
    */
-  private clearSpot(): { yaw: number; drop: number } {
+  /** The spot the panel was last docked at, and how many stages it hid then. */
+  private spot: { yaw: number; drop: number } = { yaw: DOCK_YAW, drop: DOCK_DROP };
+
+  private redockIfBetter(): void {
+    const cam = this.world.camera;
+    cam.getWorldPosition(this.tmp);
+    cam.getWorldDirection(this.fwd);
+    this.fwd.y = 0;
+    if (this.fwd.lengthSq() < 1e-6) this.fwd.set(0, 0, -1);
+    this.fwd.normalize();
+    const now = this.hiddenAt(this.spot);
+    const best = this.clearSpot();
+    if (this.hiddenAt(best) < now) this.dock(true);
+  }
+
+  private hiddenAt(spot: { yaw: number; drop: number }): number {
+    const half = Math.atan2(0.27, DOCK_DISTANCE);
+    const pitch = Math.atan2(-spot.drop, DOCK_DISTANCE);
+    return this.stageDirs().filter((d) => Math.abs(d.yaw - spot.yaw) < half && Math.abs(d.pitch - pitch) < half).length;
+  }
+
+  private stageDirs(): { yaw: number; pitch: number }[] {
     const recs = [...(this.world.getSystem(PalaceSystem)?.records.values() ?? [])];
-    if (!recs.length) return { yaw: DOCK_YAW, drop: DOCK_DROP };
     const fwdYaw = Math.atan2(this.fwd.x, -this.fwd.z);
     const p = new Vector3();
-    const dirs = recs.map((r) => {
+    return recs.map((r) => {
       r.tile.root.getWorldPosition(p);
       let d = Math.atan2(p.x - this.tmp.x, -(p.z - this.tmp.z)) - fwdYaw;
       while (d > Math.PI) d -= Math.PI * 2;
       while (d < -Math.PI) d += Math.PI * 2;
-      const pitch = Math.atan2(p.y - this.tmp.y, Math.hypot(p.x - this.tmp.x, p.z - this.tmp.z));
       // Negative yaw is to the left, matching the dock rotation below.
-      return { yaw: d, pitch };
+      return { yaw: d, pitch: Math.atan2(p.y - this.tmp.y, Math.hypot(p.x - this.tmp.x, p.z - this.tmp.z)) };
     });
-    // The panel is about half a metre square; a little margin keeps labels clear of its edge.
-    const half = Math.atan2(0.27, DOCK_DISTANCE);
+  }
+
+  private clearSpot(): { yaw: number; drop: number } {
+    const dirs = this.stageDirs();
+    if (!dirs.length) return { yaw: DOCK_YAW, drop: DOCK_DROP };
     const yaws = [DOCK_YAW, -DOCK_YAW, (-60 * Math.PI) / 180, (60 * Math.PI) / 180, (-78 * Math.PI) / 180, (78 * Math.PI) / 180];
     const drops = [DOCK_DROP, DOCK_DROP + 0.14];
     let best = { yaw: DOCK_YAW, drop: DOCK_DROP };
     let bestHidden = Infinity;
     for (const drop of drops) {
       for (const yaw of yaws) {
-        const pitch = Math.atan2(-drop, DOCK_DISTANCE);
-        const hidden = dirs.filter((d) => Math.abs(d.yaw - yaw) < half && Math.abs(d.pitch - pitch) < half).length;
+        const hidden = this.hiddenAt({ yaw, drop });
         if (hidden < bestHidden) {
           bestHidden = hidden;
           best = { yaw, drop };
