@@ -3,7 +3,8 @@ End-to-end check of Look to select: the whole loop with no hands at all.
 
 With Look to select on, the headset only turns (no controller, no hand, no
 pinch): look at a hub button to open the ready-made walks, look at a concept
-to build its palace, look at a stage to open it, look at Rebuild the chain and
+to build its palace, look at a stage to open its myth check, look at the true statement to answer it,
+look at Rebuild the chain and
 then at each stage in order to finish the chain. On Quest 3 the head aims; on
 Meta VR Glasses the eyes do (same code path, see src/xr/access-system.ts).
 
@@ -74,6 +75,11 @@ built = wait_for(lambda: ev('return window.__loci.app.palace?.placements.length 
 check('the palace builds from that look', built)
 look_away()
 
+# Setup: study every stage once (a real scheduler review), so a look opens
+# each stage's myth check rather than its first-time card.
+ev(f"""const R = [...window.__loci.world.systems].find(s => s.constructor.name === 'RecallSystem');
+  for (const r of {PAL}.records.values()) R.rate(r, 'good'); return 1""")
+time.sleep(4)
 pos0 = ev(f"""const r = [...{PAL}.records.values()].find(r => r.item.order === 0);
   const p = r.tile.card.getWorldPosition(r.tile.root.position.clone()); return {{ x: p.x, y: p.y, z: p.z }}""")
 look(pos0)
@@ -81,7 +87,17 @@ FACE0 = "return window.__loci.debug.records().find(r => r.id.endsWith(':0'))?.fa
 face0 = wait_for(lambda: ev(FACE0) in (1, 4), 30, 1.5) and ev(FACE0)
 # A new stage opens to its card (face 1, Hint); one you have studied opens to
 # its myth check (face 4, Check). Either way, looking opened it.
-check('looking at a stage opens it', face0 in (1, 4), f'face {face0}')
+check('looking at a stage opens its myth check', face0 == 4, f'face {face0}')
+# Answer it by looking at the true statement's button.
+right = ev(f"""const C = [...window.__loci.world.systems].find(s => s.constructor.name === 'CheckSystem');
+  const rec = C.active; if (!rec) return null; const b = C.buttons[rec.wrongFirst ? 1 : 0].mesh;
+  const p = b.getWorldPosition(b.position.clone()); return {{ x: p.x, y: p.y, z: p.z }}""")
+look_away()
+if right:
+    look(right)
+LAST0 = "return window.__loci.debug.records().find(r => r.id.endsWith(':0'))?.lastCheck ?? null"
+ans = wait_for(lambda: ev(LAST0) == 'right', 30, 1.5)
+check('looking at the true statement answers the myth check', bool(ans), f'lastCheck {ev(LAST0)}')
 look_away()
 
 p = hub_pos('btn-chain')
