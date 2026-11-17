@@ -130,7 +130,7 @@ export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
   {
     n: String(R.e2eRuns.lookOnly.passed),
     unit: `/${R.e2eRuns.lookOnly.checks}`,
-    text: 'look-only checks passing in the emulator: the panel, a concept, a stage, its myth check and the whole chain, with no hands at all',
+    text: 'look-only checks passing in the emulator: asking a question, a concept, a stage, its myth check and the whole chain, with no hands at all',
   },
   {
     n: String(R.e2eRuns.dayAfter.passed),

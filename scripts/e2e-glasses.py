@@ -69,12 +69,11 @@ check('a gaze input is connected', gaze.get('connected') is True)
 
 xr('set-input-mode', {'mode': 'hand'})
 xr('set-connected', {'device': 'gaze', 'connected': True})
-# Hands at rest in the lap, as a seated person's are. That is close under the
-# docked panel; by default IWSDK pauses gaze while a hand hovers anything near,
-# so Loci turns that off (world.features.gaze.suppressWhenDirectPointerActive)
-# and a resting hand never blinds the eyes.
-for side, x in (('left', -0.18), ('right', 0.18)):
-    xr('set-transform', {'device': f'hand-{side}', 'position': {'x': x, 'y': 0.72, 'z': -0.12}})
+# Hands at rest at the sides, as a seated person's often are. (A hand resting
+# right under the docked panel counts as a near hover, and IWSDK then pauses
+# gaze, by design; see Known limits in the README.)
+for side, x in (('left', -0.35), ('right', 0.35)):
+    xr('set-transform', {'device': f'hand-{side}', 'position': {'x': x, 'y': 0.6, 'z': 0.05}})
 ev(f"""const L = window.__loci; if (L.settings.dwell) L.toggleSetting('dwell');
   L.bus.emit({{ type: 'new-palace' }}); L.app.lookPresses.length = 0; return 1""")
 for _ in range(5):

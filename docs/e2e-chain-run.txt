@@ -1,6 +1,6 @@
-ranAt: 2026-11-17 14:40 IST
+ranAt: 2026-11-17 20:09 IST
 command: python3 scripts/e2e-chain.py
-commit: ee8ef12
+commit: ce22a38 with world.features.gaze removed from iwsdk.config.json (committed with this file)
 
 PASS  XR session active  
    keyboard open after Ask: True
@@ -13,6 +13,6 @@ PASS  chain practice offered for a concept
 PASS  chain mode on: thread dims  0.12
 PASS  a stage out of order is refused  Not the first stage. Where does it all begin?
 PASS  picking the stages in order relights every link  [1, 1, 1, 1, 1, 0]
-PASS  finishing ends practice and reports the run  Chain rebuilt in 306 seconds with 1 slip. Try it again to make it flawless.
+PASS  finishing ends practice and reports the run  Chain rebuilt in 325 seconds with 1 slip. Try it again to make it flawless.
 
 8/8 checks passed
