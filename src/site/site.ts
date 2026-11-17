@@ -18,6 +18,7 @@ import { deckFromNumber } from '../core/numbers.js';
 import { dueIds, mastery, nextDue, streak } from '../core/scheduler.js';
 import { DeckSchema, PalaceSchema } from '../core/schema.js';
 import { decodeDeck, encodeDeck } from '../core/share.js';
+import { buildReminders, reviewTimes } from '../core/reminders.js';
 import type { Deck, Palace, ReviewEvent } from '../core/types.js';
 import { buildDeck, gradeExplanation, teachConcept, verifyConcept } from '../net/architect-client.js';
 import { LOCI_METHOD } from '../core/concepts.js';
@@ -702,7 +703,8 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       <div class="ask__go"><button class="b" type="button" data-walk-now>Walk through it</button>
       <button class="b b--line" type="button" data-room-mine>Put it in my room</button>
       <button class="linkish" type="button" data-share-mine>Copy a link</button>
-      <button class="linkish" type="button" data-cards-mine>Download as flashcards</button></div>
+      <button class="linkish" type="button" data-cards-mine>Download as flashcards</button>
+      <button class="linkish" type="button" data-remind-mine>Remind me to walk it again</button></div>
       <p class="small">${res.offline ? 'Checked by hand before it shipped.' : 'Written by the Palace Architect. It can be wrong, so check anything important against your own source.'}</p>`;
     askDone.querySelector('[data-walk-now]')?.addEventListener('click', () => scrollTo(stationY(1) + 2));
     // A second pass reads every stage again, looking only for mistakes.
@@ -736,6 +738,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
         askStatus.textContent = url;
       }
     });
+    askDone.querySelector('[data-remind-mine]')?.addEventListener('click', (ev) => void remindMe(chosen ?? res.deck, ev.currentTarget as HTMLButtonElement));
     askDone.querySelector('[data-cards-mine]')?.addEventListener('click', () => {
       // A CSV that flashcard apps (Anki and others) import: front, back.
       const d = chosen ?? res.deck;
@@ -748,6 +751,22 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       URL.revokeObjectURL(a.href);
     });
   });
+
+  /**
+   * Coming back: a calendar file with the next three walks (1, 3 and 7 days
+   * out), each linking straight back to this palace. No account, no server.
+   */
+  async function remindMe(d: Deck, b: HTMLButtonElement) {
+    const url = `${location.origin}${location.pathname}#p=${await encodeDeck(d)}`;
+    const ics = buildReminders({ title: d.title, url, stages: d.items.length });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+    a.download = `loci-${d.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-walks.ics`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    const first = reviewTimes(new Date())[0];
+    b.textContent = `Added: next walk ${first.toLocaleDateString(undefined, { weekday: 'long' })} at ${first.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  }
 
   /* ---------- the door: explain it back */
   const explain = $<HTMLFormElement>('[data-explain]');
@@ -784,7 +803,10 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       ${g.misconception ? `<p class="result__myth">Watch out: ${esc(g.misconception)}</p>` : ''}
       ${g.feedback ? `<p>${esc(g.feedback)}</p>` : ''}
       <div class="result__go"><button class="b" type="button" data-room-now>Put it in my room</button>
-      <button class="b b--line" type="button" data-to-build>Try your own topic</button></div>`;
+      <button class="b b--line" type="button" data-remind-now>Remind me to come back</button>
+      <button class="linkish" type="button" data-to-build>Try your own topic</button></div>
+      <p class="small">Recall fades fastest in the first day. Three short walks, tomorrow, in three days and in a week, are what make it stay.</p>`;
+    result.querySelector('[data-remind-now]')?.addEventListener('click', (ev) => void remindMe(concept, ev.currentTarget as HTMLButtonElement));
     chime(g.hit.length >= Math.ceil(n * 0.7) ? 'good' : 'soft');
     result.querySelector('[data-room-now]')?.addEventListener('click', () => {
       choose(concept);
