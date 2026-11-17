@@ -108,6 +108,21 @@ if (MATRIX.length) {
   };
 }
 
+/* ---------- committed e2e runs (docs/*-run.txt) ---------- */
+function runFile(file, command) {
+  const f = at(file);
+  if (!existsSync(f)) return undefined;
+  const log = readFileSync(f, 'utf8');
+  const m = log.match(/(\d+)\/(\d+) checks passed/);
+  const when = log.match(/ranAt: ([^\n]+)/);
+  return m ? { passed: Number(m[1]), checks: Number(m[2]), ranAt: when ? when[1].trim() : null, command, doc: file } : undefined;
+}
+const e2eRuns = {
+  chain: runFile('docs/e2e-chain-run.txt', 'python3 scripts/e2e-chain.py'),
+  lookOnly: runFile('docs/e2e-look-run.txt', 'python3 scripts/e2e-look.py'),
+  glasses: runFile('docs/e2e-glasses-run.txt', 'python3 scripts/e2e-glasses.py (emulator device metaVRGlasses)'),
+};
+
 const receipts = {
   generatedAt: new Date().toISOString(),
   command: 'node scripts/receipts.mjs',
@@ -119,6 +134,7 @@ const receipts = {
   ...(e2eConcept ? { e2eConcept } : {}),
   ...(architect ? { architect } : {}),
   ...(roomMatrix ? { roomMatrix } : {}),
+  e2eRuns,
 };
 // Keep sections this script does not compute (room matrix, perf), written by
 // scripts/matrix.py and scripts/perf.py, so a refresh never drops them.

@@ -63,7 +63,7 @@ export const HEADSET: Feature[] = [
   },
   {
     title: 'Comfort and access', group: 'For every body', at: [29, 79],
-    text: 'Look to select lets you flip and rate just by looking. There is high contrast, larger tiles, calm motion, read-aloud and a sound switch, all on the panel in your room.',
+    text: 'Look to select runs the whole loop by looking alone: the panel, a concept, every stage, even rebuilding the chain. On Meta VR Glasses your eyes aim and a pinch from either hand selects. There is high contrast, larger tiles, calm motion, read-aloud and a sound switch, all on the panel in your room.',
   },
   {
     title: 'A library of palaces', group: 'Keeping', at: [14, 66],
@@ -127,11 +127,21 @@ export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
     unit: `/${R.architect.topics}`,
     text: `topics taught by the live Palace Architect in our test run, median ${secs(R.architect.medianWallMs)} each, with ${R.architect.mythChecks} of ${R.architect.stages} stages keeping a myth check`,
   },
+  {
+    n: String(R.e2eRuns.lookOnly.passed),
+    unit: `/${R.e2eRuns.lookOnly.checks}`,
+    text: 'look-only checks passing in the emulator: the panel, a concept, a stage and the whole chain, with no hands at all',
+  },
+  {
+    n: String(R.e2eRuns.glasses.passed),
+    unit: `/${R.e2eRuns.glasses.checks}`,
+    text: 'checks passing on the emulator’s Meta VR Glasses profile: gaze plus a pinch from either hand, and the panel fits the glasses’ narrower view',
+  },
   { n: '0', text: 'accounts. Palaces and progress stay in your browser, and share links carry the palace inside the link itself' },
 ];
 
 export const ROADMAP: { when: 'Now' | 'Next' | 'Later'; items: string[] }[] = [
-  { when: 'Now', items: ['Palaces in your own room, anchored and restored', 'The Palace Architect, with six ways in', 'Recall from any screen on the same schedule', 'Comfort and access on the panel'] },
+  { when: 'Now', items: ['Palaces in your own room, anchored and restored', 'The Palace Architect, with six ways in', 'Recall from any screen on the same schedule', 'Comfort and access on the panel', 'Gaze and pinch on Meta VR Glasses', 'Calendar reminders for your next three walks'] },
   { when: 'Next', items: ['Snap a textbook page and get a palace', 'Speak your notes instead of typing them', 'Class sets: one link from a teacher, built in every student’s own room'] },
-  { when: 'Later', items: ['Palaces that walk through every room of your home', 'Sync between your devices', 'Gaze and pinch on lighter glasses, for recall on the move', 'Each memory humming softly from where it rests'] },
+  { when: 'Later', items: ['Palaces that walk through every room of your home', 'Sync between your devices', 'Each memory humming softly from where it rests'] },
 ];

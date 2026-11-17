@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-16T14:47:35.402Z",
+  "generatedAt": "2026-11-17T07:33:55.927Z",
   "command": "node scripts/receipts.mjs",
-  "tests": 102,
-  "testsTotal": 102,
+  "tests": 106,
+  "testsTotal": 106,
   "testsFailed": 0,
-  "testFiles": 10,
+  "testFiles": 11,
   "placementProperty": {
     "rooms": 1000,
     "seed": 4289,
@@ -170,6 +170,29 @@
         "beforeMeanMs": 0.41,
         "beforeP95Ms": 1
       }
+    }
+  },
+  "e2eRuns": {
+    "chain": {
+      "passed": 8,
+      "checks": 8,
+      "ranAt": "2026-11-16 19:34 IST",
+      "command": "python3 scripts/e2e-chain.py",
+      "doc": "docs/e2e-chain-run.txt"
+    },
+    "lookOnly": {
+      "passed": 8,
+      "checks": 8,
+      "ranAt": "2026-11-17 12:02 IST",
+      "command": "python3 scripts/e2e-look.py",
+      "doc": "docs/e2e-look-run.txt"
+    },
+    "glasses": {
+      "passed": 9,
+      "checks": 9,
+      "ranAt": "2026-11-17 12:55 IST",
+      "command": "python3 scripts/e2e-glasses.py (emulator device metaVRGlasses)",
+      "doc": "docs/e2e-glasses-run.txt"
     }
   }
 }
