@@ -176,7 +176,8 @@ export class AccessSystem extends createSystem({ tiles: { required: [MemoryTile]
         this.recall.flip(t.rec);
         // Keep looking to go on from the picture to the answer; once the
         // answer shows, the gaze must move to a rating button.
-        if (t.rec.entity.getValue(MemoryTile, 'face') === TileFace.Hint) this.pause = 0.7;
+        // A concept card stays open while you read it: look away, then back, to close.
+        if (t.rec.entity.getValue(MemoryTile, 'face') === TileFace.Hint && app.palace?.deck.kind !== 'concept') this.pause = 0.7;
         else this.cooldownObj = t.obj;
       } else {
         this.cooldownObj = t.obj;

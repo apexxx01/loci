@@ -436,7 +436,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     ctx.textAlign = 'center';
     ctx.fillStyle = 'rgba(240,235,255,0.5)';
     ctx.font = `500 22px ${UI_FONT}`;
-    ctx.fillText(style.dwell ? 'look away to close' : 'pinch to close', cx, h - 40);
+    ctx.fillText(style.dwell ? 'look away, then back, to close' : 'pinch to close', cx, h - 40);
     return;
   }
 

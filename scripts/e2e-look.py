@@ -78,9 +78,10 @@ pos0 = ev(f"""const r = [...{PAL}.records.values()].find(r => r.item.order === 0
   const p = r.tile.card.getWorldPosition(r.tile.root.position.clone()); return {{ x: p.x, y: p.y, z: p.z }}""")
 look(pos0)
 FACE0 = "return window.__loci.debug.records().find(r => r.id.endsWith(':0'))?.face ?? null"
-face0 = wait_for(lambda: ev(FACE0) == 1, 30, 1.5) and ev(FACE0)
-# 0 Cue, 1 Hint (opened card). A first-time concept stage starts on Learn and opens to Hint.
-check('looking at a stage opens its card', face0 == 1, f'face {face0}')
+face0 = wait_for(lambda: ev(FACE0) in (1, 4), 30, 1.5) and ev(FACE0)
+# A new stage opens to its card (face 1, Hint); one you have studied opens to
+# its myth check (face 4, Check). Either way, looking opened it.
+check('looking at a stage opens it', face0 in (1, 4), f'face {face0}')
 look_away()
 
 p = hub_pos('btn-chain')
