@@ -9,6 +9,7 @@
  * Serverless function (Vercel). Keeps the Gemini key off the client, enforces
  * size limits and a per-instance rate limit, and never returns unvetted text.
  */
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import {
   ARCHITECT_RESPONSE_SCHEMA,
   BIND_RESPONSE_SCHEMA,
@@ -43,9 +44,23 @@ const MODEL = process.env.GEMINI_PRIMARY || 'gemini-3.5-flash-lite';
  * not break the experience. Each hop gets its own short timeout so the whole
  * chain fits inside the function's 30 s budget.
  */
-const MODELS = [MODEL, process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.6-flash').split(',')]
+const GEMINI_MODELS = [MODEL, process.env.GEMINI_MODEL || 'gemini-3.8-flash', ...(process.env.GEMINI_FALLBACKS ?? 'gemini-3.6-flash').split(',')]
   .map((m) => m.trim())
   .filter((m, i, a) => m && a.indexOf(m) === i);
+/**
+ * Amazon Bedrock backs Gemini up: if every Gemini model is slow, overloaded,
+ * over its budget or unconfigured, Amazon Nova answers instead. It joins the
+ * chain only when AWS credentials are set. BEDROCK_FIRST=1 puts it in front.
+ * Amazon's own Nova models, not third-party ones, so AWS credits pay for it.
+ */
+const BEDROCK_MODEL = process.env.BEDROCK_MODEL || 'us.amazon.nova-2-lite-v1:0';
+const BEDROCK_READY = Boolean(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY);
+const BEDROCK_ID = `bedrock:${BEDROCK_MODEL}`;
+const MODELS = BEDROCK_READY
+  ? process.env.BEDROCK_FIRST === '1'
+    ? [BEDROCK_ID, ...GEMINI_MODELS]
+    : [...GEMINI_MODELS, BEDROCK_ID]
+  : GEMINI_MODELS;
 const ENDPOINT = (model: string) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 const TIMEOUT_MS = 20_000;
@@ -139,6 +154,7 @@ async function callModel(
   timeoutMs: number,
   outer: AbortSignal,
 ): Promise<unknown> {
+  if (model.startsWith('bedrock:')) return callBedrock(model.slice('bedrock:'.length), prompt, schema, timeoutMs, outer);
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Object.assign(new Error('GEMINI_API_KEY is not set on the server'), { status: 503 });
   const ctrl = new AbortController();
@@ -166,6 +182,53 @@ async function callModel(
     };
     const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
     return schema ? JSON.parse(text) : text;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+let bedrockClient: BedrockRuntimeClient | null = null;
+
+/**
+ * One call to Amazon Bedrock's Converse API. For JSON, the schema is given as
+ * the only tool and the model is made to call it, so its input is the answer
+ * (Bedrock's documented way to get schema-shaped output from Nova).
+ */
+async function callBedrock(
+  modelId: string,
+  prompt: string,
+  schema: object | null,
+  timeoutMs: number,
+  outer: AbortSignal,
+): Promise<unknown> {
+  bedrockClient ??= new BedrockRuntimeClient({ region: process.env.AWS_REGION || 'us-east-1' });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  outer.addEventListener('abort', () => ctrl.abort(), { once: true });
+  try {
+    const out = await bedrockClient.send(
+      new ConverseCommand({
+        modelId,
+        messages: [{ role: 'user', content: [{ text: prompt }] }],
+        inferenceConfig: { maxTokens: 4000, temperature: 0.6 },
+        ...(schema
+          ? {
+              toolConfig: {
+                tools: [{ toolSpec: { name: 'answer', description: 'Return the answer in exactly this shape.', inputSchema: { json: schema as never } } }],
+                toolChoice: { tool: { name: 'answer' } },
+              },
+            }
+          : {}),
+      }),
+      { abortSignal: ctrl.signal },
+    );
+    const content = out.output?.message?.content ?? [];
+    if (schema) {
+      const use = content.find((c) => c.toolUse)?.toolUse;
+      if (!use?.input) throw new Error(`Bedrock gave no structured answer (stop: ${out.stopReason})`);
+      return use.input;
+    }
+    return content.map((c) => c.text ?? '').join('');
   } finally {
     clearTimeout(timer);
   }
@@ -276,12 +339,22 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const base = { ok: true, model: MODEL, fallbacks: MODELS.slice(1), thinking: THINKING_LEVEL, configured: Boolean(process.env.GEMINI_API_KEY) };
+  const base = { ok: true, model: MODELS[0], fallbacks: MODELS.slice(1), thinking: THINKING_LEVEL, configured: Boolean(process.env.GEMINI_API_KEY), bedrock: BEDROCK_READY ? BEDROCK_MODEL : null };
   if (!new URL(request.url).searchParams.has('probe')) return json(200, base);
   // Health probe: one tiny call, reports latency or the exact upstream error.
   const ip = (request.headers.get('x-forwarded-for') ?? 'local').split(',')[0].trim();
   if (rateLimited(ip)) return json(429, { error: 'Too many requests.' });
   const t0 = Date.now();
+  // ?probe=bedrock checks the AWS backup on its own, with a schema-shaped answer.
+  if (new URL(request.url).searchParams.get('probe') === 'bedrock') {
+    if (!BEDROCK_READY) return json(200, { ...base, probe: 'failed', error: 'AWS credentials are not set on the server' });
+    try {
+      const out = await callBedrock(BEDROCK_MODEL, 'Return the word OK in the field "reply".', { type: 'object', properties: { reply: { type: 'string' } }, required: ['reply'] }, 15_000, new AbortController().signal);
+      return json(200, { ...base, probe: 'ok', served_by: BEDROCK_ID, reply: out, ms: Date.now() - t0 });
+    } catch (e) {
+      return json(200, { ...base, probe: 'failed', error: (e as Error).message.slice(0, 300), ms: Date.now() - t0 });
+    }
+  }
   try {
     const text = await gemini('Reply with the single word OK.', null, 8_000);
     return json(200, { ...base, probe: 'ok', served_by: lastModel, reply: String(text).slice(0, 40), ms: Date.now() - t0 });
