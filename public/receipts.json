@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T15:04:59.517Z",
+  "generatedAt": "2026-11-17T16:55:39.431Z",
   "command": "node scripts/receipts.mjs",
   "tests": 106,
   "testsTotal": 106,
@@ -208,5 +208,16 @@
       "command": "python3 scripts/e2e-first.py",
       "doc": "docs/e2e-first-run.txt"
     }
+  },
+  "architectBackup": {
+    "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+    "passed": 20,
+    "topics": 20,
+    "medianMs": 3892,
+    "medianWallMs": 3959,
+    "mythChecks": 97,
+    "stages": 106,
+    "ranAt": "2026-11-17T16:43:30.981Z",
+    "command": "node scripts/eval-architect.mjs --bedrock"
   }
 }

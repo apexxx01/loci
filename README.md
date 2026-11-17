@@ -61,7 +61,7 @@ flowchart LR
     ECS --> FS["FSRS scheduler<br/>src/core/scheduler.ts"]
   end
   subgraph Vercel["Vercel serverless: /api/architect"]
-    AR["Palace Architect<br/>teach, build, grade,<br/>bind, reimagine"] --> GM["Gemini, hedged:<br/>fast model first, a larger one<br/>starts after 2.5 s without an answer"]
+    AR["Palace Architect<br/>teach, build, grade,<br/>bind, reimagine"] --> GM["Gemini, hedged:<br/>fast model first, a larger one<br/>starts after 2.5 s without an answer;<br/>Amazon Nova on Bedrock if all fail"]
     GM --> VET["Rule-based vetting<br/>schema, safety filter,<br/>myth checks dropped if unsafe"]
   end
   ECS -- "Teach me / reimagine" --> AR
@@ -133,8 +133,11 @@ Every number here comes from a command that can be re-run. Generated 17 Nov 2026
 | Room matrix in the emulator | **8 of 8 synthetic rooms pass all 15 checks on the first try** (bedroom, conference room, home office, kitchen, music studio, open office, open studio, sunlit living room), in one full pass with no re-runs. 47 of 48 stages landed on the room's furniture and walls, 1 on the seated arc; restore drift under 0.1 mm in every room. With no scene data at all, all 6 stages fell back to the seated arc and 15 of 15 checks passed. 16 Nov 2026, 15:50 to 18:07 IST. [docs/test-matrix.md](docs/test-matrix.md) | `python3 scripts/matrix.py --tag=pass1` with the dev server up |
 | Frame cost in the emulator | Concept palace on screen (6 stages, threads, 4 trace rings, hub open), 300 frames: world update + render **4.6 ms p50, 8.1 ms p95** of CPU; 64 draw calls, 21,668 triangles. Per system: Loci's own systems take well under 1 ms a frame on average; the largest cost is the framework's input system on emulated hands (2.1 ms mean). Profiling found the hub re-sending unchanged panel text every 2 s; skipping identical writes cut its mean from 0.41 to 0.26 ms. Software GL (SwiftShader), so relative numbers only, not Quest frame times. 16 Nov 2026, 18:27 to 18:39 IST. [docs/perf.md](docs/perf.md) | `python3 scripts/perf.py 300` and `--systems` with the dev server up |
 | Palace Architect, live teach mode | **20 of 20 topics** taught (science, history, finance, law, tech, everyday, pasted notes, a child audience); median 4 stages, **83 of 88 stages kept a myth check**, median **2.7 s** server time (2.8 s wall), 16 Nov 2026, 15:43 IST | `node scripts/eval-architect.mjs` |
+| Architect backup alone (Amazon Nova on AWS Bedrock) | **20 of 20 topics** with Gemini skipped and no fallback, same 20 topics; median 5 stages, **97 of 106 stages kept a myth check**, median **3.9 s** server time (4.0 s wall), 17 Nov 2026, 22:13 IST. [docs/architect-eval-bedrock.md](docs/architect-eval-bedrock.md) | `node scripts/eval-architect.mjs --bedrock` |
 
 The full Architect run, with a per-topic table and two complete outputs, is in [docs/architect-eval.md](docs/architect-eval.md). In that run all 20 answers came from the primary model (`gemini-3.5-flash-lite`) inside the 2.5 s hedge window, so no fallback started. An earlier run, when a slower model led the chain, took a median 6.1 s and every answer came from the fallback, which is why the fast model now leads.
+
+Gemini can be overloaded (we saw intermittent 503s on 17 Nov). When every Gemini model fails, the last link in the chain is Amazon Nova 2 Lite on AWS Bedrock, called through the Converse API with the answer schema as a forced tool so it returns the same shape. Measured alone on the same 20 topics it taught all 20, a little slower than Gemini (3.9 s against 2.7 s median), so it stays the backup rather than the lead. It only switches on when AWS credentials are set, and the IAM user may only invoke models.
 
 How the property test's 9,037 placements split: 1,263 on furniture tops, 3,439 on walls, 4,335 on the seated arc. 86 of the 1,000 rooms were empty on purpose.
 
@@ -162,7 +165,7 @@ npm run typecheck    # tsc --noEmit
 - `npm run dev` runs the dev server through the IWSDK CLI (`iwsdk dev`), not plain Vite. `iwsdk.config.json` is the project's source of truth for the scene and XR features. IWER is IWSDK's browser-based XR emulator; see [Testing your experience](https://iwsdk.dev/guides/02-testing-experience.html).
 - End-to-end tests drive the emulator with the dev server up: `python3 scripts/e2e.py` (list palace) and `python3 scripts/e2e-concept.py` (concept palace).
 - `node scripts/eval-architect.mjs` runs the live Architect evaluation (about 11 minutes; it paces itself under the API's rate limit). `node scripts/receipts.mjs` refreshes `public/receipts.json`.
-- The Architect needs `GEMINI_API_KEY` set on the server (see `.env.example`).
+- The Architect needs `GEMINI_API_KEY` set on the server (see `.env.example`). The Amazon Nova backup is optional and needs AWS credentials for an IAM user limited to `bedrock:InvokeModel`.
 
 ```
 src/core/     pure logic, no engine imports: placement, scheduler, concepts, safety, grading

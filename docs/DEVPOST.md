@@ -52,7 +52,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 - **Placement solver** (`src/core/placement.ts`): scores real surfaces by label, size, distance and seated comfort, keeps stages in walk order, and falls back to a seated arc. Tested over 1,000 seeded random rooms.
 - **Anchors and re-fit:** each stage restores from its anchor; if the room changed, a semantic check notices and re-fits.
 - **Systems:** placement, recall, myth check, thread (one ribbon, one draw call, no per-frame allocation), surface traces, chain practice, first-run lesson, access.
-- **Palace Architect:** a Vercel serverless function calling Gemini with a hedged fallback chain, structured JSON output, and rule-based vetting of every line (brands, real people, unsafe content) before anything reaches the room.
+- **Palace Architect:** a Vercel serverless function calling Gemini with a hedged fallback chain (and Amazon Nova on AWS Bedrock as the last resort: 20 of 20 topics taught on its own, 3.9 s median), structured JSON output, and rule-based vetting of every line (brands, real people, unsafe content) before anything reaches the room.
 - **Tests:** unit and property tests with vitest; end-to-end flows in the Immersive Web Emulator driven from the IWSDK CLI.
 
 ## Challenges
@@ -91,4 +91,4 @@ Everything is reachable while seated.
 
 ## Built with
 
-IWSDK, WebXR, Three.js, TypeScript, Vite, Gemini API, Vercel, ts-fsrs, zod, vitest, Immersive Web Emulator (driven through the IWSDK CLI).
+IWSDK, WebXR, Three.js, TypeScript, Vite, Gemini API, Amazon Bedrock (Nova), Vercel, ts-fsrs, zod, vitest, Immersive Web Emulator (driven through the IWSDK CLI).

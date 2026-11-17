@@ -1,0 +1,2402 @@
+{
+  "summary": {
+    "url": "https://loci-vr.vercel.app/api/architect",
+    "command": "node scripts/eval-architect.mjs --bedrock",
+    "bedrockOnly": true,
+    "startedAt": "2026-11-17T16:43:30.981Z",
+    "finishedAt": "2026-11-17T16:54:09.942Z",
+    "startedAtIST": "17 Nov 2026, 22:13 IST",
+    "primaryModel": "bedrock:us.amazon.nova-2-lite-v1:0",
+    "fallbacks": [
+      "gemini-3.8-flash",
+      "gemini-3.6-flash",
+      "bedrock:us.amazon.nova-2-lite-v1:0"
+    ],
+    "topics": 20,
+    "passed": 20,
+    "passRate": 1,
+    "medianServerMs": 3892,
+    "medianWallMs": 3959,
+    "medianStages": 5,
+    "stagesTotal": 106,
+    "mythChecksTotal": 97,
+    "repairedTotal": 5,
+    "models": {
+      "bedrock:us.amazon.nova-2-lite-v1:0": 20
+    }
+  },
+  "results": [
+    {
+      "id": "vaccines",
+      "domain": "science",
+      "audience": "adult",
+      "topic": "How a vaccine trains the immune system",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 4,
+      "mythChecks": 4,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3160,
+      "wallMs": 3330,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx8wu5",
+        "title": "How a vaccine trains the immune system",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx8wu5:0",
+            "cue": "Harmless mimic",
+            "answer": "A vaccine shows the immune system a weakened or fake germ.",
+            "why": "It teaches recognition without causing real disease or harm.",
+            "scene": "A tiny, harmless mask of the germ dances in a glass vial, waving peace signs.",
+            "glyphs": [
+              "💉",
+              "🤖",
+              "😷"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Vaccines contain live germs that can make you sick.",
+              "right": "Vaccines use weakened or inactivated germs or just pieces of them."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx8wu5:1",
+            "cue": "Memory cells form",
+            "answer": "Your immune system makes special memory cells that remember the germ.",
+            "why": "These cells stay ready to act fast if the real germ appears later.",
+            "scene": "Tiny, glowing sentinels stand guard in your bone marrow, whispering the germ's name.",
+            "glyphs": [
+              "🧠",
+              "🛡️",
+              "🔍"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Your body forgets how to fight germs after a vaccine wears off.",
+              "right": "Memory cells persist for years, ready to respond quickly."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx8wu5:2",
+            "cue": "Quick response",
+            "answer": "If the real germ enters, memory cells attack it fast.",
+            "why": "This stops the germ from causing illness before you feel sick.",
+            "scene": "Memory cells rush in like superheroes, swatting away a germ with nets.",
+            "glyphs": [
+              "⚡",
+              "🦠",
+              "🛡️"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "You still get sick just as badly after vaccination.",
+              "right": "Memory cells stop the infection early, often before symptoms appear."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx8wu5:3",
+            "cue": "Herd immunity",
+            "answer": "When many people are vaccinated, germs find it hard to spread.",
+            "why": "Fewer unvaccinated hosts mean fewer chances for the germ to jump between people.",
+            "scene": "A city park where nearly everyone wears invisible germ-proof cloaks.",
+            "glyphs": [
+              "👥",
+              "🦠",
+              "🛡️"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Vaccines protect only the person who gets them, not others.",
+              "right": "High vaccination rates protect entire communities by reducing germ transmission."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "photosynthesis",
+      "domain": "science",
+      "audience": "adult",
+      "topic": "How photosynthesis turns sunlight into sugar",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3486,
+      "wallMs": 3598,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx90y3",
+        "title": "How photosynthesis turns sunlight into sugar",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx90y3:0",
+            "cue": "Sunlight hits leaf",
+            "answer": "Light energy excites electrons in chlorophyll, starting the process.",
+            "why": "Chlorophyll captures light energy, which is the fuel for sugar creation.",
+            "scene": "A leaf glows green as sunlight dances on its surface.",
+            "glyphs": [
+              "☀️",
+              "🍃",
+              "🔋"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Sunlight directly makes sugar in the leaf.",
+              "right": "Sunlight excites electrons that drive sugar production."
+            },
+            "link": "triggers"
+          },
+          {
+            "id": "cx_mwkx90y3:1",
+            "cue": "Water splits open",
+            "answer": "Water molecules split, releasing oxygen and hydrogen ions.",
+            "why": "Splitting water provides electrons and hydrogen needed for sugar assembly.",
+            "scene": "Tiny bubbles form as water breaks inside the leaf.",
+            "glyphs": [
+              "💧",
+              "💨",
+              "🔀"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Plants absorb oxygen from water to breathe.",
+              "right": "Plants release oxygen from split water as waste."
+            },
+            "link": "provides"
+          },
+          {
+            "id": "cx_mwkx90y3:2",
+            "cue": "Hydrogen moves down",
+            "answer": "Hydrogen ions travel through thylakoid membranes, creating a charge difference.",
+            "why": "This charge difference powers the engine that makes ATP energy.",
+            "scene": "A tiny waterfall of hydrogen flows inside the leaf.",
+            "glyphs": [
+              "🔋",
+              "🌀",
+              "🚶"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Hydrogen ions are just waste products to remove.",
+              "right": "Hydrogen ions create energy used to build sugar."
+            },
+            "link": "drives"
+          },
+          {
+            "id": "cx_mwkx90y3:3",
+            "cue": "ATP powers enzyme",
+            "answer": "ATP energy activates enzymes that fix carbon dioxide into sugar.",
+            "why": "Enzymes need energy to stitch carbon atoms into sugar molecules.",
+            "scene": "A tiny factory inside the leaf assembles sugar from CO2.",
+            "glyphs": [
+              "🔧",
+              "🧬",
+              "🍬"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Enzymes work without any energy input.",
+              "right": "Enzymes require ATP to build sugar from carbon dioxide."
+            },
+            "link": "builds"
+          },
+          {
+            "id": "cx_mwkx90y3:4",
+            "cue": "Sugar completes cycle",
+            "answer": "Sugar molecules exit the cycle, storing solar energy for growth.",
+            "why": "Sugar stores sunlight as chemical energy plants can use anytime.",
+            "scene": "Sweet drops appear on the leaf edge, ready to feed.",
+            "glyphs": [
+              "🍯",
+              "🌱",
+              "📦"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Plants make sugar only for immediate energy use.",
+              "right": "Plants store sugar to grow later when sunlight is absent."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tectonics",
+      "domain": "science",
+      "audience": "teen",
+      "topic": "How plate tectonics builds mountains",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4561,
+      "wallMs": 4690,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx95a3",
+        "title": "How plate tectonics builds mountains",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx95a3:0",
+            "cue": "plates drift apart",
+            "answer": "When plates pull apart, magma rises to fill the gap.",
+            "why": "The gap creates a weak spot where hot rock can flow upward.",
+            "scene": "A giant crack opens, and glowing lava bubbles up like soup.",
+            "glyphs": [
+              "🌋",
+              "🌀",
+              "🔥"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The Earth just magically pushes mountains up when it feels like it.",
+              "right": "Magma from below fills gaps created by moving plates."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx95a3:1",
+            "cue": "subduction begins",
+            "answer": "One plate dives under another, dragging rock deep into the mantle.",
+            "why": "The heavier plate slides down because it's denser and cooler.",
+            "scene": "A giant puzzle piece plunges under another like a submarine sinking.",
+            "glyphs": [
+              "🌊",
+              "🗻",
+              "🌍"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The plates just bump and stop, never moving under each other.",
+              "right": "Denser plates slide beneath lighter ones into the mantle."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx95a3:2",
+            "cue": "melting occurs",
+            "answer": "Rock melts into magma where plates grind and heat up.",
+            "why": "Friction and heat from deep inside melt the rock into liquid.",
+            "scene": "Two giant stones scrape together, sparking molten rock like a fire.",
+            "glyphs": [
+              "🔥",
+              "🪨",
+              "💧"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Magma just appears out of nowhere without any trigger.",
+              "right": "Friction and deep heat melt rock where plates collide."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx95a3:3",
+            "cue": "magma rises",
+            "answer": "Hot magma pushes upward through cracks to cool and solidify.",
+            "why": "Magma is less dense than surrounding rock, so it floats upward.",
+            "scene": "Glowing liquid climbs a narrow tunnel like hot syrup seeking the surface.",
+            "glyphs": [
+              "🌋",
+              "⬆️",
+              "🪨"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Magma just sits still and never moves toward the surface.",
+              "right": "Less dense magma rises through cracks to cool and harden."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx95a3:4",
+            "cue": "volcano forms",
+            "answer": "Repeated eruptions pile up cooled magma, building a mountain over time.",
+            "why": "Each eruption adds layers of hardened lava and ash to the surface.",
+            "scene": "A hill grows taller with each burst of glowing rock and ash.",
+            "glyphs": [
+              "🌋",
+              "🗻",
+              "🪨"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Volcanoes appear fully formed in one night like magic.",
+              "right": "Mountains grow slowly from many layers of cooled magma and ash."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx95a3:5",
+            "cue": "mountain lifts",
+            "answer": "The weight of cooled rock and buckling crust push the land upward.",
+            "why": "Cooling magma makes the crust heavier, and plates push and fold it upward.",
+            "scene": "A giant stone blanket folds and lifts like a carpet being rumpled.",
+            "glyphs": [
+              "🗻",
+              "🧱",
+              "🔼"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "Mountains just pop up because the Earth decided to stretch its legs.",
+              "right": "Cooling rock and folding plates lift the land to form mountains."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "rome",
+      "domain": "history",
+      "audience": "adult",
+      "topic": "How the Roman Republic became an empire",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 7,
+      "mythChecks": 3,
+      "repaired": 2,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 5299,
+      "wallMs": 5416,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9afr",
+        "title": "How the Roman Republic became an empire",
+        "subtitle": "7 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9afr:0",
+            "cue": "Patrician dominance",
+            "answer": "The patricians held all political power, excluding plebeians from key offices.",
+            "why": "This created tension and demanded reform for broader participation in government.",
+            "scene": "A group of stern men in togas stand on a marble dais, ignoring the crowd below.",
+            "glyphs": [
+              "👑",
+              "👥",
+              "🚫"
+            ],
+            "order": 0,
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:1",
+            "cue": "Conflict of orders",
+            "answer": "Plebeians demanded and won rights, creating new institutions like the Tribune.",
+            "why": "These reforms gradually gave plebeians a voice and share of power.",
+            "scene": "A determined plebeian stands defiantly before angry patricians, holding a symbolic shield.",
+            "glyphs": [
+              "🛡️",
+              "⚖️",
+              "👉"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The plebeians never challenged the patrician control effectively.",
+              "right": "Plebeians secured legal protections and political offices through persistent agitation."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:2",
+            "cue": "Military expansion",
+            "answer": "Roman armies conquered neighboring lands, adding wealth and territory.",
+            "why": "Conquest brought slaves, resources, and new citizens, fueling growth.",
+            "scene": "Soldiers plant the Roman standard on a foreign hill, overlooking smoldering buildings.",
+            "glyphs": [
+              "⚔️",
+              "🌍",
+              "🏛️"
+            ],
+            "order": 2,
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:3",
+            "cue": "Gracchi reforms",
+            "answer": "The Gracchi brothers pushed laws to redistribute land and help the poor.",
+            "why": "Their efforts highlighted deep social splits and sparked violent political clashes.",
+            "scene": "Picture gracchi reforms happening right in front of you, glowing as it goes.",
+            "glyphs": [
+              "🌾",
+              "👥",
+              "💥"
+            ],
+            "order": 3,
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:4",
+            "cue": "Rise of generals",
+            "answer": "Powerful generals like Marius and Sulla used armies for political gain.",
+            "why": "This militarized politics, making the Senate less authoritative.",
+            "scene": "A general stands before his loyal troops, ignoring the empty Senate building.",
+            "glyphs": [
+              "🪖",
+              "🤝",
+              "🏛️"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Generals remained loyal to the Senate throughout the Republic.",
+              "right": "Ambitious generals leveraged their troops against political opponents."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:5",
+            "cue": "Caesar's dictatorship",
+            "answer": "Julius Caesar seized dictatorial power, bypassing the Senate and reforms.",
+            "why": "His popularity and authority set a precedent for autocratic rule.",
+            "scene": "Picture caesar's dictatorship happening right in front of you, glowing as it goes.",
+            "glyphs": [
+              "👑",
+              "⚔️",
+              "👀"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "Caesar was just another elected official like any other consul.",
+              "right": "Caesar's dictatorship dismantled republican norms, concentrating power in one man."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9afr:6",
+            "cue": "Empire established",
+            "answer": "Augustus became first emperor, ending the Republic and starting imperial rule.",
+            "why": "This transition centralized power, ending centuries of shared governance.",
+            "scene": "Augustus stands in a golden robe, coins in hand, as old republican symbols gather dust.",
+            "glyphs": [
+              "👑",
+              "🪙",
+              "⏳"
+            ],
+            "order": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "printing",
+      "domain": "history",
+      "audience": "adult",
+      "topic": "How the printing press helped spread the Reformation",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 4,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4817,
+      "wallMs": 4926,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9g5k",
+        "title": "How the printing press helped spread the Reformation",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9g5k:0",
+            "cue": "Wooden block prints",
+            "answer": "Early printing used carved wooden blocks to make many copies of a page.",
+            "why": "Wooden blocks were cheap and easy to use for small print runs.",
+            "scene": "A monk carefully carving letters into a smooth wooden block in dim light.",
+            "glyphs": [
+              "🪵",
+              "✍️",
+              "📜"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Wooden blocks produced high-quality books like today's printers.",
+              "right": "Wooden block prints were crude and often hard to read."
+            },
+            "link": "led to"
+          },
+          {
+            "id": "cx_mwkx9g5k:1",
+            "cue": "Moveable type invented",
+            "answer": "Johannes Gutenberg invented moveable type around 1440, using metal letters.",
+            "why": "Moveable type allowed quick rearrangement of letters for new pages and books.",
+            "scene": "A craftsman places tiny metal letters into a tray, building a page.",
+            "glyphs": [
+              "🔤",
+              "🛠️",
+              "📖"
+            ],
+            "order": 1,
+            "link": "enabled"
+          },
+          {
+            "id": "cx_mwkx9g5k:2",
+            "cue": "Mass book production",
+            "answer": "The printing press made it possible to produce books faster and cheaper.",
+            "why": "Cheaper books meant more people could afford and access information.",
+            "scene": "Stacks of freshly printed books pile up in a bustling workshop.",
+            "glyphs": [
+              "🖨️",
+              "📚",
+              "🏭"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Only the wealthy could afford printed books after the press.",
+              "right": "Printed books became accessible to the middle class and ordinary people."
+            },
+            "link": "allowed"
+          },
+          {
+            "id": "cx_mwkx9g5k:3",
+            "cue": "Reform ideas spread",
+            "answer": "The Reformation's ideas spread rapidly because printed pamphlets and books reached many.",
+            "why": "Printed materials bypassed traditional church controls on information and reached the public.",
+            "scene": "A stack of fiery pamphlets appears on a market stall, people gathering.",
+            "glyphs": [
+              "📰",
+              "🔥",
+              "👥"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The church quickly stopped the spread of Reformation ideas through printing.",
+              "right": "The church struggled to control the flood of printed Reformation materials."
+            },
+            "link": "caused"
+          },
+          {
+            "id": "cx_mwkx9g5k:4",
+            "cue": "Public debate grows",
+            "answer": "Printed works sparked public debates and discussions about church practices.",
+            "why": "People could now read opposing views and discuss them openly.",
+            "scene": "A lively tavern debate with printed sheets passed around as evidence.",
+            "glyphs": [
+              "🗣️",
+              "📄",
+              "🍺"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Only clergy participated in theological debates during the Reformation.",
+              "right": "Printed works enabled laypeople to join theological debates and discussions."
+            },
+            "link": "led to"
+          },
+          {
+            "id": "cx_mwkx9g5k:5",
+            "cue": "Church reforms follow",
+            "answer": "The spread of Reformation ideas forced the Catholic Church to initiate reforms.",
+            "why": "The Church had to respond to widespread criticism and demands for change.",
+            "scene": "A bishop reads a concerned letter, church walls behind him.",
+            "glyphs": [
+              "⛪",
+              "📧",
+              "🔁"
+            ],
+            "order": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "crash1929",
+      "domain": "history / finance",
+      "audience": "adult",
+      "topic": "What caused the 1929 stock market crash",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3817,
+      "wallMs": 3881,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9lgs",
+        "title": "What caused the 1929 stock market crash",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9lgs:0",
+            "cue": "Speculative frenzy",
+            "answer": "Investors bought stocks on margin, betting prices would only rise.",
+            "why": "Borrowed money amplified demand, creating an unsustainable bubble.",
+            "scene": "A man trades stocks with a borrowed credit card, eyes gleaming.",
+            "glyphs": [
+              "📈",
+              "💳",
+              "🔥"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The crash happened because stocks were inherently overvalued from the start.",
+              "right": "Overvaluation was exacerbated by easy credit and speculative trading."
+            },
+            "link": "Led to"
+          },
+          {
+            "id": "cx_mwkx9lgs:1",
+            "cue": "Margin calls hit",
+            "answer": "Brokers demanded cash or stock from investors who couldn't pay.",
+            "why": "When prices dipped, borrowed investments became worthless overnight.",
+            "scene": "A broker slams a phone, yelling at a panicked investor.",
+            "glyphs": [
+              "📉",
+              "💸",
+              "📞"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Only the biggest investors faced margin calls.",
+              "right": "Margin calls affected many small investors, worsening the panic."
+            },
+            "link": "Triggered"
+          },
+          {
+            "id": "cx_mwkx9lgs:2",
+            "cue": "Panic selling spread",
+            "answer": "Thousands sold stocks simultaneously, crashing prices further.",
+            "why": "Fear of loss created a feedback loop, driving prices down rapidly.",
+            "scene": "A crowded exchange floor with people shouting 'Sell! Sell!'",
+            "glyphs": [
+              "🚨",
+              "📉",
+              "👥"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "The market would have recovered quickly without external interference.",
+              "right": "The panic itself was the primary driver of the crash."
+            },
+            "link": "Resulting in"
+          },
+          {
+            "id": "cx_mwkx9lgs:3",
+            "cue": "Bank failures followed",
+            "answer": "Banks that invested in stocks lost vast sums, collapsing trust.",
+            "why": "Many banks had poured money into the market, tying their health directly to stock values.",
+            "scene": "A bank vault door slams shut as people crowd outside.",
+            "glyphs": [
+              "🏦",
+              "💥",
+              "❌"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Banks were largely unaffected by the stock market crash.",
+              "right": "Many banks failed because they had invested heavily in stocks."
+            },
+            "link": "Causing"
+          },
+          {
+            "id": "cx_mwkx9lgs:4",
+            "cue": "Economy contracted",
+            "answer": "Businesses shrank, unemployment soared, and growth stopped.",
+            "why": "Loss of wealth and credit choked spending and investment across all sectors.",
+            "scene": "Empty factories with idle workers staring at closed signs.",
+            "glyphs": [
+              "🏭",
+              "📉",
+              "👥"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "The economy was already weak before the crash.",
+              "right": "The crash itself triggered a deep, rapid economic decline."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "compound",
+      "domain": "finance",
+      "audience": "adult",
+      "topic": "How compound interest grows savings over time",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3558,
+      "wallMs": 3657,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9q13",
+        "title": "How compound interest grows savings",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9q13:0",
+            "cue": "Initial deposit placed",
+            "answer": "Money placed in an account becomes the starting point for growth.",
+            "why": "Growth begins only after funds are committed to earn interest.",
+            "scene": "A stack of coins lands gently on a velvet cushion in a vault.",
+            "glyphs": [
+              "💰",
+              "🏦",
+              "🔒"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Interest starts growing before you deposit money.",
+              "right": "Growth begins only after funds are deposited."
+            },
+            "link": "enables interest calculation"
+          },
+          {
+            "id": "cx_mwkx9q13:1",
+            "cue": "Interest calculated yearly",
+            "answer": "Banks add a percentage of your balance as interest each year.",
+            "why": "This percentage reward encourages saving by increasing your wealth over time.",
+            "scene": "A tiny golden calculator prints interest coupons onto a growing tree.",
+            "glyphs": [
+              "💲",
+              "📅",
+              "🌳"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Interest is added only once to the original amount.",
+              "right": "Interest is added to the current balance each year."
+            },
+            "link": "creates new interest base"
+          },
+          {
+            "id": "cx_mwkx9q13:2",
+            "cue": "New balance includes interest",
+            "answer": "Each year’s interest becomes part of the amount that earns more interest.",
+            "why": "This compounding effect makes wealth grow faster than simple addition.",
+            "scene": "A snowball rolling downhill picks up more snow with every revolution.",
+            "glyphs": [
+              "❄️",
+              "🌀",
+              "🌨️"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Interest never affects the balance that earns future interest.",
+              "right": "Interest adds to the balance that earns future interest."
+            },
+            "link": "accelerates growth rate"
+          },
+          {
+            "id": "cx_mwkx9q13:3",
+            "cue": "Growth rate accelerates",
+            "answer": "Over many years, the balance grows faster and faster.",
+            "why": "Each added interest portion itself earns interest in subsequent years.",
+            "scene": "A rocket climbs steeper with each passing minute, leaving a glowing trail.",
+            "glyphs": [
+              "🚀",
+              "⏱️",
+              "🔥"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Growth remains constant regardless of time passed.",
+              "right": "Growth accelerates because interest earns interest over time."
+            },
+            "link": "demonstrates long-term power"
+          },
+          {
+            "id": "cx_mwkx9q13:4",
+            "cue": "Long-term power shown",
+            "answer": "Saving early leads to dramatically larger amounts than saving later.",
+            "why": "More years allow interest to compound on a larger growing base.",
+            "scene": "Two trees: one planted early towers over a late sapling.",
+            "glyphs": [
+              "🌳",
+              "⏳",
+              "📈"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Saving later catches up quickly with larger deposits.",
+              "right": "Early saving compounds over many more years for greater returns."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "indexfund",
+      "domain": "finance",
+      "audience": "adult",
+      "topic": "How an index fund works",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3504,
+      "wallMs": 3614,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9ueo",
+        "title": "How an index fund works",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9ueo:0",
+            "cue": "Market basket fills",
+            "answer": "An index fund owns all stocks in a market index.",
+            "why": "It mirrors the index, so its performance matches the market.",
+            "scene": "A giant basket overflows with labeled fruit, each a stock.",
+            "glyphs": [
+              "🍎",
+              "🍌",
+              "🍇"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Index funds pick the best stocks for you.",
+              "right": "They hold every stock in the chosen index equally."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9ueo:1",
+            "cue": "Weights distribute evenly",
+            "answer": "Each stock gets an equal weight in the fund.",
+            "why": "Equal weighting ensures the fund's performance reflects the whole index.",
+            "scene": "Scales balance identical boxes labeled 'stock' on both sides.",
+            "glyphs": [
+              "⚖️",
+              "📊",
+              "🔗"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Bigger companies get more weight in index funds.",
+              "right": "All companies receive the same weight regardless of size."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9ueo:2",
+            "cue": "Prices rise together",
+            "answer": "When market prices change, the fund's value changes too.",
+            "why": "The fund's value is the total value of all stocks.",
+            "scene": "A rising tide lifts all boats anchored in a harbor.",
+            "glyphs": [
+              "🌊",
+              "⛵",
+              "📈"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Index funds protect you from market downturns.",
+              "right": "The fund's value falls when the market falls."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9ueo:3",
+            "cue": "Shares trade freely",
+            "answer": "Investors buy and sell fund shares at the fund's value.",
+            "why": "This lets anyone invest in a diversified portfolio easily.",
+            "scene": "A busy marketplace with stalls selling shares of the fund.",
+            "glyphs": [
+              "🏪",
+              "💸",
+              "📈"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "You can trade index fund shares like stocks intraday.",
+              "right": "Shares are bought and sold only once a day."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9ueo:4",
+            "cue": "Fees stay low",
+            "answer": "Index funds have low fees because they don't need active management.",
+            "why": "Tracking an index is simpler than picking individual stocks.",
+            "scene": "A librarian quietly shelving books versus a busy stockbroker.",
+            "glyphs": [
+              "📚",
+              "💰",
+              "⚖️"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Active funds always outperform index funds after fees.",
+              "right": "Index funds usually beat active funds after fees over time."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "upi",
+      "domain": "finance / tech",
+      "audience": "adult",
+      "topic": "How a UPI payment moves money between two bank accounts",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 1,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3565,
+      "wallMs": 3656,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkx9yph",
+        "title": "How a UPI payment moves money",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkx9yph:0",
+            "cue": "App request sent",
+            "answer": "Your phone sends a payment request to the recipient's app.",
+            "why": "The app acts as a bridge to start the transaction.",
+            "scene": "Your phone waves like a conductor directing an orchestra of digits.",
+            "glyphs": [
+              "📱",
+              "👋",
+              "💸"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The app directly moves money from your account.",
+              "right": "The app only sends a request; the bank handles the money."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9yph:1",
+            "cue": "Bank verifies",
+            "answer": "Your bank checks if you have enough funds and approves the payment.",
+            "why": "Approval ensures you can pay and prevents overdrafts.",
+            "scene": "A bank guard stamps a giant check with a green \"OK\".",
+            "glyphs": [
+              "🏦",
+              "✅",
+              "💳"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The bank instantly moves money at this step.",
+              "right": "The bank only checks and approves; the transfer happens later."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9yph:2",
+            "cue": "Payment gateway",
+            "answer": "A secure gateway encrypts and routes the payment between banks.",
+            "why": "Encryption protects your money from being stolen in transit.",
+            "scene": "A digital tunnel swallows your payment, emerging safe on the other side.",
+            "glyphs": [
+              "🔒",
+              "🔄",
+              "🚀"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "The gateway holds your money temporarily.",
+              "right": "The gateway only routes and encrypts; it never holds the money."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9yph:3",
+            "cue": "Recipient's bank",
+            "answer": "The recipient's bank receives the payment and credits their account.",
+            "why": "This step makes the recipient's money balance go up.",
+            "scene": "A bank clerk drops a bag of coins into another account.",
+            "glyphs": [
+              "🏦",
+              "💰",
+              "➕"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The money appears instantly in the recipient's account.",
+              "right": "It can take a few seconds to minutes for the account to update."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkx9yph:4",
+            "cue": "Notification sent",
+            "answer": "Both banks send confirmation messages to the linked apps.",
+            "why": "Confirmations let users know the transaction is complete and error-free.",
+            "scene": "Picture notification sent happening right in front of you, glowing as it goes.",
+            "glyphs": [
+              "📱",
+              "📱",
+              "✅"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "The notification means the money has already arrived.",
+              "right": "The notification only confirms completion; the money arrived earlier."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "billlaw",
+      "domain": "law",
+      "audience": "adult",
+      "topic": "How a bill becomes law in the Indian Parliament",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 2,
+      "repaired": 1,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3620,
+      "wallMs": 3711,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxa33a",
+        "title": "How a bill becomes law",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxa33a:0",
+            "cue": "Bill introduction",
+            "answer": "A member of Parliament introduces a bill to start the process.",
+            "why": "It begins with an idea for a new rule or change.",
+            "scene": "Picture bill introduction happening right in front of you, glowing as it goes.",
+            "glyphs": [
+              "✈️",
+              "📜",
+              "🪑"
+            ],
+            "order": 0,
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa33a:1",
+            "cue": "Committee review",
+            "answer": "A committee examines the bill in detail and suggests changes.",
+            "why": "Experts scrutinize it to improve and fix problems.",
+            "scene": "A group of detectives with magnifying glasses inspect a map.",
+            "glyphs": [
+              "🕵️‍♀️",
+              "🔍",
+              "🗺️"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Committees just approve bills without changes.",
+              "right": "Committees often suggest amendments to improve bills."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa33a:2",
+            "cue": "Debate and voting",
+            "answer": "Parliament debates the bill and votes to approve it.",
+            "why": "Members discuss pros and cons before deciding its fate.",
+            "scene": "A lively chess match where players argue over each move.",
+            "glyphs": [
+              "🏛️",
+              "🗣️",
+              "✅"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Bills pass automatically after introduction.",
+              "right": "Bills require debate and a majority vote to pass."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa33a:3",
+            "cue": "Presidential assent",
+            "answer": "The President must sign the bill for it to become law.",
+            "why": "This step ensures the bill aligns with the Constitution.",
+            "scene": "A golden stamp is pressed onto parchment with ceremony.",
+            "glyphs": [
+              "🏛️",
+              "✍️",
+              "📜"
+            ],
+            "order": 3,
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa33a:4",
+            "cue": "Law publication",
+            "answer": "The law is published in the official gazette to inform everyone.",
+            "why": "Public notification makes the law enforceable and known.",
+            "scene": "A town crier announces new rules to gathered citizens.",
+            "glyphs": [
+              "📢",
+              "📰",
+              "📜"
+            ],
+            "order": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "contract",
+      "domain": "law",
+      "audience": "adult",
+      "topic": "How a contract is formed: offer, acceptance and consideration",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 4,
+      "mythChecks": 4,
+      "repaired": 1,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3090,
+      "wallMs": 3178,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxa7hw",
+        "title": "How a contract is formed",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxa7hw:0",
+            "cue": "Offer is made",
+            "answer": "An offer proposes specific terms for an agreement to another party.",
+            "why": "It sets the clear conditions that must be accepted to create a binding deal.",
+            "scene": "Picture offer is made happening right in front of you, glowing as it goes.",
+            "glyphs": [
+              "✉️",
+              "📜",
+              "✈️"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Any vague suggestion counts as an offer.",
+              "right": "An offer must have clear, specific terms."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa7hw:1",
+            "cue": "Acceptance occurs",
+            "answer": "Acceptance must mirror the offer's terms exactly to create a contract.",
+            "why": "Matching the offer shows mutual agreement, forming the core of a contract.",
+            "scene": "A mirror reflects the paper airplane perfectly, no changes allowed.",
+            "glyphs": [
+              "🪞",
+              "✉️",
+              "✅"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "You can accept an offer with small changes.",
+              "right": "Acceptance must exactly match the original offer."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa7hw:2",
+            "cue": "Consideration given",
+            "answer": "Consideration is something of value exchanged between the parties.",
+            "why": "It ensures both sides benefit, making the agreement fair and enforceable.",
+            "scene": "Two hands swap a small golden key for a signed scroll.",
+            "glyphs": [
+              "💰",
+              "🔑",
+              "📜"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "A contract needs no exchange of value.",
+              "right": "Consideration must be something of value exchanged."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxa7hw:3",
+            "cue": "Contract exists",
+            "answer": "When offer, acceptance, and consideration align, a binding contract is formed.",
+            "why": "All essential elements are present, creating legal obligations for both parties.",
+            "scene": "The scroll glows gold, binding both hands in a faint, warm light.",
+            "glyphs": [
+              "📜",
+              "🔗",
+              "💡"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "A handshake alone forms a valid contract.",
+              "right": "All elements must be present for a binding contract."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "trial",
+      "domain": "law",
+      "audience": "adult",
+      "topic": "What happens in a criminal case from arrest to verdict",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3607,
+      "wallMs": 3683,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxabhi",
+        "title": "What happens in a criminal case",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxabhi:0",
+            "cue": "Arrest occurs",
+            "answer": "Police arrest a suspect based on probable cause.",
+            "why": "Probable cause ensures rights are protected while allowing investigations.",
+            "scene": "A detective points at a suspect while holding a glowing warrant.",
+            "glyphs": [
+              "👮",
+              "⚖️",
+              "🔍"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Anyone can be arrested without any evidence.",
+              "right": "Arrests require probable cause to protect innocent people."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxabhi:1",
+            "cue": "Charges filed",
+            "answer": "The prosecutor files formal charges against the suspect.",
+            "why": "Formal charges start the official legal process and inform the suspect.",
+            "scene": "A clerk stamps papers with a golden 'CHARGE' seal.",
+            "glyphs": [
+              "📄",
+              "⚖️",
+              "🖋️"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Anyone can file charges against anyone else.",
+              "right": "Only prosecutors can file formal criminal charges."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxabhi:2",
+            "cue": "Preliminary hearing",
+            "answer": "A judge decides if there's enough evidence to proceed.",
+            "why": "It protects defendants by filtering weak cases early.",
+            "scene": "A judge peers through binoculars at shaky evidence piles.",
+            "glyphs": [
+              "👀",
+              "⚖️",
+              "🔎"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "All cases automatically go to trial after arrest.",
+              "right": "A preliminary hearing tests evidence before a trial."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxabhi:3",
+            "cue": "Trial begins",
+            "answer": "Both sides present evidence before a neutral judge or jury.",
+            "why": "Due process requires fair presentation of facts for impartial decisions.",
+            "scene": "A lawyer tosses a glowing ball of evidence to a jury.",
+            "glyphs": [
+              "⚖️",
+              "👨‍⚖️",
+              "👨‍⚖️"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Trials are just about the defendant's story.",
+              "right": "Trials require evidence from both sides for fairness."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxabhi:4",
+            "cue": "Deliberation happens",
+            "answer": "The jury discusses evidence to reach a unanimous decision.",
+            "why": "Deliberation ensures decisions reflect collective reasoning and fairness.",
+            "scene": "Twelve people puzzle over a glowing evidence map.",
+            "glyphs": [
+              "🤔",
+              "🧩",
+              "⚖️"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Juries decide based on feelings, not evidence.",
+              "right": "Juries must base decisions on presented evidence."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxabhi:5",
+            "cue": "Verdict reached",
+            "answer": "The jury announces guilty or not guilty verdict.",
+            "why": "The verdict concludes the trial phase and guides next steps.",
+            "scene": "A jury foreperson dramatically drops a glowing scroll.",
+            "glyphs": [
+              "📜",
+              "⚖️",
+              "🔔"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "A verdict is the final punishment decision.",
+              "right": "A verdict decides guilt, not punishment."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "https",
+      "domain": "tech",
+      "audience": "adult",
+      "topic": "How HTTPS keeps a connection private",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3987,
+      "wallMs": 4064,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxafvf",
+        "title": "How HTTPS keeps a connection private",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxafvf:0",
+            "cue": "Public request sent",
+            "answer": "Your browser asks the server for a website using HTTP first.",
+            "why": "This lets the server know what the browser wants before encryption starts.",
+            "scene": "A paper airplane flies across a park, asking for a cookie.",
+            "glyphs": [
+              "✈️",
+              "🍪",
+              "🌳"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The request is already encrypted when you type the URL.",
+              "right": "The first request is unencrypted; HTTPS only starts after this step."
+            },
+            "link": "triggers server response"
+          },
+          {
+            "id": "cx_mwkxafvf:1",
+            "cue": "Server sends certificate",
+            "answer": "The server replies with a digital certificate containing its public key.",
+            "why": "The certificate proves the server's identity and gives the browser a lock to use.",
+            "scene": "A locked treasure chest arrives with a seal that says 'Official'.",
+            "glyphs": [
+              "🔒",
+              "📜",
+              "🛡️"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The server sends its private key to prove who it is.",
+              "right": "The server sends its public key, not the private key."
+            },
+            "link": "browser verifies certificate"
+          },
+          {
+            "id": "cx_mwkxafvf:2",
+            "cue": "Certificate verified",
+            "answer": "Your browser checks the certificate against trusted authorities to confirm it's legitimate.",
+            "why": "This stops attackers from impersonating the server with a fake certificate.",
+            "scene": "A guard checks a passport against an ID book before letting anyone in.",
+            "glyphs": [
+              "👮",
+              "📚",
+              "🛡️"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "You can trust any certificate without checking it against authorities.",
+              "right": "Browsers only trust certificates signed by recognized certificate authorities."
+            },
+            "link": "establishes shared secret"
+          },
+          {
+            "id": "cx_mwkxafvf:3",
+            "cue": "Key exchange happens",
+            "answer": "Browser and server use the public key to agree on a secret encryption key.",
+            "why": "This key is only known to the two of them, making the channel private.",
+            "scene": "Two magic wands touch, creating a hidden glowing bridge only they can see.",
+            "glyphs": [
+              "🔮",
+              "🤝",
+              "🌈"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The encryption key is sent openly over the network.",
+              "right": "The key is never sent; it's derived secretly using the public key."
+            },
+            "link": "starts encrypted session"
+          },
+          {
+            "id": "cx_mwkxafvf:4",
+            "cue": "Secure session starts",
+            "answer": "Both sides now use the shared key to encrypt all traffic.",
+            "why": "Anyone eavesdropping sees only scrambled data, not the actual messages.",
+            "scene": "Messages turn into gibberish ciphertext, like a secret code party.",
+            "glyphs": [
+              "🔐",
+              "📝",
+              "🌀"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Encryption slows down the internet so much it's not worth it.",
+              "right": "Modern encryption is fast and protects data without noticeable delay."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "llm",
+      "domain": "tech",
+      "audience": "adult",
+      "topic": "How a large language model predicts the next word",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3967,
+      "wallMs": 4037,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxakjr",
+        "title": "How an LLM predicts the next word",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxakjr:0",
+            "cue": "Token enters mind",
+            "answer": "The model breaks input into tokens, small units of meaning.",
+            "why": "Tokens let the model handle words, subwords, and punctuation uniformly.",
+            "scene": "A sentence shatters like glass into colorful puzzle pieces.",
+            "glyphs": [
+              "🔤",
+              "🧩",
+              "🔍"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "LLMs understand full sentences as whole units.",
+              "right": "LLMs process language as sequences of tokens, not whole sentences."
+            },
+            "link": "enables pattern matching"
+          },
+          {
+            "id": "cx_mwkxakjr:1",
+            "cue": "Pattern matching",
+            "answer": "The model checks its trained patterns against the token sequence.",
+            "why": "Training teaches the model which tokens often follow others.",
+            "scene": "A token slides into a slot, lighting up matching chains.",
+            "glyphs": [
+              "🔎",
+              "🔗",
+              "💡"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The model guesses randomly without any basis.",
+              "right": "The model uses statistical patterns from its training data."
+            },
+            "link": "produces probability scores"
+          },
+          {
+            "id": "cx_mwkxakjr:2",
+            "cue": "Probability scores",
+            "answer": "Each possible next token gets a probability score.",
+            "why": "Scores show how likely each token is to follow the current sequence.",
+            "scene": "Tokens float above a scale, some heavier than others.",
+            "glyphs": [
+              "📊",
+              "⚖️",
+              "🔢"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Only one token gets a score; others are ignored.",
+              "right": "Every possible next token receives a probability score."
+            },
+            "link": "ranks the possibilities"
+          },
+          {
+            "id": "cx_mwkxakjr:3",
+            "cue": "Ranking candidates",
+            "answer": "The model ranks tokens by their probability scores.",
+            "why": "Ranking helps pick the most likely next word from many options.",
+            "scene": "Tokens line up like race cars at the starting line.",
+            "glyphs": [
+              "🏁",
+              "📋",
+              "🔝"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The model always picks the highest-scoring token without options.",
+              "right": "The model considers multiple high-probability tokens for the next word."
+            },
+            "link": "selects the best fit"
+          },
+          {
+            "id": "cx_mwkxakjr:4",
+            "cue": "Context window",
+            "answer": "A fixed-size window holds recent tokens for context.",
+            "why": "Limited window controls memory and computation, focusing on recent words.",
+            "scene": "A sliding glass box holds the last few words.",
+            "glyphs": [
+              "🗂️",
+              "🕒",
+              "🔍"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "LLMs remember the entire input history without limits.",
+              "right": "LLMs use a fixed-size context window for recent tokens."
+            },
+            "link": "influences next prediction"
+          },
+          {
+            "id": "cx_mwkxakjr:5",
+            "cue": "Next word choice",
+            "answer": "The highest-ranked token becomes the next predicted word.",
+            "why": "Choosing the most probable token continues the coherent sentence.",
+            "scene": "A token steps forward, wearing a crown of probability.",
+            "glyphs": [
+              "👑",
+              "✅",
+              "📖"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "The model predicts the exact future word with certainty.",
+              "right": "The model predicts the most likely next word probabilistically."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "git",
+      "domain": "tech",
+      "audience": "adult",
+      "topic": "How Git records and merges changes",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4454,
+      "wallMs": 5519,
+      "attempts": 2,
+      "deck": {
+        "id": "cx_mwkxltd0",
+        "title": "How Git records and merges changes",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxltd0:0",
+            "cue": "Commit snapshot",
+            "answer": "Git saves a full snapshot of all files, not just changes.",
+            "why": "This ensures every state is recoverable, even if files are deleted.",
+            "scene": "A giant camera snapping a picture of every file at once.",
+            "glyphs": [
+              "📸",
+              "📦",
+              "💾"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Git only stores the differences between file versions.",
+              "right": "Git stores complete snapshots for each commit."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxltd0:1",
+            "cue": "Hash as ID",
+            "answer": "Each snapshot gets a unique hash ID based on its content.",
+            "why": "This makes it easy to compare and combine snapshots reliably.",
+            "scene": "A fingerprint scanner assigning a code to each picture.",
+            "glyphs": [
+              "🔢",
+              "🔗",
+              "🗝️"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Git uses simple numbers to label commits.",
+              "right": "Git uses cryptographic hashes that change with content."
+            },
+            "link": "enables"
+          },
+          {
+            "id": "cx_mwkxltd0:2",
+            "cue": "Branch pointer",
+            "answer": "Branches are just movable pointers to specific commit hashes.",
+            "why": "Moving the pointer lets you switch between different lines of development.",
+            "scene": "A glowing arrow hopping from one picture to the next.",
+            "glyphs": [
+              "➡️",
+              "🏷️",
+              "📚"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Branches are fixed paths that cannot change.",
+              "right": "Branches are flexible pointers that can move forward."
+            },
+            "link": "allows"
+          },
+          {
+            "id": "cx_mwkxltd0:3",
+            "cue": "Merge three-way",
+            "answer": "Git merges by comparing three snapshots: base, yours, and theirs.",
+            "why": "This finds where changes diverged and combines them intelligently.",
+            "scene": "A three-legged stool with pictures on each seat merging above.",
+            "glyphs": [
+              "🧩",
+              "🔀",
+              "🔄"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Git simply adds your changes to theirs in order.",
+              "right": "Git compares three snapshots to combine changes wisely."
+            },
+            "link": "resolves"
+          },
+          {
+            "id": "cx_mwkxltd0:4",
+            "cue": "Conflict marker",
+            "answer": "When changes clash, Git marks conflicts in the file for manual fix.",
+            "why": "This shows exactly where human judgment is needed to keep history consistent.",
+            "scene": "Red brackets wrapping conflicting lines like a highlighted debate.",
+            "glyphs": [
+              "⚠️",
+              "📝",
+              "🛠️"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Git automatically resolves all merge conflicts without help.",
+              "right": "Git highlights conflicts so you can decide how to combine changes."
+            },
+            "link": "needs"
+          },
+          {
+            "id": "cx_mwkxltd0:5",
+            "cue": "Result commit",
+            "answer": "The merged result becomes a new snapshot with its own hash.",
+            "why": "This preserves the complete history and lets you review or revert later.",
+            "scene": "The merged picture gets its own unique stamp and shelf space.",
+            "glyphs": [
+              "✅",
+              "💾",
+              "🔗"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "Merging edits the original snapshots directly.",
+              "right": "Merging creates a brand new snapshot preserving all past states."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "fridge",
+      "domain": "everyday",
+      "audience": "adult",
+      "topic": "How a refrigerator keeps food cold",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4714,
+      "wallMs": 4797,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxlyfb",
+        "title": "How a refrigerator keeps food cold",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxlyfb:0",
+            "cue": "Compressor kicks in",
+            "answer": "The compressor squeezes warm gas into a hot, high-pressure stream.",
+            "why": "Squeezing the gas increases its temperature, creating heat to expel.",
+            "scene": "A tiny dragon made of gas hisses into a red-hot pipe.",
+            "glyphs": [
+              "🐉",
+              "🔥",
+              "💨"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The compressor cools the gas by spinning it fast.",
+              "right": "The compressor heats the gas by compressing it."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxlyfb:1",
+            "cue": "Condenser releases heat",
+            "answer": "The hot gas cools outside the fridge, shedding warmth to the air.",
+            "why": "Metals let heat escape, turning gas back to a liquid safely.",
+            "scene": "A shiny snake of pipe sweats ice crystals in your kitchen.",
+            "glyphs": [
+              "🐍",
+              "❄️",
+              "🧊"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The condenser makes cold air inside the fridge.",
+              "right": "The condenser removes heat outside the fridge."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxlyfb:2",
+            "cue": "Liquid flows inside",
+            "answer": "Cool liquid travels inside coils, absorbing food warmth as it passes.",
+            "why": "Cold liquid grabs heat from surroundings, warming itself slightly.",
+            "scene": "A blue river of liquid slithers through icy tunnels near tomatoes.",
+            "glyphs": [
+              "💧",
+              "🍅",
+              "🌀"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "The liquid stays cold forever without changing.",
+              "right": "The liquid warms up slightly by absorbing heat from food."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxlyfb:3",
+            "cue": "Evaporator makes vapor",
+            "answer": "Inside the fridge, liquid evaporates into gas, stealing food heat.",
+            "why": "Turning to gas needs energy, which it takes as heat from nearby objects.",
+            "scene": "Ghostly vapor hugs lettuce leaves, turning them crisp and cool.",
+            "glyphs": [
+              "🥬",
+              "👻",
+              "💨"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Evaporation makes the fridge colder by itself.",
+              "right": "Evaporation cools surrounding food by taking their heat to become gas."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxlyfb:4",
+            "cue": "Gas returns outside",
+            "answer": "Cold gas drifts back to the compressor to restart the cycle.",
+            "why": "The cycle repeats, keeping temperature low where food is stored continuously.",
+            "scene": "A pale fog of gas swirls back to a mechanical heart.",
+            "glyphs": [
+              "🌀",
+              "💨",
+              "🔁"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "The gas stays cold after one trip and never needs reuse.",
+              "right": "The gas must keep cycling to maintain steady cold temperatures."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "toilet",
+      "domain": "everyday",
+      "audience": "adult",
+      "topic": "How a flush toilet works",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4437,
+      "wallMs": 4505,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxm3nq",
+        "title": "How a flush toilet works",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxm3nq:0",
+            "cue": "Tank fills up",
+            "answer": "Water flows into the tank until it reaches a set level.",
+            "why": "The float stops the flow once the water hits the right height.",
+            "scene": "A glass tank slowly fills with water, stopping just below a smiling rubber duck.",
+            "glyphs": [
+              "🚰",
+              "📏",
+              "🦆"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The tank fills forever until it overflows.",
+              "right": "A float mechanism stops the water at the correct level."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxm3nq:1",
+            "cue": "Flushing begins",
+            "answer": "Pressing the handle opens a valve at the tank's bottom.",
+            "why": "This valve controls the flow of water into the bowl.",
+            "scene": "A metal gate swings open like a tiny door when you push the handle.",
+            "glyphs": [
+              "🚽",
+              "🚪",
+              "💧"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The handle directly pushes water into the bowl.",
+              "right": "The handle opens a valve that lets water flow."
+            },
+            "link": "causes"
+          },
+          {
+            "id": "cx_mwkxm3nq:2",
+            "cue": "Water rushes out",
+            "answer": "Water pours from the tank into the bowl quickly.",
+            "why": "Gravity pulls the water down, creating a strong flow.",
+            "scene": "A waterfall of water cascades from the tank into a waiting bowl below.",
+            "glyphs": [
+              "🌊",
+              "⬇️",
+              "🚽"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Water trickles slowly into the bowl.",
+              "right": "Gravity makes water rush quickly from tank to bowl."
+            },
+            "link": "creates"
+          },
+          {
+            "id": "cx_mwkxm3nq:3",
+            "cue": "Bowl empties",
+            "answer": "The water in the bowl drains away through a pipe.",
+            "why": "The drain line pulls the waste and water out of the bowl.",
+            "scene": "A hidden pipe under the bowl sucks everything away like a vacuum.",
+            "glyphs": [
+              "🕳️",
+              "🚽",
+              "💨"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The water stays in the bowl after flushing.",
+              "right": "The drain immediately pulls water and waste away."
+            },
+            "link": "allows"
+          },
+          {
+            "id": "cx_mwkxm3nq:4",
+            "cue": "Siphon effect",
+            "answer": "The draining water creates a suction that pulls waste away.",
+            "why": "As water leaves, it lowers pressure, pulling everything with it.",
+            "scene": "A tiny whirlpool forms in the bowl as waste disappears.",
+            "glyphs": [
+              "🌀",
+              "🚽",
+              "💧"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Water alone removes the waste without suction.",
+              "right": "Draining water creates suction that pulls waste with it."
+            },
+            "link": "completes"
+          },
+          {
+            "id": "cx_mwkxm3nq:5",
+            "cue": "Tank refills",
+            "answer": "Once empty, the tank begins refilling automatically.",
+            "why": "The valve at the bottom closes, and the fill valve opens again.",
+            "scene": "The tank's gate slams shut, and a faucet above starts dripping.",
+            "glyphs": [
+              "🔄",
+              "🚰",
+              "🚪"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "The tank never refills after one flush.",
+              "right": "The tank automatically refills once the flush is complete."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "anc",
+      "domain": "everyday",
+      "audience": "adult",
+      "topic": "How noise-cancelling headphones work",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 5,
+      "mythChecks": 5,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4155,
+      "wallMs": 4240,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxm8ov",
+        "title": "How noise-cancelling headphones work",
+        "subtitle": "5 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxm8ov:0",
+            "cue": "Microphone picks up sound",
+            "answer": "Microphones capture surrounding sound waves as electrical signals.",
+            "why": "Sound waves vibrate the microphone's diaphragm, creating measurable electrical changes.",
+            "scene": "A tiny spider-web microphone nestles between your ear and the world.",
+            "glyphs": [
+              "🎤",
+              "🌊",
+              "⚡"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Microphones just amplify the sound you hear.",
+              "right": "Microphones convert sound vibrations into electrical signals for processing."
+            },
+            "link": "enables signal processing"
+          },
+          {
+            "id": "cx_mwkxm8ov:1",
+            "cue": "Signal gets processed",
+            "answer": "The processor compares incoming sound to a quiet reference signal.",
+            "why": "Finding the inverse of the noise allows it to be subtracted out.",
+            "scene": "A tiny wizard in the headphone circuit scribbles anti-noise spells.",
+            "glyphs": [
+              "🧙",
+              "🔍",
+              "🔊"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "The processor simply turns down the volume of all sounds.",
+              "right": "The processor calculates an exact inverse signal to cancel specific noise."
+            },
+            "link": "creates anti-noise signal"
+          },
+          {
+            "id": "cx_mwkxm8ov:2",
+            "cue": "Anti-noise signal generated",
+            "answer": "The processor creates a sound wave that is the exact opposite of the noise.",
+            "why": "When noise and its inverse meet, they cancel each other out.",
+            "scene": "Two waves, one black and one white, collide and vanish.",
+            "glyphs": [
+              "🔄",
+              "❌",
+              "🌌"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Anti-noise is just silence played back to you.",
+              "right": "Anti-noise is a precise sound wave that destructively interferes with noise."
+            },
+            "link": "sends to speaker"
+          },
+          {
+            "id": "cx_mwkxm8ov:3",
+            "cue": "Speaker emits anti-noise",
+            "answer": "The headphone speaker plays the anti-noise directly into your ear.",
+            "why": "The anti-noise meets the noise at your eardrum and cancels it.",
+            "scene": "A tiny speaker whispers the exact opposite of every outside whisper.",
+            "glyphs": [
+              "🔊",
+              "🛡️",
+              "👂"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "The speaker only plays music, not the anti-noise.",
+              "right": "The speaker continuously plays both music and precisely timed anti-noise."
+            },
+            "link": "results in quiet"
+          },
+          {
+            "id": "cx_mwkxm8ov:4",
+            "cue": "Noise is cancelled",
+            "answer": "The noise and anti-noise waves cancel each other, leaving quiet.",
+            "why": "Destructive interference removes unwanted sound pressure at your ear.",
+            "scene": "A noisy street wave hits your ear and dissolves into calm.",
+            "glyphs": [
+              "🌆",
+              "❌",
+              "🌿"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Cancellation just makes all sound quieter for everyone nearby.",
+              "right": "Cancellation only removes specific noise frequencies reaching your ear, not others'."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "notes",
+      "domain": "pasted notes",
+      "audience": "teen",
+      "topic": "Water cycle notes (Year 9 geography)\n- sun heats oceans/lakes -> evaporation, water vapour rises\n- plants lose water from leaves = transpiration\n- vapour cools higher up -> condenses on dust -> clouds\n- droplets join, get heavy -> precipitation (rain, snow, hail)\n- runoff over ground into rivers, some soaks in = infiltration -> groundwater\n- rivers + groundwater flow back to sea, cycle repeats",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 6,
+      "mythChecks": 6,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 4486,
+      "wallMs": 4564,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxmdi5",
+        "title": "Water Cycle Journey",
+        "subtitle": "6 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxmdi5:0",
+            "cue": "Sun warms water",
+            "answer": "Sun heats water, turning it to vapor that rises.",
+            "why": "Heat makes water molecules move faster and escape into air.",
+            "scene": "A giant hairdryer blows on a swimming pool, making steam dance upward.",
+            "glyphs": [
+              "☀️",
+              "💦",
+              "💨"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "Only oceans evaporate, not lakes or rivers.",
+              "right": "All surface water evaporates when the sun heats it."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxmdi5:1",
+            "cue": "Plants breathe water",
+            "answer": "Plants push water vapor from leaves into the air.",
+            "why": "This adds more water vapor to the air around us.",
+            "scene": "A giant green monster wigs out, spraying mist from its hair.",
+            "glyphs": [
+              "🌿",
+              "💨",
+              "💧"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "Transpiration is just water dripping from leaves.",
+              "right": "Transpiration releases vapor, not liquid, into the air."
+            },
+            "link": "combines with"
+          },
+          {
+            "id": "cx_mwkxmdi5:2",
+            "cue": "Air cools vapor",
+            "answer": "Cool air makes vapor condense into tiny droplets on dust.",
+            "why": "Cool temperatures slow molecules, letting them stick together.",
+            "scene": "Breath fogs a cold window, leaving tiny water droplets on glass.",
+            "glyphs": [
+              "❄️",
+              "💧",
+              "🪨"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "Clouds form from water falling directly from the sky.",
+              "right": "Clouds form when vapor condenses on particles in the air."
+            },
+            "link": "forms"
+          },
+          {
+            "id": "cx_mwkxmdi5:3",
+            "cue": "Droplets become clouds",
+            "answer": "Tiny droplets clump together to make visible clouds.",
+            "why": "Clumping creates structures big enough to scatter light and appear.",
+            "scene": "A snow globe shakes, and tiny snowflakes clump into fluffy clouds.",
+            "glyphs": [
+              "☁️",
+              "🔬",
+              "🌀"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Clouds are made of ice only, not water droplets.",
+              "right": "Clouds are mostly tiny water droplets, sometimes with ice."
+            },
+            "link": "grows into"
+          },
+          {
+            "id": "cx_mwkxmdi5:4",
+            "cue": "Clouds drop water",
+            "answer": "Heavy water droplets fall as rain, snow or hail.",
+            "why": "Gravity pulls them down when they are too heavy to stay.",
+            "scene": "A bucket overflows, dripping ice cubes, water drops and snow.",
+            "glyphs": [
+              "🌧️",
+              "❄️",
+              "🌨️"
+            ],
+            "order": 4,
+            "check": {
+              "wrong": "Rain falls only when it is hot outside.",
+              "right": "Precipitation occurs in many temperatures, as rain, snow or hail."
+            },
+            "link": "flows to"
+          },
+          {
+            "id": "cx_mwkxmdi5:5",
+            "cue": "Water returns home",
+            "answer": "Runoff flows to rivers, infiltration soaks into groundwater, both reach oceans.",
+            "why": "Gravity and soil absorption move water back to start the cycle.",
+            "scene": "A garden hose splashes on dirt, feeding a stream and soaking roots.",
+            "glyphs": [
+              "🌊",
+              "🕳️",
+              "💧"
+            ],
+            "order": 5,
+            "check": {
+              "wrong": "Groundwater never reaches the ocean again.",
+              "right": "Groundwater flows slowly back to oceans to restart the cycle."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "sky",
+      "domain": "science (child)",
+      "audience": "child",
+      "topic": "Why is the sky blue?",
+      "ok": true,
+      "status": 200,
+      "error": "",
+      "stages": 4,
+      "mythChecks": 4,
+      "repaired": 0,
+      "model": "bedrock:us.amazon.nova-2-lite-v1:0",
+      "serverMs": 3695,
+      "wallMs": 3786,
+      "attempts": 1,
+      "deck": {
+        "id": "cx_mwkxmiky",
+        "title": "Why the sky is blue",
+        "subtitle": "4 linked stages, taught by the Palace Architect",
+        "ordered": true,
+        "source": "architect",
+        "kind": "concept",
+        "items": [
+          {
+            "id": "cx_mwkxmiky:0",
+            "cue": "Sunlight hits air",
+            "answer": "Sunlight bounces off air molecules in many directions.",
+            "why": "Air molecules scatter shorter blue light more than longer red light.",
+            "scene": "Tiny invisible dancers scattering blue glitter from a flashlight beam.",
+            "glyphs": [
+              "🌞",
+              "💨",
+              "🔵"
+            ],
+            "order": 0,
+            "check": {
+              "wrong": "The sky is blue because the sun is blue.",
+              "right": "The sun is yellow; blue light scatters more in our atmosphere."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxmiky:1",
+            "cue": "Blue light spreads out",
+            "answer": "Blue light spreads more than other colors when it hits air.",
+            "why": "Shorter blue light waves bounce off molecules more easily than longer red waves.",
+            "scene": "Blue ribbons fluttering wildly in a gentle breeze, red ribbons barely moving.",
+            "glyphs": [
+              "🔵",
+              "💨",
+              "🎀"
+            ],
+            "order": 1,
+            "check": {
+              "wrong": "All colors spread the same in the air.",
+              "right": "Blue light scatters more than red or yellow light."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxmiky:2",
+            "cue": "Our eyes see blue",
+            "answer": "Our eyes are most sensitive to the scattered blue light.",
+            "why": "Human eyes detect blue light strongly, making the sky appear blue.",
+            "scene": "A baby looking up, seeing a bright blue balloon against white clouds.",
+            "glyphs": [
+              "👀",
+              "🔵",
+              "🎈"
+            ],
+            "order": 2,
+            "check": {
+              "wrong": "We see the sky as blue because space is blue.",
+              "right": "Space is black; we see blue because of scattered sunlight."
+            },
+            "link": "leads to"
+          },
+          {
+            "id": "cx_mwkxmiky:3",
+            "cue": "Sunset turns red",
+            "answer": "At sunset, light travels farther, scattering blue away and leaving red.",
+            "why": "Longer path through air removes more blue light, letting red reach us.",
+            "scene": "A orange cat sleeping as the sun dips behind red cliffs.",
+            "glyphs": [
+              "🌇",
+              "🐱",
+              "🔴"
+            ],
+            "order": 3,
+            "check": {
+              "wrong": "Sunsets are red because the sun turns red.",
+              "right": "Sunsets appear red due to longer light paths scattering blue light."
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

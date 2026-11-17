@@ -8,6 +8,7 @@
  *   e2eConcept         parsed from .tmp/e2e-concept.log if present, e.g. from
  *                        python3 scripts/e2e-concept.py | tee .tmp/e2e-concept.log
  *   architect          docs/architect-eval.json, written by scripts/eval-architect.mjs
+ *   architectBackup    docs/architect-eval-bedrock.json, written by eval-architect.mjs --bedrock
  *   roomMatrix         .tmp/matrix-pass1.json then .tmp/matrix-none2.json (later files
  *                        replace earlier rows for the same room), from scripts/matrix.py --tag=...
  *
@@ -86,6 +87,24 @@ if (existsSync(EVAL)) {
   };
 }
 
+/* ---------- architect backup eval: Amazon Nova alone (optional) ---------- */
+let architectBackup;
+const EVAL_BR = at('docs/architect-eval-bedrock.json');
+if (existsSync(EVAL_BR)) {
+  const { summary: s } = JSON.parse(readFileSync(EVAL_BR, 'utf8'));
+  architectBackup = {
+    model: s.primaryModel,
+    passed: s.passed,
+    topics: s.topics,
+    medianMs: s.medianServerMs,
+    medianWallMs: s.medianWallMs,
+    mythChecks: s.mythChecksTotal,
+    stages: s.stagesTotal,
+    ranAt: s.startedAt,
+    command: s.command,
+  };
+}
+
 /* ---------- room matrix (optional) ---------- */
 let roomMatrix;
 const MATRIX = ['.tmp/matrix-pass1.json', '.tmp/matrix-none2.json'].map(at).filter(existsSync);
@@ -135,6 +154,7 @@ const receipts = {
   ...(placementProperty ? { placementProperty } : {}),
   ...(e2eConcept ? { e2eConcept } : {}),
   ...(architect ? { architect } : {}),
+  ...(architectBackup ? { architectBackup } : {}),
   ...(roomMatrix ? { roomMatrix } : {}),
   e2eRuns,
 };
