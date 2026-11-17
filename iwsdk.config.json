@@ -55,6 +55,9 @@
       "spatialUI": {
         "kit": "horizon",
         "preferredColorScheme": "dark"
+      },
+      "gaze": {
+        "suppressWhenDirectPointerActive": false
       }
     }
   },

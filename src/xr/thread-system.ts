@@ -117,6 +117,8 @@ export class ThreadSystem extends createSystem({}) {
       },
     });
     this.mesh = new Mesh(this.geo, this.mat);
+    // The thread runs between and in front of stages; it must never catch a ray meant for one.
+    this.mesh.raycast = () => {};
     this.mesh.frustumCulled = false;
     // Drawn before panels and cards, so anything nearer (the hub, a label) covers it.
     this.mesh.renderOrder = -1;

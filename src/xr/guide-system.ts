@@ -39,6 +39,7 @@ export class GuideSystem extends createSystem({ tiles: { required: [MemoryTile] 
     this.palaceSys = this.world.getSystem(PalaceSystem)!;
     this.chevronMat = new MeshBasicMaterial({ color: 0x5ee3b0, transparent: true, opacity: 0, depthTest: false, toneMapped: false });
     const cone = new Mesh(new ConeGeometry(0.012, 0.03, 3), this.chevronMat);
+    cone.raycast = () => {}; // a pointer for the eye, not a target
     cone.rotation.z = -Math.PI / 2; // tip points along +X before we rotate the group
     cone.renderOrder = 10;
     this.chevron = new Group();

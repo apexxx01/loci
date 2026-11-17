@@ -48,7 +48,12 @@ def pinch(hand='hand-right'):
     time.sleep(2.5)
 
 
-def gaze_at(p):
+def gaze_at(p, turn_head=False):
+    # Eyes only rotate so far: for a target well off to the side a person turns
+    # their head towards it first, then looks.
+    if turn_head:
+        xr('look-at', {'device': 'headset', 'target': p})
+        time.sleep(1.5)
     xr('look-at', {'device': 'gaze', 'target': p})
     time.sleep(3)  # let the gaze pointer settle on its target
 
@@ -64,9 +69,10 @@ check('a gaze input is connected', gaze.get('connected') is True)
 
 xr('set-input-mode', {'mode': 'hand'})
 xr('set-connected', {'device': 'gaze', 'connected': True})
-# Hands at rest in the lap, as a seated person's are. The emulator's default
-# raises them in front of the face, where the left one hovers the docked hub,
-# and any near hover rightly suppresses gaze.
+# Hands at rest in the lap, as a seated person's are. That is close under the
+# docked panel; by default IWSDK pauses gaze while a hand hovers anything near,
+# so Loci turns that off (world.features.gaze.suppressWhenDirectPointerActive)
+# and a resting hand never blinds the eyes.
 for side, x in (('left', -0.18), ('right', 0.18)):
     xr('set-transform', {'device': f'hand-{side}', 'position': {'x': x, 'y': 0.72, 'z': -0.12}})
 ev(f"""const L = window.__loci; if (L.settings.dwell) L.toggleSetting('dwell');
@@ -178,7 +184,7 @@ hub_fit('docked')
 
 time.sleep(4)
 p0 = stage(0)
-gaze_at(p0)
+gaze_at(p0, turn_head=True)
 pinch('hand-right')
 FACE0 = "return window.__loci.debug.records().find(r => r.id.endsWith(':0'))?.face ?? null"
 f0 = wait_for(lambda: ev(FACE0) in (1, 4), 20, 1.5) and ev(FACE0)

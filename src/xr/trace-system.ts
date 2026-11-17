@@ -94,6 +94,7 @@ export class TraceSystem extends createSystem({}) {
         side: DoubleSide,
       });
       const mesh = new Mesh(geo, mat);
+      mesh.raycast = () => {}; // decoration: never in the way of a ray or gaze
       this.n.fromArray(best.normal).normalize();
       this.q.setFromUnitVectors(Z, this.n);
       mesh.quaternion.copy(this.q);

@@ -28,6 +28,8 @@ export class OnboardSystem extends createSystem({}) {
     this.tex = new CanvasTexture(c);
     this.tex.colorSpace = SRGBColorSpace;
     this.sprite = new Sprite(new SpriteMaterial({ map: this.tex, transparent: true, depthTest: false, opacity: 0 }));
+    // A picture of a hand, not a target: rays and gaze pass straight through it.
+    this.sprite.raycast = () => {};
     this.sprite.scale.setScalar(0.11);
     this.sprite.renderOrder = 5;
     this.sprite.visible = false;
