@@ -56,6 +56,12 @@ export const app = {
   status: 'Ready.',
   /** Rebuild-the-chain practice: stage numbers hidden, pinch the stages in order. */
   chainMode: false,
+  /** What aims look-to-select this frame: tracked eyes (glasses) or the head. */
+  gazeSource: 'head' as 'eyes' | 'head',
+  /** Last hub button pressed by looking at it, for tests. */
+  lastLookPress: null as null | string,
+  /** Recent hub buttons pressed by looking, oldest first (tests read this). */
+  lookPresses: [] as string[],
   /** Last grab release, for tuning and tests. */
   lastRelease: null as null | { held: number; travel: number; v: [number, number, number]; result: string },
 };

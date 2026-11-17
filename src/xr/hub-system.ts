@@ -2,7 +2,7 @@
  * Binds the hub panel: deck buttons, palace stats, status line, and places the
  * hub comfortably in front of a seated user when mixed reality starts.
  */
-import { createSystem, Vector3, type UIKitMLAsset } from '@iwsdk/core';
+import { createSystem, Vector3, type Intersection, type Object3D, type Raycaster, type UIKitMLAsset } from '@iwsdk/core';
 import { conceptById } from '../core/concepts.js';
 import { teachConcept, verifyConcept } from '../net/architect-client.js';
 import { replaceItem, savePalace } from '../core/palace.js';
@@ -25,6 +25,12 @@ const ACCESS: { key: keyof Settings; id: string; label: string; on: string; off:
   { key: 'speak', id: 'acc-speak', label: 'Read aloud', on: 'on', off: 'off', say: ['Answers are read aloud when you reveal them.', 'Read aloud is off.'] },
   { key: 'sound', id: 'acc-sound', label: 'Sound', on: 'on', off: 'off', say: ['Sound cues on.', 'Sound cues off. Every cue also shows as colour and text.'] },
 ];
+
+type Lookable = {
+  id: string;
+  el: Object3D & { isVisible?: { value: boolean }; raycast(r: Raycaster, out: Intersection[]): void };
+  press: () => void;
+};
 
 type El = {
   addEventListener(type: string, fn: () => void): void;
@@ -100,6 +106,7 @@ export class HubSystem extends createSystem({}) {
         playClick();
         fn();
       };
+      this.lookables.push({ id, el: el as unknown as Lookable['el'], press: fn });
       el.addEventListener('pointerdown', onDown);
       el.addEventListener('pointerup', onUp);
       el.addEventListener('pointerleave', onLeave);
@@ -444,6 +451,37 @@ export class HubSystem extends createSystem({}) {
     const count = store ? listPalaces(store).length : 1;
     this.setDisplay('btn-switch', count > 1);
     this.setText('btn-switch-label', `Switch palace (${count} saved)`);
+  }
+
+  /** Buttons that look-to-select can press (filled by bind). */
+  private lookables: Lookable[] = [];
+  private lookHits: Intersection[] = [];
+
+  /**
+   * The visible hub button nearest along a ray, for look-to-select. Each
+   * button is raycast on its own (UIKit's panel-level raycast reports the
+   * shared panel mesh, not the button).
+   */
+  lookPick(raycaster: Raycaster): { target: Lookable; distance: number; point: Vector3 } | null {
+    if (!this.panel?.visible) return null;
+    let best: { target: Lookable; distance: number; point: Vector3 } | null = null;
+    for (const t of this.lookables) {
+      if (!t.el.isVisible?.value) continue;
+      this.lookHits.length = 0;
+      t.el.raycast(raycaster, this.lookHits);
+      const hit = this.lookHits[0];
+      if (hit && (!best || hit.distance < best.distance)) best = { target: t, distance: hit.distance, point: hit.point };
+    }
+    return best;
+  }
+
+  /** Press a hub button by looking at it: the same action a pinch would take. */
+  lookPress(t: Lookable): void {
+    playClick();
+    app.lastLookPress = t.id;
+    app.lookPresses.push(t.id);
+    if (app.lookPresses.length > 32) app.lookPresses.shift();
+    t.press();
   }
 
   private el(id: string): El | null {

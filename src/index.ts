@@ -2,6 +2,7 @@ import { DepthSensingSystem, VisibilityState, World } from '@iwsdk/core';
 import projectOptions from 'virtual:iwsdk-project';
 import { deletePalace, listPalaces, reviewInLibrary, savePalace } from './core/palace.js';
 import { app, bus, getStorage } from './xr/app-state.js';
+import { settings, toggleSetting } from './xr/settings.js';
 import { AccessSystem } from './xr/access-system.js';
 import { GuideSystem } from './xr/guide-system.js';
 import { HubSystem } from './xr/hub-system.js';
@@ -85,6 +86,8 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       world,
       app,
       bus,
+      settings,
+      toggleSetting,
       debug: {
         records: () =>
           [...palaces.records.values()].map((r) => ({
