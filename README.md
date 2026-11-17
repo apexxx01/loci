@@ -121,7 +121,7 @@ Every number here comes from a command that can be re-run. Generated 17 Nov 2026
 
 | What | Result | Reproduce |
 | --- | --- | --- |
-| Unit tests | **106 passing** in 11 files, 0 failing (17 Nov 2026, 14:56 IST), including a check that the per-frame hand-sample ring allocates nothing | `npx vitest run` |
+| Unit tests | **106 passing** in 11 files, 0 failing (17 Nov 2026, 15:14 IST), including a check that the per-frame hand-sample ring allocates nothing | `npx vitest run` |
 | Placement property test | **1,000 seeded random rooms**, 6 to 12 memories each, 9,037 placements: every memory placed, no two closer than the solver's own minimum spacing, every slot within 70 degrees of forward and none behind the viewer, heights within the solver's limits | `npx vitest run tests/placement-property.test.ts` |
 | Concept end-to-end in the Immersive Web Emulator | **15/15 checks** (17 Nov 2026, 13:08 IST, sunlit living room, commit 504cfa7): pick a concept, stages land on distinct furniture, threads join and light, myth checks record recalls, exit and re-enter restores everything; restore drift **under 0.1 mm** | `python3 scripts/e2e-concept.py` with the dev server up |
 | Ask and chain practice in the emulator | **8/8 checks** (17 Nov 2026, 14:40 IST, on a freshly loaded page): open Ask, type "How" with three key pinches and the chips become finished questions; build a concept; Rebuild the chain dims the thread and hides the numbers; a stage out of order is refused; the stages picked in order relight every link; finishing reports the run. [docs/e2e-chain-run.txt](docs/e2e-chain-run.txt) | `python3 scripts/e2e-chain.py` with the dev server up |
