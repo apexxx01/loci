@@ -7,6 +7,7 @@ to build its palace, look at a stage to open its myth check, look at the true st
 look at Rebuild the chain and
 then at each stage in order to finish the chain. On Quest 3 the head aims; on
 Meta VR Glasses the eyes do (same code path, see src/xr/access-system.ts).
+It also opens Ask and types a question chip, all by looking.
 
 Run with the managed dev server up (with --allow-browser-automation):
     python3 scripts/e2e-look.py
@@ -60,6 +61,22 @@ for _ in range(5):
     ev("window.__loci.bus.emit({ type: 'new-palace' }); return 1")
 time.sleep(3)
 check('look to select is on', ev("return window.__loci.settings.dwell") is True)
+
+# Asking your own question by look: open Ask, look at a question chip, go back.
+p = hub_pos('btn-ask')
+look(p)
+check('looking at "Ask about anything" opens the keyboard', pressed('btn-ask') and ev(f"return {HUB}.asking") is True, str(p))
+look_away()
+p = wait_for(lambda: hub_pos('pre-how'), 15)
+look(p)
+typed = wait_for(lambda: (ev(f"return {HUB}.askText") or '').strip() != '', 45, 1.5)
+check('looking at a question chip types it', bool(typed), repr(ev(f"return {HUB}.askText")))
+look_away()
+p = hub_pos('ask-cancel')
+look(p)
+pressed('ask-cancel')
+look_away()
+ev(f"{HUB}.askText = ''; window.__loci.app.lookPresses.length = 0; return 1")
 
 p = hub_pos('btn-browse')
 look(p)
