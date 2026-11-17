@@ -90,6 +90,18 @@ The property test below throws 1,000 random rooms at the solver to back these cl
 
 ## Hands-first and accessible
 
+Every way to use Loci, and what each one covers:
+
+| Way in | How | Covers |
+| --- | --- | --- |
+| Pinch | Point a hand at a stage or button and pinch | Everything |
+| Gaze and pinch | Look at it, pinch with either hand (Meta VR Glasses) | Everything; hand rays take over if gaze drops out |
+| Look to select | Hold your gaze until the ring fills; no hands | The panel and its keyboard, opening stages, myth checks, rating, rebuilding the chain |
+| Read aloud | Answers are spoken when revealed | Every stage |
+| High contrast and larger tiles | Black cards, white text, yellow edges; tiles 35% larger | Every card |
+| Calm motion | No flights, hops or shakes; on by itself if the system asks for reduced motion | Every animation |
+
+
 - **Pinch** with bare hands for everything: turn a stage over, choose a myth check answer, type on the panel keyboard.
 - **Gaze and pinch on Meta VR Glasses.** The project requests gaze tracking (optional, so Quest 3 enters normally). Where the runtime has it, IWSDK's gaze aims at what you look at and a pinch from either hand selects: the panel, a concept, a stage. If gaze drops out, each hand's own far ray takes over. Checked on the emulator's glasses profile: [9 of 9](docs/e2e-glasses-run.txt), including that the panel fits the glasses' 74 by 68 degree view (37 left and right, 25 up, 43 down).
 - **Look to select: the whole loop with no hands.** Hold your gaze on a button or a stage and a ring fills, then it presses: the panel, a ready-made walk, opening a stage, answering a myth check, rebuilding the chain. Your eyes aim where they are tracked (the glasses), your head where they are not (Quest 3). Panel buttons wait a little longer than stages, because they are also what you read, and after a press nothing on the panel arms until your gaze moves, so a button that appears under your eyes is never pressed by accident. Checked with the controllers and hands disconnected: [8 of 8](docs/e2e-look-run.txt).
