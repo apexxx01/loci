@@ -87,7 +87,10 @@
         <Button id="concept-web" class="btn"><ButtonIcon><Globe></Globe></ButtonIcon><ButtonLabel class="lbl">How a web page arrives</ButtonLabel></Button>
       </div>
       <div class="row">
+        <Button id="concept-pr" class="btn"><ButtonIcon><GitPullRequest></GitPullRequest></ButtonIcon><ButtonLabel class="lbl">How code gets merged</ButtonLabel></Button>
         <Button id="deck-planets" class="btn"><ButtonIcon><Orbit></Orbit></ButtonIcon><ButtonLabel class="lbl">A quick list: the planets</ButtonLabel></Button>
+      </div>
+      <div class="row">
         <Button id="deck-phone" class="btn"><ButtonIcon><FileText></FileText></ButtonIcon><ButtonLabel class="lbl" id="deck-phone-label">Paste notes on a screen</ButtonLabel></Button>
       </div>
     </div>

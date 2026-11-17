@@ -93,6 +93,7 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
           [...palaces.records.values()].map((r) => ({
             id: r.item.id,
             face: r.entity.getValue(MemoryTile, 'face'),
+            due: Boolean(r.entity.getValue(MemoryTile, 'due')),
             wrongFirst: r.wrongFirst,
             lastCheck: r.lastCheck,
             label: r.label,

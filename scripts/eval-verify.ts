@@ -17,6 +17,7 @@ const PLANTED: Record<string, [number, string]> = {
   'concept-vaccine': [2, 'Antibodies are made by red blood cells and fit every germ equally well.'],
   'concept-water': [2, 'Clouds are made of invisible water vapour, not droplets.'],
   'concept-method': [3, 'Making a palace in a virtual room gives no measurable benefit over studying flat flashcards.'],
+  'concept-pr': [2, 'Opening a pull request immediately merges the change into the main branch.'],
   'concept-web': [0, 'Your browser finds a website by sending its name directly to every computer on the internet.'],
 };
 

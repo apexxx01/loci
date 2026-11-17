@@ -6,8 +6,8 @@ import { checkMnemonic } from '../src/core/safety.js';
 import { DeckSchema, PalaceSchema } from '../src/core/schema.js';
 
 describe('ready-made concepts', () => {
-  it('ships six concepts that pass the deck schema', () => {
-    expect(CONCEPTS).toHaveLength(6);
+  it('ships seven concepts that pass the deck schema', () => {
+    expect(CONCEPTS).toHaveLength(7);
     for (const d of CONCEPTS) expect(DeckSchema.safeParse(d).success, d.id).toBe(true);
   });
 
@@ -137,3 +137,4 @@ describe('fact-check pass', () => {
     expect(p).toContain('myth: Blood without oxygen is blue.');
   });
 });
+

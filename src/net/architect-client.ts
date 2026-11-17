@@ -175,6 +175,7 @@ const OFFLINE_KEYS: [string, string[]][] = [
   ['concept-vaccine', ['vaccin', 'immun', 'antibod']],
   ['concept-water', ['water cycle', 'evaporat', 'precipitat', 'condensation', 'rain form']],
   ['concept-web', ['web page', 'website', 'browser', 'dns', 'http']],
+  ['concept-pr', ['pull request', 'merge request', 'code review', 'git merge', 'merged']],
 ];
 
 /**

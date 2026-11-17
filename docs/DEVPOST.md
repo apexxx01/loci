@@ -4,7 +4,7 @@
 
 ## Images to upload (in this order)
 
-1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the tops they rest on.
+1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the couch and table tops.
 2. `docs/headset-card.png`: a stage pinched open: the claim, why it is true, a Fact-checked badge and a chip naming the next stage.
 3. `docs/headset-concept.png`: the whole six-stage chain around the room, with the hub panel in front of the viewer.
 4. `docs/walk-stage.jpg`: the website walk.
@@ -63,12 +63,11 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 ## Accomplishments
 
 - A learning loop that uses the room itself: stages on real furniture, a causal thread, myth checks, rebuilding the chain, and spaced returns.
-- End-to-end emulator suite passing, including asking, building, the myth check, the thread, and restoring every stage to within a millimetre after re-entering.
+- End-to-end emulator suite passing, including asking, building, the myth check, the thread, and restoring every stage to within 0.1 mm after re-entering.
 - All 8 of the emulator's synthetic rooms passed all 15 concept checks on the first try, with 47 of 48 stages on the room's own furniture and walls; with no scene data at all, every stage fell back to the seated arc and all 15 checks still passed.
-- The Palace Architect taught 20 of 20 test topics in a median 2.8 s each.
 - Look to select passed 8 of 8 emulator checks with the hands disconnected, and the Meta VR Glasses profile passed 9 of 9 (gaze plus a pinch from either hand, the panel inside the glasses' view, hand rays when gaze drops out).
 - Profiled per system in the emulator, Loci's own systems take well under 1 ms of a frame on average; 106 unit tests, including a 1,000-room placement property test and a no-allocation check on the per-frame path.
-- 20 of 20 live Architect topics produced a full concept in our eval, and the fact-check pass caught 6 of 6 planted errors on the right stage with no false alarms on the shipped concepts.
+- 20 of 20 live Architect topics produced a full concept in our eval, in a median 2.8 s each, and the fact-check pass caught 6 of 6 planted errors on the right stage with no false alarms on the shipped concepts.
 
 ## What we learned
 

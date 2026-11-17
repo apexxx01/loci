@@ -1,5 +1,5 @@
 /**
- * Ready-made concepts: how six things work, as linked stages. They ship with
+ * Ready-made concepts: how seven things work, as linked stages. They ship with
  * the app so the first minute never waits on a network, and every line was
  * written to be checked against a textbook. Each stage teaches a claim, why it
  * is true, a picture, one common misconception to test, and the link to the
@@ -267,6 +267,52 @@ export const CONCEPTS: Deck[] = [
     },
   ]),
 
+  concept('pr', 'How a pull request gets merged', 'Five stages, from branch to main', [
+    {
+      cue: 'Work starts on a branch',
+      answer: 'You make your changes on a branch: a separate line of history that starts from the main code.',
+      why: 'Main stays untouched, so other people keep working and nothing half-finished reaches users.',
+      scene: 'A sapling grows sideways off a thick tree trunk, with your name tag tied to it.',
+      glyphs: ['\u{1F33F}', '\u{1F333}'],
+      check: { wrong: 'Editing a branch changes the main code straight away.', right: 'A branch is separate; main is untouched until a merge.' },
+      link: 'and once the work is ready it is',
+    },
+    {
+      cue: 'Commits are pushed',
+      answer: 'Each commit saves a snapshot of your changes with a message; pushing uploads them to the shared repository.',
+      why: 'Until you push, your commits exist only on your own machine.',
+      scene: 'You seal snapshots into labelled envelopes and drop the bundle into a shared mailbox.',
+      glyphs: ['\u{1F4F8}', '\u{1F4EC}'],
+      check: { wrong: 'Your team can see a commit the moment you make it.', right: 'Commits stay on your machine until you push them.' },
+      link: 'so you can open',
+    },
+    {
+      cue: 'A pull request asks to merge',
+      answer: 'A pull request proposes merging your branch into main and shows exactly which lines changed.',
+      why: 'It gives the change one place for discussion, checks and approval before anything lands.',
+      scene: 'You slide a folder across a desk, every changed line highlighted in yellow.',
+      glyphs: ['\u{1F4C2}', '\u{1F58D}\u{FE0F}'],
+      check: { wrong: 'Opening a pull request merges the code.', right: 'A pull request only proposes the change; nothing merges until it is approved and merged.' },
+      link: 'which triggers',
+    },
+    {
+      cue: 'Checks run automatically',
+      answer: 'Continuous integration builds the code and runs the automated tests against the proposed change.',
+      why: 'Machines catch the mistakes the tests know about before a person spends time reviewing.',
+      scene: 'A row of robots in hard hats test every brick of your wall and hold up green or red flags.',
+      glyphs: ['\u{1F916}', '\u{2705}'],
+      check: { wrong: 'Passing checks prove the code has no bugs.', right: 'Passing checks only show the existing tests pass; untested behaviour can still be wrong.' },
+      link: 'alongside',
+    },
+    {
+      cue: 'Review, then merge',
+      answer: 'Teammates review the change and approve it or ask for changes; once approved, it is merged into main.',
+      why: 'Review checks design, correctness and risk, and spreads knowledge of the code across the team.',
+      scene: 'Two colleagues sign the folder with big pens, and the sapling grafts itself back into the trunk.',
+      glyphs: ['\u{270D}\u{FE0F}', '\u{1F333}'],
+      check: { wrong: 'Code review is only for catching typos.', right: 'Review checks design, correctness and risk, not just spelling.' },
+    },
+  ]),
   concept('web', 'How a web page reaches you', 'Five stages, in under a second', [
     {
       cue: 'The name is looked up',

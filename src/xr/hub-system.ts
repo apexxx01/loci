@@ -117,7 +117,7 @@ export class HubSystem extends createSystem({}) {
       );
     };
 
-    for (const id of ['heart', 'plants', 'seasons', 'vaccine', 'water', 'web']) {
+    for (const id of ['heart', 'plants', 'seasons', 'vaccine', 'water', 'web', 'pr']) {
       bind(`concept-${id}`, () => {
         const deck = conceptById(`concept-${id}`);
         if (deck) bus.emit({ type: 'start-deck', deck });
