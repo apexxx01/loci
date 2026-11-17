@@ -12,7 +12,10 @@
  * 2 s between requests, never sends more than BUDGET requests in any rolling
  * 10-minute window, and backs off on 429.
  *
- *   node scripts/eval-architect.mjs [--url https://loci-vr.vercel.app/api/architect] [--limit N]
+ *   node scripts/eval-architect.mjs [--url https://loci-vr.vercel.app/api/architect] [--limit N] [--bedrock]
+ *
+ * --bedrock sends prefer: "bedrock" so only the AWS backup (Amazon Nova) answers,
+ * and writes docs/architect-eval-bedrock.{md,json} instead.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -26,6 +29,8 @@ const arg = (name, dflt) => {
 };
 const URL_ = arg('url', 'https://loci-vr.vercel.app/api/architect');
 const LIMIT = Number(arg('limit', '0')) || Infinity;
+const BEDROCK = args.includes('--bedrock');
+const OUT = BEDROCK ? 'architect-eval-bedrock' : 'architect-eval';
 
 const GAP_MS = 2_000;
 const WINDOW_MS = 10 * 60_000;
@@ -137,7 +142,7 @@ async function main() {
   for (const [i, t] of topics.entries()) {
     if (i > 0) await sleep(GAP_MS);
     process.stdout.write(`[${i + 1}/${topics.length}] ${t.id} ... `);
-    const r = await budgetedPost({ mode: 'teach', topic: t.topic, audience: t.audience });
+    const r = await budgetedPost({ mode: 'teach', topic: t.topic, audience: t.audience, ...(BEDROCK ? { prefer: 'bedrock' } : {}) });
     const deck = r.status === 200 && r.data && r.data.deck;
     const items = deck ? deck.items : [];
     const row = {
@@ -165,11 +170,12 @@ async function main() {
   const ok = results.filter((r) => r.ok);
   const summary = {
     url: URL_,
-    command: 'node scripts/eval-architect.mjs',
+    command: `node scripts/eval-architect.mjs${BEDROCK ? ' --bedrock' : ''}`,
+    bedrockOnly: BEDROCK,
     startedAt: startedAt.toISOString(),
     finishedAt: finishedAt.toISOString(),
     startedAtIST: ist(startedAt),
-    primaryModel: info?.model ?? null,
+    primaryModel: BEDROCK ? `bedrock:${info?.bedrock}` : info?.model ?? null,
     fallbacks: info?.fallbacks ?? [],
     topics: results.length,
     passed: ok.length,
@@ -184,10 +190,10 @@ async function main() {
   };
 
   mkdirSync(resolve(ROOT, 'docs'), { recursive: true });
-  writeFileSync(resolve(ROOT, 'docs/architect-eval.json'), JSON.stringify({ summary, results }, null, 2) + '\n');
-  writeFileSync(resolve(ROOT, 'docs/architect-eval.md'), report(summary, results));
+  writeFileSync(resolve(ROOT, `docs/${OUT}.json`), JSON.stringify({ summary, results }, null, 2) + '\n');
+  writeFileSync(resolve(ROOT, `docs/${OUT}.md`), report(summary, results));
   console.log(`\npass ${ok.length}/${results.length}, median server ${summary.medianServerMs} ms, median wall ${summary.medianWallMs} ms`);
-  console.log('wrote docs/architect-eval.md and docs/architect-eval.json');
+  console.log(`wrote docs/${OUT}.md and docs/${OUT}.json`);
 }
 
 const cell = (s) => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
@@ -196,7 +202,8 @@ const short = (s, n = 70) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…'
 function report(s, results) {
   const pct = (x) => `${Math.round(x * 100)}%`;
   const lines = [];
-  lines.push('# Palace Architect: live teach-mode evaluation', '');
+  lines.push(BEDROCK ? '# Palace Architect: backup model (Amazon Nova) evaluation' : '# Palace Architect: live teach-mode evaluation', '');
+  if (BEDROCK) lines.push('Every request carried `prefer: "bedrock"`, so Gemini was skipped and Amazon Nova on AWS Bedrock answered alone, with no fallback. This measures the backup the live app falls back to when Gemini is overloaded.', '');
   lines.push(`Run: ${s.startedAtIST} (${s.startedAt} UTC start, ${s.finishedAt} UTC end), against \`${s.url}\`.`, '');
   lines.push('Command:', '', '```sh', s.command, '```', '');
   lines.push(
@@ -254,7 +261,7 @@ function report(s, results) {
     });
     lines.push('');
   }
-  lines.push('Raw results for every topic, including full decks: [architect-eval.json](architect-eval.json).', '');
+  lines.push(`Raw results for every topic, including full decks: [${OUT}.json](${OUT}.json).`, '');
   return lines.join('\n');
 }
 

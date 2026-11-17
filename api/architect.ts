@@ -101,7 +101,7 @@ const TEACH_CACHE = new Map<string, unknown>();
  * First valid answer wins; the rest are aborted. Cuts tail latency when one
  * model is overloaded, at the cost of an occasional duplicate call.
  */
-async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT_MS): Promise<unknown> {
+async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT_MS, chain: string[] = MODELS): Promise<unknown> {
   const controllers: AbortController[] = [];
   const errors: string[] = [];
   return await new Promise<unknown>((resolve, reject) => {
@@ -119,8 +119,8 @@ async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT
     };
 
     const launch = () => {
-      if (settled || next >= MODELS.length) return;
-      const model = MODELS[next++];
+      if (settled || next >= chain.length) return;
+      const model = chain[next++];
       const ctrl = new AbortController();
       controllers.push(ctrl);
       inFlight++;
@@ -137,7 +137,7 @@ async function gemini(prompt: string, schema: object | null, timeoutMs = TIMEOUT
           // Any failure (overload, timeout, a model rejecting a parameter,
           // malformed JSON) just moves on to the next model in the chain.
           errors.push(`${model}: ${e.name === 'AbortError' ? 'timeout' : e.message.slice(0, 80)}`);
-          if (next < MODELS.length) launch();
+          if (next < chain.length) launch();
           else if (inFlight === 0) {
             finish(() => reject(Object.assign(new Error(`All models unavailable (${errors.join('; ')})`), { status: 503 })));
           }
@@ -242,7 +242,7 @@ export async function POST(request: Request): Promise<Response> {
   if (raw.length > MAX_BODY) return json(413, { error: 'Notes are too long. Keep it under about 4,000 characters.' });
   let body: {
     mode?: string; notes?: unknown; items?: unknown; kind?: unknown; audience?: unknown;
-    topic?: unknown; title?: unknown; stages?: unknown; explanation?: unknown; item?: unknown;
+    topic?: unknown; title?: unknown; stages?: unknown; explanation?: unknown; item?: unknown; prefer?: unknown;
   };
   try {
     body = JSON.parse(raw);
@@ -251,6 +251,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const started = Date.now();
+  // prefer: "bedrock" sends the request to the AWS backup alone, no Gemini.
+  // Used by scripts/eval-architect.mjs --bedrock to measure the backup on its
+  // own; same rate limit as every other request.
+  const bedrockOnly = body.prefer === 'bedrock' && BEDROCK_READY;
+  const chain = bedrockOnly ? [BEDROCK_ID] : MODELS;
+  const ask = (prompt: string, schema: object | null) => gemini(prompt, schema, TIMEOUT_MS, chain);
   try {
     if (body.mode === 'bind') {
       const items = Array.isArray(body.items)
@@ -261,7 +267,7 @@ export async function POST(request: Request): Promise<Response> {
           }))
         : [];
       if (!items.length) return json(400, { error: 'No items to bind.' });
-      const out = await gemini(bindPrompt(items), BIND_RESPONSE_SCHEMA);
+      const out = await ask(bindPrompt(items), BIND_RESPONSE_SCHEMA);
       const vetted = vetBoundScenes(out, items, items.map((i) => `${i.cue} ${i.scene}`).join(' '));
       return json(200, { ...vetted, model: lastModel, ms: Date.now() - started });
     }
@@ -273,13 +279,13 @@ export async function POST(request: Request): Promise<Response> {
       const topic = typeof body.topic === 'string' ? body.topic : '';
       if (topic.trim().length < 3) return json(400, { error: 'Name something to understand first.' });
       // Warm instances remember recent concepts, so a repeated question is instant.
-      const key = `${audienceOf(body.audience)}|${topic.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`;
+      const key = `${bedrockOnly ? 'bedrock|' : ''}${audienceOf(body.audience)}|${topic.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}`;
       const hit = TEACH_CACHE.get(key);
       if (hit) return json(200, { deck: hit, repaired: 0, model: 'cache', cached: true, ms: Date.now() - started });
       const id = `cx_${Date.now().toString(36)}`;
       const prompt = teachPrompt(topic, audienceOf(body.audience));
-      let vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
-      if (!vetted) vetted = vetConceptOutput(await gemini(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
+      let vetted = vetConceptOutput(await ask(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
+      if (!vetted) vetted = vetConceptOutput(await ask(prompt, CONCEPT_RESPONSE_SCHEMA), topic, id);
       if (!vetted) return json(502, { error: 'The Architect could not explain that one. Try naming it a little differently.' });
       TEACH_CACHE.set(key, vetted.deck);
       if (TEACH_CACHE.size > 200) TEACH_CACHE.delete(TEACH_CACHE.keys().next().value as string);
@@ -293,7 +299,7 @@ export async function POST(request: Request): Promise<Response> {
       const explanation = str(body.explanation, 3000);
       if (!stages.length) return json(400, { error: 'Nothing to grade against.' });
       if (explanation.trim().length < 12) return json(400, { error: 'Write a sentence or two first.' });
-      const graded = vetGrade(await gemini(gradePrompt(str(body.title, 80), stages, explanation), GRADE_RESPONSE_SCHEMA), stages, explanation);
+      const graded = vetGrade(await ask(gradePrompt(str(body.title, 80), stages, explanation), GRADE_RESPONSE_SCHEMA), stages, explanation);
       if (!graded) return json(502, { error: 'The Architect could not grade that. Try again.' });
       return json(200, { ...graded, model: lastModel, ms: Date.now() - started });
     }
@@ -305,7 +311,7 @@ export async function POST(request: Request): Promise<Response> {
           }))
         : [];
       if (!stages.length) return json(400, { error: 'Nothing to check.' });
-      const flags = vetVerify(await gemini(verifyPrompt(str(body.title, 80), stages), VERIFY_RESPONSE_SCHEMA), stages);
+      const flags = vetVerify(await ask(verifyPrompt(str(body.title, 80), stages), VERIFY_RESPONSE_SCHEMA), stages);
       return json(200, { flags, model: lastModel, ms: Date.now() - started });
     }
 
@@ -313,7 +319,7 @@ export async function POST(request: Request): Promise<Response> {
       const it = (body.item ?? {}) as Record<string, unknown>;
       const item = { cue: str(it.cue, 80), answer: str(it.answer, 200), scene: str(it.scene, 240), label: str(it.label, 30) };
       if (!item.cue || !item.answer) return json(400, { error: 'No memory to re-imagine.' });
-      const out = await gemini(reimaginePrompt(item), BIND_RESPONSE_SCHEMA);
+      const out = await ask(reimaginePrompt(item), BIND_RESPONSE_SCHEMA);
       const vetted = vetBoundScenes(out, [item], `${item.cue} ${item.answer} ${item.scene}`);
       // A repaired result is just the old scene re-bound: report it as unchanged.
       return json(200, { scene: vetted.repaired ? null : vetted.scenes[0], model: lastModel, ms: Date.now() - started });
@@ -324,10 +330,10 @@ export async function POST(request: Request): Promise<Response> {
     const id = `ai_${Date.now().toString(36)}`;
     const kind: Kind = KINDS.includes(body.kind as Kind) ? (body.kind as Kind) : 'notes';
     const audience: Audience = AUDIENCES.includes(body.audience as Audience) ? (body.audience as Audience) : 'adult';
-    let vetted = vetArchitectOutput(await gemini(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
+    let vetted = vetArchitectOutput(await ask(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
     if (!vetted) {
       // One retry: structured output occasionally truncates long lists.
-      vetted = vetArchitectOutput(await gemini(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
+      vetted = vetArchitectOutput(await ask(architectPrompt(notes, kind, audience), ARCHITECT_RESPONSE_SCHEMA), notes, id);
     }
     if (!vetted) return json(502, { error: 'The Architect returned something unusable. Try again or shorten your notes.' });
     return json(200, { deck: vetted.deck, repaired: vetted.repaired, model: lastModel, ms: Date.now() - started });
