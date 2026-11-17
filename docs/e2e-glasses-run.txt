@@ -1,0 +1,14 @@
+ranAt: 2026-11-17 12:55 IST
+command: python3 scripts/e2e-glasses.py (dev.emulator.device = metaVRGlasses)
+
+PASS  emulator is the Meta VR Glasses profile  Meta VR Glasses
+PASS  gaze-tracking granted for the session  local-floor, bounded-floor, hand-tracking, anchors, hit-test, plane-detection, mesh-detection, gaze-tracking, eye-tracking, depth-sensing, viewer, local
+PASS  a gaze input is connected  
+PASS  the opening hub fits the glasses view when you look at it  48 x 41 cm at 0.59 m: 44 x 38 deg against 74 x 68, looking at its centre
+PASS  gaze at "Ready-made walks" + right-hand pinch opens it  hovered first: True
+PASS  gaze at a concept + LEFT-hand pinch builds its palace  
+PASS  the docked hub fits the glasses view when you look at it  48 x 58 cm at 0.65 m: 40 x 48 deg against 74 x 68, looking 1 deg below its centre
+PASS  gaze at a stage + pinch opens it  face 4
+PASS  with gaze disconnected, a hand ray aims and opens a stage  face 1
+
+9/9 checks passed in 428 s
