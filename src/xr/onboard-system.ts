@@ -44,6 +44,9 @@ export class OnboardSystem extends createSystem({}) {
         if (done()) return;
         if (e.type === 'palace-ready' && !e.restored) this.go('pinch');
         else if (e.type === 'flipped' && e.face === 4) this.go('choose');
+        // The pinch is learned once a stage opens: the hand steps aside, and
+        // comes back for the A and B answers the first time a myth check opens.
+        else if (e.type === 'flipped' && e.face === 1 && this.step === 'pinch') this.go('off');
         else if (e.type === 'rated') {
           this.go('off');
           try {

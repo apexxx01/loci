@@ -122,6 +122,7 @@ const e2eRuns = {
   lookOnly: runFile('docs/e2e-look-run.txt', 'python3 scripts/e2e-look.py'),
   glasses: runFile('docs/e2e-glasses-run.txt', 'python3 scripts/e2e-glasses.py (emulator device metaVRGlasses)'),
   dayAfter: runFile('docs/e2e-return-run.txt', 'python3 scripts/e2e-return.py'),
+  firstMinutes: runFile('docs/e2e-first-run.txt', 'python3 scripts/e2e-first.py'),
 };
 
 const receipts = {

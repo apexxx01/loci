@@ -6,7 +6,7 @@
 
 1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the couch and table tops.
 2. `docs/headset-card.png`: a stage pinched open: the claim, why it is true, a Fact-checked badge and a chip naming the next stage.
-3. `docs/headset-return.png`: the day after (emulator, dates moved back four days): every stage back on its furniture and awake, the panel saying "Welcome back. 6 memories are glowing, ready to recall." and the guide arrow pointing at the first.
+3. `docs/headset-return.png`: the day after (emulator, saved dates moved back as if days had passed): every stage back on its furniture and awake, the panel saying "Welcome back. 6 memories are glowing, ready to recall." and the guide arrow pointing at the first.
 4. `docs/headset-concept.png`: the whole six-stage chain around the room, with the hub panel in front of the viewer.
 5. `docs/walk-stage.jpg`: the website walk.
 6. `docs/walk-explain-back.jpg`: explain-back graded.
@@ -38,7 +38,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 
 **Best Reason to Come Back.** Coming back is the whole method, and we test the day after: in the emulator we study a walk, move every saved date back four days, leave and come back. Every stage is exactly where it was, the stages due are drawn awake, the panel says how many are waiting, and the guide points at the first (7 of 7 checks). FSRS schedules each stage just before you would forget it, the stages wait on the same furniture through persistent anchors, due stages glow when you return, and a stage you keep missing comes back with a brand-new picture. The website puts your next three walks in your calendar with a link back in.
 
-**Best First Five Minutes.** There is one gesture, and the first time a drawn hand shows it, beside your first stage and then beside the two answers. It is three pinches to your first opened stage (Ready-made walks, a concept, a stage), or a few more to ask your own question: the panel keyboard's chips turn into finished questions as you type, and the Architect answers in a median 2.8 s. When the palace lands, the thread ignites stage by stage and each label says which of your things it is on.
+**Best First Five Minutes.** There is one gesture, and the first time a drawn hand shows it, beside your first stage and then beside the two answers. From a fresh install it is three pinches to your first opened stage (Ready-made walks, a concept, a stage), checked in the emulator with storage cleared (6 of 6), or a few more to ask your own question: the panel keyboard's chips turn into finished questions as you type, and the Architect answers in a median 2.8 s. When the palace lands, the thread ignites stage by stage and each label says which of your things it is on.
 
 **Best Accessibility Forward Experience.** Every interaction has a path with no hands: Look to select presses panel buttons, opens stages, answers myth checks and rebuilds the chain, and our emulator test runs that whole loop with the hands disconnected (9 of 9). On Meta VR Glasses your eyes aim and a pinch from either hand selects; on the glasses profile the panel fits their narrower view (9 of 9). It is seated by design, with read-aloud, high contrast, larger tiles, calm motion (on automatically if the system asks for reduced motion) and a sound switch where every cue also shows as text.
 
