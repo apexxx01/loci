@@ -121,6 +121,7 @@ const e2eRuns = {
   chain: runFile('docs/e2e-chain-run.txt', 'python3 scripts/e2e-chain.py'),
   lookOnly: runFile('docs/e2e-look-run.txt', 'python3 scripts/e2e-look.py'),
   glasses: runFile('docs/e2e-glasses-run.txt', 'python3 scripts/e2e-glasses.py (emulator device metaVRGlasses)'),
+  dayAfter: runFile('docs/e2e-return-run.txt', 'python3 scripts/e2e-return.py'),
 };
 
 const receipts = {

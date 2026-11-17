@@ -1,13 +1,18 @@
-ranAt: 2026-11-16 19:34 IST
+ranAt: 2026-11-17 14:40 IST
 command: python3 scripts/e2e-chain.py
+commit: ee8ef12
 
 PASS  XR session active  
+   keyboard open after Ask: True
+   after key-h: {'asking': True, 'text': 'H', 'chips': ['How does ', 'Why do ', 'What is ', 'Explain ']}
+   after key-o: {'asking': True, 'text': 'Ho', 'chips': ['How does the heart pump blood?', 'How does photosynthesis work?', 'How do vaccines work?', 'How does the internet work?']}
+   after key-w: {'asking': True, 'text': 'How', 'chips': ['How does the heart pump blood?', 'How does photosynthesis work?', 'How do vaccines work?', 'How does the internet work?']}
 PASS  typing turns the chips into finished questions  typed 'How'; visible pre-how, pre-why, pre-what, pre-explain; chips ['How does the heart pump blood?', 'How does photosynthesis work?', 'How do vaccines work?', 'How does the internet work?']
 PASS  6 stages placed  6
 PASS  chain practice offered for a concept  
 PASS  chain mode on: thread dims  0.12
 PASS  a stage out of order is refused  Not the first stage. Where does it all begin?
 PASS  picking the stages in order relights every link  [1, 1, 1, 1, 1, 0]
-PASS  finishing ends practice and reports the run  Chain rebuilt in 286 seconds with 1 slip. Try it again to make it flawless.
+PASS  finishing ends practice and reports the run  Chain rebuilt in 306 seconds with 1 slip. Try it again to make it flawless.
 
 8/8 checks passed

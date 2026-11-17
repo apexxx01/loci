@@ -130,7 +130,12 @@ export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
   {
     n: String(R.e2eRuns.lookOnly.passed),
     unit: `/${R.e2eRuns.lookOnly.checks}`,
-    text: 'look-only checks passing in the emulator: the panel, a concept, a stage and the whole chain, with no hands at all',
+    text: 'look-only checks passing in the emulator: the panel, a concept, a stage, its myth check and the whole chain, with no hands at all',
+  },
+  {
+    n: String(R.e2eRuns.dayAfter.passed),
+    unit: `/${R.e2eRuns.dayAfter.checks}`,
+    text: 'day-after checks: four days on, every stage is back in the same spot, the due ones are awake, and the panel says how many are waiting',
   },
   {
     n: String(R.e2eRuns.glasses.passed),

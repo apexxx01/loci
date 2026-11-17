@@ -42,11 +42,22 @@ def tap_tile(i, wait=2.5):
     time.sleep(wait)
 
 
+def hub_pos(name):
+    # The panel's own world position for the element: the emulator's target
+    # boxes for panel buttons can lag a row behind the layout after it reflows.
+    return ev(f"""const h = [...window.__loci.world.systems].find(s => s.constructor.name === 'HubSystem');
+      const el = h?.panel.getElementById('{name}'); if (!el || !el.isVisible?.value) return null;
+      const p = el.getWorldPosition(el.position.clone()); return {{ x: p.x, y: p.y, z: p.z }}""")
+
+
 def press(name, wait=1.6):
-    t = targets()
-    if name not in t:
-        return False
-    aim_select(t[name]['position'])
+    pos = hub_pos(name)
+    if pos is None:
+        t = targets()
+        if name not in t:
+            return False
+        pos = t[name]['position']
+    aim_select(pos)
     time.sleep(wait)
     return True
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-17T07:33:55.927Z",
+  "generatedAt": "2026-11-17T09:26:31.043Z",
   "command": "node scripts/receipts.mjs",
   "tests": 106,
   "testsTotal": 106,
@@ -19,7 +19,7 @@
   "e2eConcept": {
     "checks": 15,
     "passed": 15,
-    "ranAt": "2026-11-16 17:37 IST",
+    "ranAt": "2026-11-17 13:08 IST",
     "maxRestoreDriftM": 0
   },
   "architect": {
@@ -176,14 +176,14 @@
     "chain": {
       "passed": 8,
       "checks": 8,
-      "ranAt": "2026-11-16 19:34 IST",
+      "ranAt": "2026-11-17 14:40 IST",
       "command": "python3 scripts/e2e-chain.py",
       "doc": "docs/e2e-chain-run.txt"
     },
     "lookOnly": {
-      "passed": 8,
-      "checks": 8,
-      "ranAt": "2026-11-17 12:02 IST",
+      "passed": 9,
+      "checks": 9,
+      "ranAt": "2026-11-17 13:58 IST",
       "command": "python3 scripts/e2e-look.py",
       "doc": "docs/e2e-look-run.txt"
     },
@@ -193,6 +193,13 @@
       "ranAt": "2026-11-17 12:55 IST",
       "command": "python3 scripts/e2e-glasses.py (emulator device metaVRGlasses)",
       "doc": "docs/e2e-glasses-run.txt"
+    },
+    "dayAfter": {
+      "passed": 7,
+      "checks": 7,
+      "ranAt": "2026-11-17 14:14 IST",
+      "command": "python3 scripts/e2e-return.py",
+      "doc": "docs/e2e-return-run.txt"
     }
   }
 }
