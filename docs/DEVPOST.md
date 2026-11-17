@@ -6,9 +6,10 @@
 
 1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the couch and table tops.
 2. `docs/headset-card.png`: a stage pinched open: the claim, why it is true, a Fact-checked badge and a chip naming the next stage.
-3. `docs/headset-concept.png`: the whole six-stage chain around the room, with the hub panel in front of the viewer.
-4. `docs/walk-stage.jpg`: the website walk.
-5. `docs/walk-explain-back.jpg`: explain-back graded.
+3. `docs/headset-return.png`: the day after (emulator, dates moved back four days): every stage back on its furniture and awake, the panel saying "Welcome back. 6 memories are glowing, ready to recall." and the guide arrow pointing at the first.
+4. `docs/headset-concept.png`: the whole six-stage chain around the room, with the hub panel in front of the viewer.
+5. `docs/walk-stage.jpg`: the website walk.
+6. `docs/walk-explain-back.jpg`: explain-back graded.
 
 ## Tagline
 
