@@ -331,7 +331,7 @@ def look2():
     time.sleep(14)
     xr('set-connected', {'device': 'hand-right', 'connected': False})
     xr('set-connected', {'device': 'hand-left', 'connected': False})
-    ev("const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell'); const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1")
+    ev("const L=window.__loci; if (L.settings.dwell) L.toggleSetting('dwell'); const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1")
     time.sleep(2)
     t = targets()
     order = {int(k.rsplit(':', 1)[1]): pos(v) for k, v in t.items() if k.startswith('tile:')}
@@ -343,9 +343,12 @@ def look2():
     away = [p[0] - 0.7, p[1] - 0.2, p[2]]
     d = '.tmp/film/look2'
     fr = F.move(e0, e1, away, away, 1.2)
+    # Look to select turns on only now, with the gaze still away from every stage.
+    fr[0]['js'] = "const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell');"
     fr += F.move(e1, e1, away, near, 0.6)
-    fr += F.hold(e1, near, 2.2)
+    fr += F.hold(e1, near, 3.0)
     F.run(d, fr, start=0, release=False, chunk=45)
+    return
     n = len(fr)
     wf = ev(f"return window.__loci.debug.records()[{i}].wrongFirst")
     right = wpos('choice-B' if wf else 'choice-A')
