@@ -1,17 +1,18 @@
-ranAt: 2026-11-17 18:09 IST
+ranAt: 2026-11-18 15:35 IST
 command: python3 scripts/e2e-look.py
-commit: a87255b
+commit: c54c00b
 
 PASS  look to select is on  
-PASS  looking at "Ask about anything" opens the keyboard  {'x': 0, 'y': 1.3963411765197167, 'z': -0.5565364849191737}
+PASS  looking at "Ask about anything" opens the keyboard  {'x': 0, 'y': 1.3963411763213351, 'z': -0.5250364439493974}
 PASS  looking at a question chip types it  'How does '
-PASS  looking at "Ready-made walks" presses it  {'x': -0.10725000159814954, 'y': 1.337847151973976, 'z': -0.5331388733719225}
+PASS  looking at "Ready-made walks" presses it  {'x': -0.10725000159814954, 'y': 1.337847152485711, 'z': -0.5016388305584777}
 PASS  staying on the same spot presses nothing else  ['btn-browse']
-PASS  looking at a concept presses it  {'x': -0.10725000159814954, 'y': 1.4098040885614167, 'z': -0.561921650133788}
+PASS  looking at a concept presses it  {'x': -0.10725000159814954, 'y': 1.4098040881995957, 'z': -0.5304216095883479}
 PASS  the palace builds from that look  
 PASS  looking at a stage opens its myth check  face 4
 PASS  looking at the true statement answers the myth check  lastCheck right
 PASS  looking at "Rebuild the chain" starts it  
 PASS  looking at all 6 stages in order rebuilds the chain  6 of 6
 
-11/11 checks passed in 1055 s
+11/11 checks passed in 635 s
+exit 0 after 635 s

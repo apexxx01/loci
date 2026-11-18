@@ -240,3 +240,27 @@ def look():
     xr('set-connected', {'device': 'hand-right', 'connected': True})
     xr('set-connected', {'device': 'hand-left', 'connected': True})
     ev("const L=window.__loci; if (L.settings.dwell) L.toggleSetting('dwell'); return 1")
+
+
+def chain():
+    """Rebuild the chain: the thread goes dark and the numbers hide; the stages are
+    picked in causal order (the same handler a pinch or a look uses) and relight."""
+    prep('sunlit_living_room')
+    hide_hand('right')
+    hide_hand('left')
+    build_heart()
+    PAL = "[...window.__loci.world.systems].find(s => s.constructor.name === 'PalaceSystem')"
+    REC = "[...window.__loci.world.systems].find(s => s.constructor.name === 'RecallSystem')"
+    ev(f"for (const r of {PAL}.records.values()) {REC}.rate(r, 'good'); return 1")
+    time.sleep(4)
+    e = [0.0, 1.2, 0.35]
+    a, b = [-1.7, 1.0, -2.3], [1.7, 0.9, -2.0]
+    fr = F.hold(e, a, 0.7)
+    fr[8]['js'] = "window.__loci.debug.press('btn-chain')"
+    pan = F.move(e, e, a, b, 4.6, curve=lambda t: t)
+    for k in range(6):
+        pan[10 + k * 22]['js'] = f"window.__loci.debug.press('chain:{k}')"
+    fr += pan
+    fr += F.hold(e, b, 1.0)
+    F.run('.tmp/film/chain', fr, start=0, release=True, chunk=45)
+    print('chain', ev("return window.__loci.app.status"), flush=True)

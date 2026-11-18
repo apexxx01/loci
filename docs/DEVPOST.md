@@ -19,6 +19,16 @@ Every headset image is a real capture from the Immersive Web Emulator: the emula
 
 Your room remembers. Ask about anything, and Loci turns it into a chain of stages that live on your real furniture, joined by a thread of light.
 
+## In ten seconds
+
+Loci turns any question into a walk of 4 to 7 stages placed on your real furniture (scene understanding plus persistent anchors), quizzes you on the myths people actually believe, and brings you back the next day with the due stages glowing exactly where you left them. No headset? Walk it on your phone in a minute: https://loci-vr.vercel.app
+
+- **3 pinches** from a fresh install to your first opened stage (6 of 6 checks, emulator).
+- **The day after:** every stage back on the same object with 0.0 mm drift, the due ones awake (8 of 8).
+- **No hands at all:** Look to select runs the whole loop with hands and controllers disconnected (11 of 11).
+
+Built solo, without a headset: every mixed-reality test and shot is in the Immersive Web Emulator's synthetic rooms. Limits are listed in the README.
+
 ## Inspiration
 
 The oldest memory trick there is, the method of loci, works because the brain keeps facts by place. Place cells and grid cells won the 2014 Nobel Prize; 9 of the 10 memory champions scanned in a 2003 study used the method; people with ordinary memory went from 26 to 62 of 72 words after 40 days of practice. The hard part was always imagining the palace. Quest 3 can see your room, so it never has to be imagined again.
@@ -71,7 +81,7 @@ We also wanted to go past memorising lists. Most of what people need to learn is
 - End-to-end emulator suite passing, including asking, building, the myth check, the thread, and restoring every stage to within 0.1 mm after re-entering.
 - All 8 of the emulator's synthetic rooms passed all 15 concept checks on the first try, with 47 of 48 stages on the room's own furniture and walls; with no scene data at all, every stage fell back to the seated arc and all 15 checks still passed.
 - Look to select passed 11 of 11 emulator checks with the hands disconnected, and the Meta VR Glasses profile passed 9 of 9 (gaze plus a pinch from either hand, the panel inside the glasses' view, hand rays when gaze drops out).
-- Profiled per system in the emulator, Loci's own systems take well under 1 ms of a frame on average; 106 unit tests, including a 1,000-room placement property test and a no-allocation check on the per-frame path.
+- Profiled per system in the emulator, Loci's own systems take well under 1 ms of a frame on average; 109 unit tests, including a 1,000-room placement property test and a no-allocation check on the hand-sample buffer.
 - 20 of 20 live Architect topics produced a full concept in our eval, in a median 2.8 s each, and the fact-check pass caught 6 of 8 planted errors on the right stage with no false alarms on the 8 shipped concepts.
 
 ## What we learned

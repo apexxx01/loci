@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-17T16:55:39.431Z",
+  "generatedAt": "2026-11-18T10:16:51.318Z",
   "command": "node scripts/receipts.mjs",
-  "tests": 106,
-  "testsTotal": 106,
+  "tests": 109,
+  "testsTotal": 109,
   "testsFailed": 0,
   "testFiles": 11,
   "placementProperty": {
@@ -19,7 +19,7 @@
   "e2eConcept": {
     "checks": 15,
     "passed": 15,
-    "ranAt": "2026-11-17 17:34 IST",
+    "ranAt": "2026-11-18 15:16 IST",
     "maxRestoreDriftM": 0
   },
   "architect": {
@@ -183,7 +183,7 @@
     "lookOnly": {
       "passed": 11,
       "checks": 11,
-      "ranAt": "2026-11-17 18:09 IST",
+      "ranAt": "2026-11-18 15:35 IST",
       "command": "python3 scripts/e2e-look.py",
       "doc": "docs/e2e-look-run.txt"
     },
@@ -204,7 +204,7 @@
     "firstMinutes": {
       "passed": 6,
       "checks": 6,
-      "ranAt": "2026-11-17 18:29 IST",
+      "ranAt": "2026-11-18 15:28 IST",
       "command": "python3 scripts/e2e-first.py",
       "doc": "docs/e2e-first-run.txt"
     }

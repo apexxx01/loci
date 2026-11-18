@@ -1,6 +1,6 @@
-ranAt: 2026-11-17 18:29 IST
+ranAt: 2026-11-18 15:28 IST
 command: python3 scripts/e2e-first.py
-commit: a87255b
+commit: c54c00b
 
 PASS  entered mixed reality from a fresh install  
 PASS  the panel opens on Ask, with the ready-made walks one pinch away  {'palace': False, 'ask': True, 'browse': True}
@@ -10,4 +10,5 @@ PASS  the third pinch opens stage 1 to its full card  face 1, 3 pinches
 PASS  the drawn hand steps aside once the first stage is open  off
 
 from a fresh install to the first opened stage: 3 pinches
-6/6 checks passed in 379 s
+6/6 checks passed in 232 s
+exit 0 after 233 s
