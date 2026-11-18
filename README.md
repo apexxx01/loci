@@ -11,12 +11,12 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
   <img src="docs/walk-explain-back.jpg" width="49%" alt="The explain-back step at the door: 3 of 6 stages explained, graded on the device">
 </p>
 <p>
-  <img src="docs/headset-closeup.png" width="70%" alt="In the headset (emulator capture): stages glow on the table, couch and lamp, joined by the gold thread, with rings of light on the tops they rest on.">
+  <img src="docs/room-thread.jpg" width="80%" alt="In the headset (emulator capture, synthetic living room): stages on the couch, coffee table, TV unit and screen, joined by the gold thread.">
 </p>
 
 ---
 
-<p align="center"><img src="docs/headset-card.png" width="49%" alt="In the headset (emulator capture): a stage pinched open, with the claim, why it holds, a Fact-checked badge and a chip naming the next stage." /> <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: a living room drawn in light, with the first stage and its myth check." /></p>
+<p align="center"><img src="docs/room-card.jpg" width="49%" alt="In the headset (emulator capture): a stage on the couch pinched open, with the claim, why it holds and a Fact-checked badge." /> <img src="docs/room-return.jpg" width="49%" alt="The next day in the emulator: Welcome back, 5 stages are glowing, ready to recall." /></p>
 
 ## Try it in 60 seconds
 

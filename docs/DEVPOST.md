@@ -4,12 +4,16 @@
 
 ## Images to upload (in this order)
 
-1. `docs/headset-closeup.png`: stages on the table, couch and lamp of the emulator's living room, joined by the gold thread, with rings of light on the couch and table tops.
-2. `docs/headset-card.png`: a stage pinched open: the claim, why it is true, a Fact-checked badge and a chip naming the next stage.
-3. `docs/headset-return.png`: the next day (emulator, saved dates moved back a day), seen from the seat: the stages back on their furniture and awake, the panel docked clear of them saying "Welcome back. 6 stages are glowing, ready to recall." with 6 due and 6/6 studied, and the guide arrow pointing to stage 1.
-4. `docs/headset-concept.png`: the whole six-stage chain around the room, with the hub panel in front of the viewer.
-5. `docs/walk-stage.jpg`: the website walk.
-6. `docs/walk-explain-back.jpg`: explain-back graded.
+1. `docs/room-thread.jpg`: the heart walk in the emulator's living room: stages on the couch, coffee table, TV unit and screen, joined by the gold thread.
+2. `docs/room-card.jpg`: a stage on the couch pinched open: the claim, why it holds, a Fact-checked badge and a chip naming the next stage.
+3. `docs/room-check.jpg`: the myth check on the coffee table: "Which is true?" with A and B beside the card.
+4. `docs/room-verdict.jpg`: the true statement picked: "Right." and the thread from that stage lights up.
+5. `docs/room-return.jpg`: the next day (saved dates moved back a day): "Welcome back. 5 stages are glowing, ready to recall." with 5 due and 6/6 studied.
+6. `docs/room-bedroom.jpg`: the same walk in a different room (the emulator's bedroom), on the lamps, the bed and the wall.
+7. `docs/walk-stage.jpg`: the website walk.
+8. `docs/walk-explain-back.jpg`: explain-back graded.
+
+Every headset image is a real capture from the Immersive Web Emulator: the emulator's synthetic room composited under the app, exactly as the emulator shows it.
 
 ## Tagline
 

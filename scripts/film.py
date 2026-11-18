@@ -57,11 +57,14 @@ def run(dir, frames, start=0, release=True, quality=0.93, chunk=60):
         txt = out.stdout + out.stderr
         i = txt.find('__RESULT__')
         if i < 0:
-            print(f'{dir}: chunk at {done} failed: {txt[-600:]}', flush=True)
-            if chunk > 15:
-                chunk //= 2
-                continue
-            return {'error': txt[-600:], 'done': done}
+            # A timed-out run still saved the frames it finished, and the app has
+            # already stepped past them: continue after the last saved frame.
+            import os
+            saved = len([f for f in os.listdir(dir) if f.endswith('.jpg') and start + done <= int(f[:5]) < start + done + len(part)]) if os.path.isdir(dir) else 0
+            print(f'{dir}: chunk at {done} timed out after {saved} frames', flush=True)
+            done += saved
+            chunk = max(12, chunk // 2) if saved < len(part) // 2 else chunk
+            continue
         res = json.loads(txt[i + 10:].split('\n')[0])
         done += res['frames']
         print(f'  {dir}: {done}/{len(frames)} ({res["sec"]:.0f}s for {res["frames"]})', flush=True)

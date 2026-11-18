@@ -107,3 +107,136 @@ def prep(room='sunlit_living_room'):
 
 if __name__ == '__main__':
     globals()[sys.argv[1]](*sys.argv[2:])
+
+
+def build_heart():
+    """Open the heart walk with the same handlers a pinch uses, and wait for the stages to settle."""
+    ev("window.__film && (window.__film.on=false); return 1")
+    ev("window.__loci.debug.press('btn-browse'); return 1")
+    time.sleep(2)
+    ev("window.__loci.debug.press('concept-heart'); return 1")
+    for _ in range(45):
+        n = ev('return window.__loci.app.palace?.placements.length ?? 0')
+        if n == 6:
+            break
+        time.sleep(2)
+    time.sleep(12)  # landing and ignition play out
+    return ev("return window.__loci.app.palace.placements.map(p => [p.label, p.pose.p])")
+
+
+def montage(rooms='bedroom,kitchen,home_office,none'):
+    """One slow push-in per room on a freshly built heart walk."""
+    for room in rooms.split(','):
+        prep(room)
+        hide_hand('right')
+        hide_hand('left')
+        pl = build_heart()
+        pts = [p for _, p in pl]
+        c = [sum(p[i] for p in pts) / len(pts) for i in range(3)]
+        print(room, 'labels', [l for l, _ in pl], 'centre', [round(x, 2) for x in c], flush=True)
+        look = [c[0], max(0.8, c[1]), c[2]]
+        e0 = [0.0, 1.2, 0.35]
+        e1 = [c[0] * 0.15, 1.2, -0.15]
+        fr = F.move(e0, e1, look, look, 2.0, curve=lambda t: t)
+        F.run(f'.tmp/film/room-{room}', fr, release=True, chunk=45)
+
+
+def overlays():
+    """Scene understanding made visible: the emulator's planes and furniture boxes, before any stage lands."""
+    prep('sunlit_living_room')
+    hide_hand('right')
+    hide_hand('left')
+    ev("const s=window.IWER_DEVICE.sem; s.planes.visible=true; s.boxes.visible=true; return 1")
+    fr = F.move([0.0, 1.2, 0.2], [0.0, 1.2, 0.2], [-1.4, 0.9, -2.4], [1.4, 0.85, -2.2], 3.2)
+    F.run('.tmp/film/overlays', fr, release=True, chunk=45)
+    ev("const s=window.IWER_DEVICE.sem; s.planes.visible=false; s.boxes.visible=false; return 1")
+
+
+def lookonly():
+    """Hands and controllers off, Look to select on: a held gaze opens a stage."""
+    ev("window.__film && (window.__film.on=false); return 1")
+    xr('set-connected', {'device': 'hand-right', 'connected': False})
+    xr('set-connected', {'device': 'hand-left', 'connected': False})
+    ev("const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell'); return 1")
+    time.sleep(2)
+    t = targets()
+    tiles = sorted((k for k in t if k.startswith('tile:')), key=lambda k: int(k.rsplit(':', 1)[1]))
+    p = pos(t[tiles[3]])
+    e = [0.0, 1.2, 0.0]
+    start = [p[0] - 0.9, p[1] - 0.15, p[2]]
+    fr = F.move(e, e, start, [p[0], p[1] + 0.02, p[2]], 1.2)
+    fr += F.hold(e, [p[0], p[1] + 0.02, p[2]], 2.6)
+    F.run('.tmp/film/lookonly', fr, release=True, chunk=45)
+    print(json.dumps(ev("return window.__loci.debug.records().map(r=>[r.label,r.face])")))
+
+
+def press_take(dir, start, target_name, look, eye=EYE, idle=6, after=10):
+    """One filmed press: aim the hand at a panel target, pinch, press on the pinch frame."""
+    t = targets()
+    if target_name not in t:
+        print('missing target', target_name, sorted(k for k in t if not k.startswith('tile:'))[:40], flush=True)
+        return start
+    place_hand('right', pos(t[target_name]), eye=eye)
+    fr = F.hold(eye, look, (idle + 7 + after) / 30)
+    for i in range(idle, idle + 6):
+        fr[i]['pinch'] = {'side': 'right', 'v': 1}
+    fr[idle + 5]['js'] = f"window.__loci.debug.press({json.dumps(target_name)})"
+    fr[idle + 6]['pinch'] = {'side': 'right', 'v': 0}
+    F.run(dir, fr, start=start, release=False, chunk=45)
+    return start + len(fr)
+
+
+def ask():
+    """Asking inside the headset: Ask about anything, 'How does', C, O, the finished chip, Teach me."""
+    prep('sunlit_living_room')
+    d = '.tmp/film/ask'
+    t = targets()
+    hub = pos(t['hub-heading'])
+    look = [hub[0] * 0.6, hub[1] - 0.12, hub[2]]
+    n = 0
+    fr = F.hold(EYE, look, 0.8)
+    F.run(d, fr, start=n, release=False)
+    n += len(fr)
+    for name in ['btn-ask', 'pre-how', 'key-c', 'key-o', 'pre-how', 'ask-go']:
+        n = press_take(d, n, name, look)
+        print(name, '->', ev("return window.__loci.app.status"), flush=True)
+    fr = F.hold(EYE, look, 1.2)
+    F.run(d, fr, start=n, release=True)
+
+
+def look():
+    """Look to select with hands and controllers disconnected: a held gaze opens a
+    stage's myth check, then a held gaze on the true answer picks it."""
+    ev("window.__film && (window.__film.on=false); return 1")
+    xr('set-connected', {'device': 'hand-right', 'connected': False})
+    xr('set-connected', {'device': 'hand-left', 'connected': False})
+    ev("const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell'); return 1")
+    time.sleep(2)
+    recs = ev("return window.__loci.debug.records().map(r=>[r.label,r.face,r.wrongFirst])")
+    t = targets()
+    order = {int(k.rsplit(':', 1)[1]): pos(v) for k, v in t.items() if k.startswith('tile:')}
+    # a closed stage (face 0 = resting cue) with a myth check, near the middle of the room
+    cand = [i for i, r in enumerate(recs) if r[1] == 0 and i in order]
+    i = min(cand, key=lambda k: abs(order[k][0])) if cand else 3
+    p = order[i]
+    e = [p[0] * 0.25, 1.2, p[2] * 0.25 + 0.3]
+    near = [p[0], p[1] + 0.02, p[2]]
+    d = '.tmp/film/look'
+    fr = F.move(e, e, [p[0] - 0.8, p[1] - 0.1, p[2]], near, 1.0)
+    fr += F.hold(e, near, 2.0)  # ring fills, the myth check opens
+    F.run(d, fr, start=0, release=False, chunk=45)
+    n = len(fr)
+    wf = ev(f"return window.__loci.debug.records()[{i}].wrongFirst")
+    t = targets()
+    right = 'choice-B' if wf else 'choice-A'
+    if right in t:
+        a = pos(t[right])
+        fr = F.move(e, e, near, a, 0.7)
+        fr += F.hold(e, a, 1.6)   # ring fills on the true statement
+        fr += F.move(e, e, a, near, 0.6)
+        fr += F.hold(e, near, 1.4)  # the verdict
+        F.run(d, fr, start=n, release=True, chunk=45)
+    print('look on stage', i, recs[i], json.dumps(ev("return window.__loci.debug.records().map(r=>[r.label,r.face,r.lastCheck])")), flush=True)
+    xr('set-connected', {'device': 'hand-right', 'connected': True})
+    xr('set-connected', {'device': 'hand-left', 'connected': True})
+    ev("const L=window.__loci; if (L.settings.dwell) L.toggleSetting('dwell'); return 1")
