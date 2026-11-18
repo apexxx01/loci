@@ -4,14 +4,15 @@
 
 ## Images to upload (in this order)
 
-1. `docs/room-thread.jpg`: the heart walk in the emulator's living room: stages on the couch, coffee table, TV unit and screen, joined by the gold thread.
-2. `docs/room-card.jpg`: a stage on the couch pinched open: the claim, why it holds, a Fact-checked badge and a chip naming the next stage.
-3. `docs/room-check.jpg`: the myth check on the coffee table: "Which is true?" with A and B beside the card.
-4. `docs/room-verdict.jpg`: the true statement picked: "Right." and the thread from that stage lights up.
-5. `docs/room-return.jpg`: the next day (saved dates moved back a day): "Welcome back. 5 stages are glowing, ready to recall." with 5 due and 6/6 studied.
-6. `docs/room-bedroom.jpg`: the same walk in a different room (the emulator's bedroom), on the lamps, the bed and the wall.
-7. `docs/walk-stage.jpg`: the website walk.
-8. `docs/walk-explain-back.jpg`: explain-back graded.
+1. `docs/room-generated.jpg`: a question asked in the headset ("How does compound interest work?"), answered live by the Architect: four stages on the coffee table, couch, TV unit and screen, joined by the gold thread.
+2. `docs/room-understand.jpg`: what the headset understands: the emulator's labelled planes (blue) and furniture (orange) before any stage lands.
+3. `docs/room-card.jpg`: a stage on the couch pinched open: the claim, why it holds, a Fact-checked badge and a chip naming the next stage.
+4. `docs/room-check.jpg`: the myth check on the coffee table: "Which is true?" with A and B beside the card.
+5. `docs/room-verdict.jpg`: the true statement picked: "Right." and the thread from that stage lights up.
+6. `docs/room-return.jpg`: the next day (saved dates moved back a day): "Welcome back. 5 stages are glowing, ready to recall." with 5 due and 6/6 studied.
+7. `docs/room-bedroom.jpg`: the heart walk in a different room (the emulator's bedroom), on the lamps, the bed and the wall.
+8. `docs/room-thread.jpg`: the heart walk in the living room: stages on the couch, coffee table, TV unit and screen.
+9. `docs/walk-explain-back.jpg`: the website's explain-back, graded.
 
 Every headset image is a real capture from the Immersive Web Emulator: the emulator's synthetic room composited under the app, exactly as the emulator shows it.
 

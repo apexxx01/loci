@@ -100,8 +100,12 @@ def prep(room='sunlit_living_room'):
     time.sleep(8)
     wait_ready()
     time.sleep(4)
-    setup(room)
-    time.sleep(4)
+    for _ in range(3):
+        setup(room)
+        time.sleep(4)
+        if ev("return window.__loci.world.renderer.xr.isPresenting && window.__loci.world.renderer.domElement.width === 1600"):
+            break
+        print('setup did not take; retrying', flush=True)
     print('targets', sorted(k for k in targets() if not k.startswith('tile:'))[:30])
 
 
@@ -273,26 +277,21 @@ def wpos(name):
 
 def understand():
     """Scene understanding made visible, then stages land on it: the panel is set aside
-    for this shot, the emulator's planes and furniture boxes shown strongly, then faded."""
+    for this shot and the emulator's own plane and furniture overlays are shown, then hidden
+    as the stages land."""
     prep('sunlit_living_room')
     hide_hand('right')
     hide_hand('left')
-    ev("""const s=window.IWER_DEVICE.sem; s.planes.visible=true; s.boxes.visible=true;
-      const op=(root,a)=>root.traverse(o=>{ if(o.material){ const m=Array.isArray(o.material)?o.material:[o.material]; for(const x of m){ x.transparent=true; x.opacity=a; x.needsUpdate=true; } } });
-      op(s.planes,0.42); op(s.boxes,0.5);
-      const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1""")
+    ev("const s=window.IWER_DEVICE.sem; s.planes.visible=true; s.boxes.visible=true; const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1")
     e = [0.0, 1.2, 0.3]
-    a, b = [-1.5, 0.95, -2.3], [1.5, 0.9, -2.2]
-    fr = F.move(e, e, a, [0.0, 0.85, -2.3], 2.4)
-    fr[50]['js'] = "window.__loci.debug.press('btn-browse')"
-    fr[60]['js'] = "window.__loci.debug.press('concept-heart')"
-    fade = F.move(e, e, [0.0, 0.85, -2.3], b, 6.0)
-    for i in range(30):
-        a_ = 0.42 * (1 - (i + 1) / 30)
-        fade[i]['js'] = f"const s=window.IWER_DEVICE.sem; const op=(r,a)=>r.traverse(o=>{{ if(o.material){{ const m=Array.isArray(o.material)?o.material:[o.material]; for(const x of m) x.opacity=a; }} }}); op(s.planes,{a_:.3f}); op(s.boxes,{a_ * 1.2:.3f}); if({i}===29){{ s.planes.visible=false; s.boxes.visible=false; }}"
-    fr += fade
-    fr[-30]['js'] = "const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=true;"
-    F.run('.tmp/film/understand', fr, start=0, release=True, chunk=45)
+    fr = F.move(e, e, [-1.5, 0.95, -2.3], [0.0, 0.85, -2.3], 2.4)
+    fr += F.move(e, e, [0.0, 0.85, -2.3], [1.5, 0.9, -2.2], 6.0)
+    fr[40]['js'] = "window.__loci.debug.press('btn-browse')"
+    fr[48]['js'] = "window.__loci.debug.press('concept-heart')"
+    fr[100]['js'] = "const s=window.IWER_DEVICE.sem; s.planes.visible=false; s.boxes.visible=false;"
+    fr[-20]['js'] = "const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=true;"
+    F.run('.tmp/film/understand', fr, start=0, release=True, chunk=40)
+    print('understand', ev("const a=window.__loci.app; return [a.palace?.placements.length, a.status]"), flush=True)
 
 
 def comfort():
@@ -320,6 +319,16 @@ def look2():
     REC = "[...window.__loci.world.systems].find(s => s.constructor.name === 'RecallSystem')"
     ev(f"for (const r of {PAL}.records.values()) {REC}.rate(r, 'good'); return 1")
     time.sleep(3)
+    # The next day, as in the day-after test: saved dates move back a day, then re-enter.
+    ev("""const ms = 86400000; const a = window.__loci.app; const p = a.palace;
+      const back = (s) => s ? new Date(new Date(s).getTime() - ms).toISOString() : s;
+      for (const c of Object.values(p.cards)) { c.due = back(c.due); c.last_review = back(c.last_review); }
+      for (const h of p.history) h.at = back(h.at);
+      p.createdAt = back(p.createdAt);
+      const lib = JSON.parse(localStorage.getItem('loci.library.v2'));
+      lib.palaces[p.id] = p; localStorage.setItem('loci.library.v2', JSON.stringify(lib)); return 1""")
+    setup()
+    time.sleep(14)
     xr('set-connected', {'device': 'hand-right', 'connected': False})
     xr('set-connected', {'device': 'hand-left', 'connected': False})
     ev("const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell'); const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1")
