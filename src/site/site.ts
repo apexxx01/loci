@@ -7,6 +7,7 @@
  * page is the product: build a palace for anything, recall what is glowing,
  * the headset, the Palace Architect, the research and its sources.
  */
+import { startMeteors } from './parts/meteors';
 import '@fontsource/marcellus/400.css';
 import '@fontsource-variable/lexend/wght.css';
 import 'lenis/dist/lenis.css';
@@ -89,6 +90,8 @@ const SOURCES: { n: string; text: string; ref: string; url: string }[] = [
 /* ------------------------------------------------------------------ markup */
 const html = () => `
 <canvas class="sky" aria-hidden="true"></canvas>
+<canvas class="meteors" aria-hidden="true"></canvas>
+<button class="scrollcue" type="button" data-scrollcue inert><span data-scrollcue-text>Scroll to walk the room</span><i aria-hidden="true"><b></b></i></button>
 
 <header class="top">
   <a class="brand" href="#top" aria-label="Loci, back to the start">Loci</a>
@@ -417,6 +420,44 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     if (next > N) return scrollTo($('#room'));
     scrollTo(stationY(Math.max(0, next)) + 2);
   });
+
+  /* ---------- the first screen asks you to scroll: a shooting star lands in a thread of light */
+  const cue = $('[data-scrollcue]');
+  if (coarse) $('[data-scrollcue-text]').textContent = 'Swipe up to walk the room';
+  cue.setAttribute('aria-label', $('[data-scrollcue-text]').textContent!);
+  cue.addEventListener('click', () => scrollTo(stationY(1) + 2));
+  let cueLit = false;
+  const lightCue = () => {
+    cueLit = true;
+    cue.classList.add('is-lit');
+    cue.inert = root.scrollTop > 30;
+  };
+  const atTop = () => !root.hidden && !document.hidden && root.scrollTop <= 30 && !root.classList.contains('is-breathing');
+  root.addEventListener('scroll', () => { if (cueLit) cue.inert = root.scrollTop > 30; }, { passive: true });
+  let cueStarted = false;
+  const startCue = () => {
+    if (cueStarted) return;
+    cueStarted = true;
+    if (calm) return void setTimeout(lightCue, 1600);
+    startMeteors($<HTMLCanvasElement>('.meteors'), {
+      active: atTop,
+      target: () => {
+        const r = cue.querySelector('i')!.getBoundingClientRect();
+        return r.width || r.height ? { x: r.left + r.width / 2, y: r.top + 2 } : null;
+      },
+      onLand: () => {
+        lightCue();
+        cue.classList.remove('is-hit');
+        void cue.offsetWidth;
+        cue.classList.add('is-hit');
+        setTimeout(() => cue.classList.remove('is-hit'), 1400);
+      },
+    });
+    // If the star is missed (tab hidden, already scrolled), light the cue anyway.
+    setTimeout(lightCue, 4200);
+  };
+  void (world?.ready ?? Promise.resolve()).then(() => setTimeout(startCue, 1300));
+  setTimeout(startCue, 3100);
   root.tabIndex = -1;
 
   // Section titles in the nav light up as you reach them.

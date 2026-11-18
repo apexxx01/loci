@@ -533,3 +533,29 @@ button { font-family: inherit; }
 .station .doubt[hidden] { display: none; }
 .station .doubt.doubt--ok { color: var(--mint, #7ef0c4) !important; box-shadow: inset 2px 0 0 var(--mint, #7ef0c4); }
 .ask__check { margin-top: 6px !important; }
+
+/* ------------------------------------------------------------------ the scroll cue: a thread a star lands in */
+.meteors { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; display: block; }
+.scrollcue { --len: 46px; position: fixed; z-index: 6; left: 50%; bottom: clamp(16px, 3.2vh, 32px); display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: none; border: 0; padding: 8px 14px 0; cursor: pointer; color: var(--text); font: 400 14px/1.3 var(--sans); letter-spacing: 0.02em; text-shadow: 0 0 12px rgba(7, 6, 28, 0.9);
+  opacity: 0; transform: translate(-50%, 10px); transition: opacity 1.2s ease, transform 1.4s var(--ease), color 0.3s; }
+.scrollcue span { opacity: 0; transition: opacity 1s ease 0.5s, text-shadow 0.6s; }
+.scrollcue.is-lit { opacity: 1; transform: translate(-50%, 0); }
+.scrollcue.is-lit span { opacity: 1; }
+.is-moving .scrollcue, .is-breathing .scrollcue { opacity: 0 !important; transform: translate(-50%, 10px); pointer-events: none; }
+.scrollcue:hover, .scrollcue:focus-visible { color: #fff; }
+.scrollcue:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; border-radius: 10px; }
+.scrollcue i { position: relative; display: block; width: 1px; height: var(--len); background: linear-gradient(rgba(255, 217, 156, 0), rgba(255, 217, 156, 0.6)); }
+.scrollcue i::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(255, 217, 156, 0.7); animation: cuering 2.8s ease-out infinite; }
+.scrollcue b { position: absolute; left: 50%; top: 0; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #fff6e0; opacity: 0;
+  box-shadow: 0 0 8px 2px rgba(255, 217, 156, 0.9), 0 0 22px 6px rgba(255, 190, 120, 0.35); }
+.scrollcue.is-lit b { animation: cuebead 2.8s cubic-bezier(0.55, 0, 0.75, 0.45) 0.9s infinite; }
+@keyframes cuebead { 0% { transform: translateY(-4px); opacity: 0; } 15% { opacity: 1; } 72% { transform: translateY(calc(var(--len) - 2px)); opacity: 1; } 100% { transform: translateY(var(--len)); opacity: 0; } }
+@keyframes cuering { 0%, 66% { transform: scale(1); opacity: 0.55; } 76% { transform: scale(1.6); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+.scrollcue.is-hit span { color: #fff; text-shadow: 0 0 16px rgba(255, 217, 156, 0.8); transition-delay: 0s; }
+.scrollcue.is-hit i { animation: cueflash 1.1s ease-out; }
+@keyframes cueflash { 0% { box-shadow: 0 0 14px 2px rgba(255, 217, 156, 0.9); } 100% { box-shadow: 0 0 0 0 rgba(255, 217, 156, 0); } }
+@media (max-width: 900px) { .scrollcue { --len: 30px; bottom: 8px; left: auto; right: 10px; padding: 6px 12px 4px; transform: translateY(10px); }
+  .scrollcue span { display: none; } .scrollcue.is-lit { transform: none; } .is-moving .scrollcue { transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { .scrollcue b { opacity: 1; transform: translateY(calc(var(--len) - 4px)); } .meteors { display: none; } }
