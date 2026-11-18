@@ -89,6 +89,29 @@ World.create(document.getElementById('scene-container') as HTMLDivElement, proje
       settings,
       toggleSetting,
       debug: {
+        /**
+         * Press something the way a pinch or a look would (the same handlers), for
+         * frame-stepped video capture: 'btn-...' or 'concept-...' on the panel,
+         * 'tile:<order>', 'choice:0|1' on a myth check, 'chain:<order>'.
+         */
+        press: (id: string): boolean => {
+          const order = (s: string) => [...palaces.records.values()].find((r) => r.item.order === Number(s));
+          if (id.startsWith('tile:')) {
+            const rec = order(id.slice(5));
+            if (rec) world.getSystem(RecallSystem)?.flip(rec);
+            return Boolean(rec);
+          }
+          if (id.startsWith('choice:')) return (world.getSystem(CheckSystem)?.choose(Number(id.slice(7))), true);
+          if (id.startsWith('chain:')) {
+            const rec = order(id.slice(6));
+            if (rec) world.getSystem(ChainSystem)?.pick(rec);
+            return Boolean(rec);
+          }
+          const hub = world.getSystem(HubSystem);
+          const t = hub?.lookables.find((l) => l.id === id);
+          if (t) hub!.lookPress(t);
+          return Boolean(t);
+        },
         records: () =>
           [...palaces.records.values()].map((r) => ({
             id: r.item.id,

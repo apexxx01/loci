@@ -509,7 +509,8 @@ export class HubSystem extends createSystem({}) {
   }
 
   /** Buttons that look-to-select can press (filled by bind). */
-  private lookables: Lookable[] = [];
+  /** Panel buttons a look (or the capture debug handle) can press. */
+  readonly lookables: Lookable[] = [];
   private lookHits: Intersection[] = [];
 
   /**

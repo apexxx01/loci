@@ -11,6 +11,8 @@
   .keys { flex-direction: row; gap: 4px; width: 100%; }
   .chip { flex-grow: 1; flex-basis: 0; min-width: 0px; height: 44px; justify-content: center; background-color: #2e2358; }
   .chip:dark { background-color: #2e2358; }
+  .chip:hover { background-color: #4a3a8c; }
+  .chip:active { background-color: #6a55c0; }
   .space { flex-grow: 2; justify-content: center; }
   .go { background-color: #9a6418; }
   .go:dark { background-color: #9a6418; }
@@ -33,6 +35,8 @@
   .row { flex-direction: row; gap: 9px; }
   .btn { flex-grow: 1; flex-basis: 0; justify-content: flex-start; background-color: #241b4a; }
   .btn:dark { background-color: #241b4a; }
+  .btn:hover { background-color: #3d2f7a; }
+  .btn:active { background-color: #5a47ad; }
   .stat { flex-direction: column; flex-grow: 1; padding: 10px; border-radius: 14px; background-color: #221a45; }
   .stat:dark { background-color: #221a45; }
   .stat-num { color: #ffcf7a; font-size: 26px; font-weight: 700; }
