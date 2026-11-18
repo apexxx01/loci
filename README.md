@@ -6,6 +6,10 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 
 **Live:** https://loci-vr.vercel.app · **Demo video (2:56):** https://youtu.be/oSASO_MFoDQ
 
+![tests](https://img.shields.io/badge/tests-109%20passing-2ea44f) ![rooms](https://img.shields.io/badge/property%20test-1%2C000%20random%20rooms-d4a24c) ![architect](https://img.shields.io/badge/live%20topics-20%2F20%20on%20both%20clouds-7d6bd6) ![license](https://img.shields.io/badge/license-MIT-blue) ![platform](https://img.shields.io/badge/WebXR-IWSDK-5a47ad)
+
+<p align="center"><a href="https://youtu.be/oSASO_MFoDQ"><img src="docs/video-thumb.jpg" width="80%" alt="Watch the 2:56 demo video on YouTube"></a><br><sub>Watch the demo (2:56). Every headset shot is a real emulator capture; nothing is AI-generated.</sub></p>
+
 <p>
   <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: stage 1 of how the heart pumps blood, resting on a couch, with its myth check underneath">
   <img src="docs/walk-explain-back.jpg" width="49%" alt="The explain-back step at the door: 3 of 6 stages explained, graded on the device">
@@ -17,6 +21,22 @@ Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competi
 ---
 
 <p align="center"><img src="docs/room-card.jpg" width="49%" alt="In the headset (emulator capture): a stage on the couch pinched open, with the claim, why it holds and a Fact-checked badge." /> <img src="docs/room-return.jpg" width="49%" alt="The next day in the emulator: Welcome back, 5 stages are glowing, ready to recall." /></p>
+
+## Built solo, without a headset
+
+I'm a first-year student, and I built Loci without ever wearing a Quest. Every mixed-reality feature was built, tested and filmed in the Immersive Web Emulator, so the proof had to come from tests instead of from feel:
+
+- **First minutes:** 3 pinches from a fresh install to the first opened stage (6 of 6 checks).
+- **The day after:** every stage restored to its object, with the due ones awake (8 of 8).
+- **No hands at all:** Look to select runs the whole loop with the hands disconnected (11 of 11). The glasses profile passes 9 of 9.
+- **Any room:** all 8 synthetic rooms pass all 15 concept checks, and a 1,000-room property test places 9,037 stages with 0 collisions.
+- **The Architect:** 20 of 20 live topics on the main cloud (median 2.8 s) and on the backup alone (median 4.0 s).
+
+To film a headset I didn't have, I built a frame-by-frame rig inside the emulator. It pauses the app, steps it exactly 1/30 s, draws the emulator's room under the app and saves the frame: 3,220 frames across 20 takes, about 1.6 s each, for 107 s of headset footage. Not one frame is AI-generated.
+
+<p align="center"><img src="docs/stress-1000-rooms.jpg" width="49%" alt="Stress test: 1,000 seeded random rooms, 9,037 placements: 1,263 on furniture tops, 3,439 on walls, 4,335 on the seated arc, 0 ID collisions."> <img src="docs/eval-latency.jpg" width="49%" alt="20 live topics on both clouds: main cloud median 2.8 s, backup cloud alone median 4.0 s, 20 of 20 passed on each."></p>
+<p align="center"><img src="docs/room-due-today.jpg" width="49%" alt="The next day in the emulator: the stages due today glow and are marked, the resting stage waits."> <img src="docs/room-look-to-select.jpg" width="49%" alt="Look to select: the gaze ring fills on a stage to open it, no hands."></p>
+<p align="center"><img src="docs/film-rig.jpg" width="80%" alt="How the video was filmed: a frame-by-frame rig inside the emulator, 3,220 frames across 20 takes, 0 AI-generated frames."></p>
 
 ## Try it in 60 seconds
 
