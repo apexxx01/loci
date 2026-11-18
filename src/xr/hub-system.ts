@@ -465,7 +465,7 @@ export class HubSystem extends createSystem({}) {
   private refresh(): void {
     const palace = app.palace;
     this.setDisplay('section-decks', !palace && !this.asking);
-    this.setDisplay('btn-chain', palace?.deck.kind === 'concept');
+    this.setDisplay('row-chain', palace?.deck.kind === 'concept');
     this.setText('btn-chain-label', app.chainMode ? 'Stop chain practice' : 'Rebuild the chain');
     this.setDisplay('section-ask', !palace && this.asking);
     this.setDisplay('browse-block', this.browsing);
@@ -486,7 +486,7 @@ export class HubSystem extends createSystem({}) {
     const now = new Date();
     this.setText('hub-heading', palace.deck.title);
     this.setText('hub-tagline', palace.deck.kind === 'concept' ? 'Follow the light from stage to stage.' : `${palace.deck.subtitle}.`);
-    this.setText('palace-title', palace.deck.title.toUpperCase());
+    this.setText('palace-title', `YOUR PALACE: ${palace.deck.items.length} ${palace.deck.kind === 'concept' ? 'STAGES' : 'MEMORIES'}`);
     this.setDisplay('stats-row', palace.history.length > 0);
     this.setText('stat-due', String(dueIds(palace, now).length));
     // Early on, mastery and a streak are both zero, which reads as failure on a

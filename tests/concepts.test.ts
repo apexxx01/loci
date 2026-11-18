@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { gradePrompt, teachPrompt, vetConceptOutput, vetGrade } from '../src/core/architect.js';
-import { CONCEPTS, conceptById } from '../src/core/concepts.js';
+import { gradePrompt, mythRestatesFact, teachPrompt, vetConceptOutput, vetGrade } from '../src/core/architect.js';
+import { CONCEPTS, LOCI_METHOD, conceptById } from '../src/core/concepts.js';
 import { gradeOffline } from '../src/core/grade.js';
 import { checkMnemonic } from '../src/core/safety.js';
 import { DeckSchema, PalaceSchema } from '../src/core/schema.js';
@@ -138,3 +138,17 @@ describe('fact-check pass', () => {
   });
 });
 
+
+describe('myth checks that are not myths', () => {
+  it('drops a myth that restates its own fact', () => {
+    expect(mythRestatesFact("Checking your own credit doesn't affect your score.", "Checking your own credit (soft inquiry) doesn't affect your score.")).toBe(true);
+    expect(mythRestatesFact('The heart has four chambers.', 'The heart has four chambers, two atria and two ventricles.')).toBe(true);
+  });
+  it('keeps a real myth even when it shares most words with the fact', () => {
+    expect(mythRestatesFact('Veins carry blue blood.', 'Veins carry dark red blood.')).toBe(false);
+    expect(mythRestatesFact("Checking your own credit lowers your score.", "Checking your own credit doesn't affect your score.")).toBe(false);
+  });
+  it('every shipped concept keeps all of its myth checks', () => {
+    for (const c of [...CONCEPTS, LOCI_METHOD]) for (const it of c.items) if (it.check) expect(mythRestatesFact(it.check.wrong, it.check.right), `${c.title}: ${it.cue}`).toBe(false);
+  });
+});

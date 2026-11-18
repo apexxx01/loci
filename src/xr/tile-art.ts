@@ -309,9 +309,9 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     ctx.textAlign = 'center';
     ctx.fillStyle = color;
     // As large as fits: this line is read from across the room.
-    let px = 36;
+    let px = 48;
     ctx.font = `500 ${px}px ${UI_FONT}`;
-    while (px > 22 && ctx.measureText(text).width > w - 44) ctx.font = `500 ${(px -= 2)}px ${UI_FONT}`;
+    while (px > 26 && ctx.measureText(text).width > w - 40) ctx.font = `500 ${(px -= 2)}px ${UI_FONT}`;
     ctx.fillText(text, cx, y);
   };
   const left = 60;
@@ -333,7 +333,7 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
     const f = fitText(ctx, title, w - 150, 2, 62, 44, 400, DISPLAY_FONT);
     const lh = f.px * 1.18;
     const boxH = 120 + lh * f.lines.length;
-    const y0 = h - 80 - boxH;
+    const y0 = h - 98 - boxH;
     glass(ctx, 24, y0, w - 48, boxH, 44, due || fresh ? 1 : 0.15, style.contrast);
     // Stage number in a ring.
     ctx.beginPath();
@@ -351,8 +351,8 @@ function drawConcept(ctx: CanvasRenderingContext2D, item: MemoryItem, face: Face
       ctx.fillText(l, cx, y0 + 96 + lh * 0.82 + i * lh);
     });
     const pinch = style.dwell ? 'look' : 'pinch';
-    if (style.hideOrder) return hint(`${pinch} if this comes next`, h - 26);
-    hint(fresh ? (style.surfaceLabel ? `on your ${style.surfaceLabel}, ${pinch} to open` : `${pinch} to open`) : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 26, fresh || due ? accent : 'rgba(240,235,255,0.55)');
+    if (style.hideOrder) return hint(`${pinch} if this comes next`, h - 22);
+    hint(fresh ? (style.surfaceLabel ? `on your ${style.surfaceLabel}, ${pinch} to open` : `${pinch} to open`) : due ? `what happens here? ${pinch}` : `rests until ${style.restLabel}`, h - 22, fresh || due ? accent : 'rgba(240,235,255,0.55)');
     return;
   }
 

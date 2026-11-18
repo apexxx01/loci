@@ -19,12 +19,12 @@ export const HEADSET: Feature[] = [
   {
     title: 'Reads your room', group: 'Placing', at: [8, 48],
     text: 'Loci uses the headset’s scene understanding, the surfaces Space Setup has already labelled as table, couch, shelf, screen and more, to find real places to put things.',
-    verified: 'Emulator test: 8 memories on 8 different objects.',
+    verified: 'Emulator test: 8 different synthetic rooms, 47 of 48 stages placed on real furniture, every room on the first try.',
   },
   {
-    title: 'One memory, one object', group: 'Placing', at: [14, 30],
-    text: 'Each memory gets an object of its own. Duplicate surfaces and spots hidden behind furniture are skipped, and the walk runs left to right so your eyes sweep the room in order.',
-    verified: 'Emulator test: wall art, plant, window, lamp, table, couch, shelf, screen.',
+    title: 'Spread across the room', group: 'Placing', at: [14, 30],
+    text: 'Stages spread across different objects. Duplicate surfaces and spots hidden behind furniture are skipped, and the chain runs left to right so your eyes sweep the room in order.',
+    verified: 'Emulator test: in every room, six stages on at least four different objects.',
   },
   {
     title: 'Sized for the distance', group: 'Placing', at: [29, 17],
@@ -67,13 +67,13 @@ export const HEADSET: Feature[] = [
   },
   {
     title: 'A library of palaces', group: 'Keeping', at: [14, 66],
-    text: 'Keep up to 12 palaces and switch between them from the panel. The first time, a four-step coach teaches the whole loop one instruction at a time.',
+    text: 'Keep up to 12 palaces and switch between them from the panel. The first time, a small drawn hand shows the pinch beside your first stage, with nothing to read.',
   },
 ];
 
 export const PIPELINE: { title: string; text: string }[] = [
   { title: 'Your words', text: 'Notes, a topic, a speech, a list of words or names. Up to 12 memories at a time. Numbers never leave your device.' },
-  { title: 'Three models, one answer', text: 'Gemini writes the palace as structured data. If it has not answered in 3.5 seconds, a backup model starts in parallel and the first good answer wins.' },
+  { title: 'Never stuck waiting', text: 'One model writes the palace as structured data. If it has not answered in 2.5 seconds, a second starts in parallel and the first good answer wins; if every one fails, a backup on another cloud answers instead.' },
   { title: 'Every line checked', text: 'A rule-based check reads each picture and rejects brands, adult words, and any name that is not in your own notes. A failed picture is replaced with a plain one.' },
   { title: 'You decide', text: 'You see every memory before it reaches your room, and can remove any of them.' },
   { title: 'Woven into your room', text: 'Once placed, each picture is rewritten around what its object does: a lamp heats, a couch sinks, a window fogs.' },
@@ -130,12 +130,12 @@ export const RECEIPTS: { n: string; unit?: string; text: string }[] = [
   {
     n: String(R.e2eRuns.lookOnly.passed),
     unit: `/${R.e2eRuns.lookOnly.checks}`,
-    text: 'look-only checks passing in the emulator: asking a question, a concept, a stage, its myth check and the whole chain, with no hands at all',
+    text: 'look-only checks passing in the emulator: typing a question, a concept, a stage, its myth check and the whole chain, with no hands at all',
   },
   {
     n: String(R.e2eRuns.dayAfter.passed),
     unit: `/${R.e2eRuns.dayAfter.checks}`,
-    text: 'day-after checks: four days on, every stage is back in the same spot, the due ones are awake, and the panel says how many are waiting',
+    text: 'day-after checks: the next day, every stage is back in the same spot, the due ones are awake, and the panel says how many are waiting',
   },
   {
     n: String(R.e2eRuns.glasses.passed),

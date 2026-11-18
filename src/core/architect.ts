@@ -217,7 +217,7 @@ For each stage produce:
 - why: why that is true or why it matters, one sentence, max 24 words. Teach the reason, not a restatement.
 - scene: ONE vivid, concrete, slightly absurd picture (max 24 words) that makes the claim memorable.
 - glyphs: 1 to 3 emoji that depict the scene.
-- wrong: ONE misconception about this stage that real people genuinely believe (the kind teachers have to correct), stated confidently as if true (max 18 words). Never a silly or absurd invention; it must sound plausible to a beginner.
+- wrong: ONE misconception about this stage that real people genuinely believe (the kind teachers have to correct), stated confidently as if true (max 18 words). It must be FALSE: never a true statement, and never the same claim as "right" with a word added. Never a silly or absurd invention; it must sound plausible to a beginner.
 - right: the accurate statement that corrects it, in the same shape (max 18 words).
 - link: how this stage causes or leads into the next one, a short verb phrase (max 10 words). Empty string for the last stage.
 
@@ -258,6 +258,25 @@ export function teachPrompt(topic: string, audience: Audience = 'adult'): string
   return `${TEACH_RULES}\n${AUDIENCE_RULES[audience]}\n\nWhat the learner wants to understand (a topic, a question, or their own notes to explain):\n"""\n${sanitizeUserText(topic, 4000)}\n"""`;
 }
 
+const STOP = new Set('a an the of to in on for and or is are was be it its your you that this with as by at from can'.split(' '));
+const NEG = new Set("not no never none nothing doesn't don't isn't aren't wasn't won't can't cannot without only".split(' '));
+const words = (t: string) => new Set(norm(t.replace(/\([^)]*\)/g, ' ')).split(/[^a-z0-9']+/).filter((w) => w && !STOP.has(w)));
+/**
+ * A myth that says the same as its fact is not a myth: the fact only adds a
+ * parenthetical or a few words to it (or the other way round). Such a pair
+ * would ask the learner to reject something true, so the check is dropped.
+ */
+export function mythRestatesFact(wrong: string, right: string): boolean {
+  const a = words(wrong), b = words(right);
+  if (!a.size || !b.size) return true;
+  // "...underground, not in rivers" contradicts "...in rivers": a negation on one side only is a real correction.
+  const negs = (s: Set<string>) => [...s].filter((w) => NEG.has(w)).sort().join(' ');
+  if (negs(a) !== negs(b)) return false;
+  const inB = [...a].every((w) => b.has(w));
+  const inA = [...b].every((w) => a.has(w));
+  return inA || inB;
+}
+
 /** Validate and clean a concept. Unsafe scenes are replaced; an unsafe myth check is dropped. */
 export function vetConceptOutput(raw: unknown, topic: string, id: string): VetResult | null {
   const parsed = ArchitectConceptSchema.safeParse(clampConcept(raw));
@@ -271,7 +290,7 @@ export function vetConceptOutput(raw: unknown, topic: string, id: string): VetRe
       repaired++;
       scene = `Picture ${st.cue.toLowerCase()} happening right in front of you, glowing as it goes.`;
     }
-    const checkOk = [st.wrong, st.right].every((t) => checkMnemonic(t, source).ok) && norm(st.wrong) !== norm(st.right);
+    const checkOk = [st.wrong, st.right].every((t) => checkMnemonic(t, source).ok) && !mythRestatesFact(st.wrong, st.right);
     const glyphs = st.glyphs.filter(isEmojiish).slice(0, 3);
     const last = order === stages.length - 1;
     return {

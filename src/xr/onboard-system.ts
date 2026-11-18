@@ -7,7 +7,7 @@
 import { CanvasTexture, createSystem, Sprite, SpriteMaterial, SRGBColorSpace, Vector3 } from '@iwsdk/core';
 import { bus } from './app-state.js';
 import { CheckSystem } from './check-system.js';
-import { PalaceSystem } from './palace-system.js';
+import { PalaceSystem, type TileRecord } from './palace-system.js';
 import { TILE_SIZE } from './tile.js';
 
 const KEY = 'loci.onboarded.v1';
@@ -101,7 +101,9 @@ export class OnboardSystem extends createSystem({}) {
     if (this.step === 'off') return;
     this.t += delta;
     const palace = this.world.getSystem(PalaceSystem);
-    const first = palace && [...palace.records.values()].sort((a, b) => a.item.order - b.item.order)[0];
+    // The lowest-order stage, found without allocating (this runs every frame).
+    let first: TileRecord | undefined;
+    if (palace) for (const r of palace.records.values()) if (!first || r.item.order < first.item.order) first = r;
     const checks = this.world.getSystem(CheckSystem);
     if (this.step === 'choose' && checks?.active) {
       // Between the two answers.

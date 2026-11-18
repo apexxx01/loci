@@ -136,10 +136,12 @@
       </div>
     </div>
     <div id="palace-howto" class="hint">Pinch a memory to turn it over.</div>
-    <Button id="btn-chain" class="btn">
-      <ButtonIcon><Link></Link></ButtonIcon>
-      <ButtonLabel class="lbl" id="btn-chain-label">Rebuild the chain</ButtonLabel>
-    </Button>
+    <div id="row-chain" class="row">
+      <Button id="btn-chain" class="btn">
+        <ButtonIcon><Link></Link></ButtonIcon>
+        <ButtonLabel class="lbl" id="btn-chain-label">Rebuild the chain</ButtonLabel>
+      </Button>
+    </div>
     <div class="row">
       <Button id="btn-refit" class="btn">
         <ButtonIcon><RefreshCw></RefreshCw></ButtonIcon>
@@ -159,10 +161,12 @@
   </div>
 
   <div class="section">
-    <Button id="btn-access" class="btn">
-      <ButtonIcon><Accessibility></Accessibility></ButtonIcon>
-      <ButtonLabel class="lbl" id="btn-access-label">Comfort and access</ButtonLabel>
-    </Button>
+    <div class="row">
+      <Button id="btn-access" class="btn">
+        <ButtonIcon><Accessibility></Accessibility></ButtonIcon>
+        <ButtonLabel class="lbl" id="btn-access-label">Comfort and access</ButtonLabel>
+      </Button>
+    </div>
   </div>
   <div id="section-access" class="section" style="display: none">
     <div class="row">

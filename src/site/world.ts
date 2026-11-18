@@ -529,7 +529,8 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
       if (!text) return;
       const { tex, aspect } = labelTexture(text, `Stage ${i + 1}`);
       const s = new Sprite(new SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0 }));
-      const h = 0.5;
+      // Long titles keep the width of a short one, so a name never runs off the frame.
+      const h = Math.min(0.5, 2.3 / aspect);
       s.scale.set(h * aspect, h, 1);
       s.position.copy(NODES[i]).add(new Vector3(0, 0.62, 0));
       scene.add(s);
@@ -655,7 +656,7 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
         if (side !== 0 && proj.x * -side > -0.12) on = 0;
       }
       const m = l.s.material as SpriteMaterial;
-      m.opacity += (on * (1 - dim * 0.5) - m.opacity) * Math.min(1, dt * 3);
+      m.opacity += (on * (1 - dim) - m.opacity) * Math.min(1, dt * 3);
       l.s.position.y = NODES[l.t].y + 0.55 + m.opacity * 0.08 + (calm ? 0 : Math.sin(time * 0.8 + l.t) * 0.02);
     });
 

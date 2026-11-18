@@ -10,7 +10,7 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Permissions-Policy", "value": "xr-spatial-tracking=(self), camera=(), microphone=(), geolocation=()" },
+        { "key": "Permissions-Policy", "value": "xr-spatial-tracking=(self), camera=(), microphone=(self), geolocation=()" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]

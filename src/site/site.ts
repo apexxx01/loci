@@ -355,8 +355,13 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
 
   /* ---------- the palace */
   const world = createWorld($<HTMLCanvasElement>('.sky'));
-  void (world?.ready ?? Promise.resolve()).then(() => root.classList.add('is-ready'));
-  setTimeout(() => root.classList.add('is-ready'), 1800);
+  const ready = () => {
+    root.classList.add('is-ready');
+    document.body.classList.add('boot-done');
+    setTimeout(() => document.getElementById('boot')?.remove(), 900);
+  };
+  void (world?.ready ?? Promise.resolve()).then(ready);
+  setTimeout(ready, 1800);
 
   const N = STATIONS.length - 1; // 6 steps from the approach to the door
   const stationY = (i: number) => walk.offsetTop + (Math.min(i, N) / N) * (walk.offsetHeight - root.clientHeight);
@@ -630,9 +635,15 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
           askInput.value = before + Array.from(e.results).map((r) => r[0].transcript).join(' ');
           grow();
         };
-        rec.onend = rec.onerror = () => {
+        let failed = false;
+        rec.onerror = () => {
+          failed = true;
+          askStatus.textContent = 'The microphone is not available here. Type your question instead.';
+        };
+        rec.onend = () => {
           rec = null;
           mic.setAttribute('aria-pressed', 'false');
+          if (!failed && askStatus.textContent?.startsWith('Listening')) askStatus.textContent = '';
           askInput.focus();
         };
         mic.setAttribute('aria-pressed', 'true');
@@ -748,6 +759,8 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       <button class="linkish" type="button" data-remind-mine>Remind me to walk it again</button></div>
       <p class="small">${res.offline ? 'Checked by hand before it shipped.' : 'Written by the Palace Architect. It can be wrong, so check anything important against your own source.'}</p>`;
     askDone.querySelector('[data-walk-now]')?.addEventListener('click', () => scrollTo(stationY(1) + 2));
+    // The result now owns the bottom of the first screen; its own button leads into the walk.
+    root.querySelector('[data-scrollcue]')?.classList.add('is-gone');
     // A second pass reads every stage again, looking only for mistakes.
     if (!res.offline) {
       const check = document.createElement('p');
@@ -970,10 +983,10 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
   const paintEnter = () => {
     const palace = opts.getPalace();
     enterButtons().forEach((b) => {
-      if (b.classList.contains('b--small')) b.textContent = hasXR ? 'Enter your room' : 'Try it here';
+      if (b.classList.contains('b--small')) b.textContent = hasXR ? 'Enter your room' : 'Walk it here';
       else if (b.closest('[data-xr-now]')) b.textContent = chosen ? 'Put it in my room' : opts.getPalace() ? 'Return to my palace' : 'Start in my room';
-      else if (b.closest('[data-chosen]')) b.textContent = hasXR ? 'Enter with it' : 'Preview it here';
-      else b.textContent = !hasXR ? 'Preview on this screen' : chosen ? 'Enter with your new palace' : palace ? 'Return to your palace' : 'Enter your palace';
+      else if (b.closest('[data-chosen]')) b.textContent = hasXR ? 'Enter with it' : 'Walk it here';
+      else b.textContent = !hasXR ? 'Walk it on this screen' : chosen ? 'Enter with your new palace' : palace ? 'Return to your palace' : 'Enter your palace';
     });
     $('[data-chosen]').hidden = !chosen;
     if (chosen) $('[data-chosen-text]').textContent = `${chosen.title} is ready: ${chosen.items.length} ${chosen.items.length === 1 ? 'memory' : 'memories'} to place around your room. Palaces you already keep stay in your library.`;
@@ -985,8 +998,8 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       opts.onDeckReady(chosen);
       opts.launchXR();
     } else {
-      root.hidden = true;
-      opts.onPreviewDeck(chosen);
+      // Without a headset the walk is the experience: take them into it.
+      scrollTo(stationY(1) + 2);
     }
   };
   root.addEventListener('click', (e) => {
@@ -1282,10 +1295,10 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
     const live = $('[data-live]');
     fetch('/api/architect', { cache: 'no-store' })
       .then((r) => r.json())
-      .then((h: { ok?: boolean; configured?: boolean; model?: string; fallbacks?: string[] }) => {
+      .then((h: { ok?: boolean; configured?: boolean; model?: string; fallbacks?: string[]; bedrock?: string | null }) => {
         if (!h.ok || !h.configured) throw new Error('down');
         live.classList.add('is-on');
-        live.querySelector('span')!.textContent = `Online now: ${h.model}, with ${(h.fallbacks ?? []).join(' and ')} as backups.`;
+        live.querySelector('span')!.textContent = `Online now, with ${(h.fallbacks ?? []).length + (h.bedrock ? 1 : 0)} backups ready if it is busy.`;
       })
       .catch(() => {
         live.classList.add('is-off');
@@ -1306,7 +1319,7 @@ export function mountSite(opts: SiteOptions): { hide(): void; show(): void; focu
       sceneEl.classList.remove('is-new');
       void sceneEl.offsetWidth;
       sceneEl.classList.add('is-new');
-      noteEl.textContent = f ? `Just now, from ${f.model}, in ${(f.ms / 1000).toFixed(1)} seconds.` : `Saved from a real run on 15 November, from ${WEAVE.model}.`;
+      noteEl.textContent = f ? `Just now, in ${(f.ms / 1000).toFixed(1)} seconds.` : 'Saved from a real run on 15 November.';
     };
     objEl.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-obj]');

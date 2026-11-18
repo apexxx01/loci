@@ -72,7 +72,7 @@ button { font-family: inherit; }
 .top { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; align-items: center; gap: 28px; padding: 18px var(--pad);
   opacity: 0; transition: opacity 1.4s ease 0.4s, background 0.6s, backdrop-filter 0.6s; }
 .is-ready .top { opacity: 1; }
-.is-moving .top { background: linear-gradient(rgba(7, 6, 28, 0.7), rgba(7, 6, 28, 0)); }
+.is-moving .top { background: linear-gradient(rgba(7, 6, 28, 0.94) 55%, rgba(7, 6, 28, 0)); padding-bottom: 30px; }
 .is-after .top { background: linear-gradient(rgba(7, 6, 28, 0.94) 55%, rgba(7, 6, 28, 0)); padding-bottom: 34px; }
 .brand { font: 400 26px/1 var(--serif); letter-spacing: 0.08em; color: var(--white); text-decoration: none; text-shadow: 0 0 22px rgba(255, 214, 160, 0.5); }
 .menu { display: flex; gap: 26px; margin-left: auto; }
@@ -542,7 +542,7 @@ button { font-family: inherit; }
 .scrollcue span { opacity: 0; transition: opacity 1s ease 0.5s, text-shadow 0.6s; }
 .scrollcue.is-lit { opacity: 1; transform: translate(-50%, 0); }
 .scrollcue.is-lit span { opacity: 1; }
-.is-moving .scrollcue, .is-breathing .scrollcue { opacity: 0 !important; transform: translate(-50%, 10px); pointer-events: none; }
+.is-moving .scrollcue, .is-breathing .scrollcue, .scrollcue.is-gone { opacity: 0 !important; transform: translate(-50%, 10px); pointer-events: none; }
 .scrollcue:hover, .scrollcue:focus-visible { color: #fff; }
 .scrollcue:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; border-radius: 10px; }
 .scrollcue i { position: relative; display: block; width: 1px; height: var(--len); background: linear-gradient(rgba(255, 217, 156, 0), rgba(255, 217, 156, 0.6)); }
