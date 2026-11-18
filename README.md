@@ -4,7 +4,7 @@
 
 Built with the Immersive Web SDK (WebXR) for the Meta VR Start Developer Competition 2026, Productivity track.
 
-**Live:** https://loci-vr.vercel.app
+**Live:** https://loci-vr.vercel.app · **Demo video (2:56):** https://youtu.be/oSASO_MFoDQ
 
 <p>
   <img src="docs/walk-stage.jpg" width="49%" alt="The website walk: stage 1 of how the heart pumps blood, resting on a couch, with its myth check underneath">

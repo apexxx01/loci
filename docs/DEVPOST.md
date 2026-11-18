@@ -30,6 +30,9 @@ Loci turns any question into a walk of 4 to 7 stages placed on your real furnitu
 
 Built solo, without a headset: every mixed-reality test and shot is in the Immersive Web Emulator's synthetic rooms. Limits are listed in the README.
 
+
+**Demo video:** https://youtu.be/oSASO_MFoDQ · **Live:** https://loci-vr.vercel.app · **Repo:** https://github.com/apexxx01/loci
+
 ## Inspiration
 
 The oldest memory trick there is, the method of loci, works because the brain keeps facts by place. Place cells and grid cells won the 2014 Nobel Prize; 9 of the 10 memory champions scanned in a 2003 study used the method; people with ordinary memory went from 26 to 62 of 72 words after 40 days of practice. The hard part was always imagining the palace. Quest 3 can see your room, so it never has to be imagined again.
