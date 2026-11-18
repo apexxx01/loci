@@ -264,3 +264,113 @@ def chain():
     fr += F.hold(e, b, 1.0)
     F.run('.tmp/film/chain', fr, start=0, release=True, chunk=45)
     print('chain', ev("return window.__loci.app.status"), flush=True)
+
+
+def wpos(name):
+    """World position of a named scene object (null if missing)."""
+    return ev(f"const o=window.__loci.world.scene.getObjectByName({json.dumps(name)}); if(!o) return null; const v=o.getWorldPosition(new o.position.constructor()); return [v.x,v.y,v.z]")
+
+
+def understand():
+    """Scene understanding made visible, then stages land on it: the panel is set aside
+    for this shot, the emulator's planes and furniture boxes shown strongly, then faded."""
+    prep('sunlit_living_room')
+    hide_hand('right')
+    hide_hand('left')
+    ev("""const s=window.IWER_DEVICE.sem; s.planes.visible=true; s.boxes.visible=true;
+      const op=(root,a)=>root.traverse(o=>{ if(o.material){ const m=Array.isArray(o.material)?o.material:[o.material]; for(const x of m){ x.transparent=true; x.opacity=a; x.needsUpdate=true; } } });
+      op(s.planes,0.42); op(s.boxes,0.5);
+      const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1""")
+    e = [0.0, 1.2, 0.3]
+    a, b = [-1.5, 0.95, -2.3], [1.5, 0.9, -2.2]
+    fr = F.move(e, e, a, [0.0, 0.85, -2.3], 2.4)
+    fr[50]['js'] = "window.__loci.debug.press('btn-browse')"
+    fr[60]['js'] = "window.__loci.debug.press('concept-heart')"
+    fade = F.move(e, e, [0.0, 0.85, -2.3], b, 6.0)
+    for i in range(30):
+        a_ = 0.42 * (1 - (i + 1) / 30)
+        fade[i]['js'] = f"const s=window.IWER_DEVICE.sem; const op=(r,a)=>r.traverse(o=>{{ if(o.material){{ const m=Array.isArray(o.material)?o.material:[o.material]; for(const x of m) x.opacity=a; }} }}); op(s.planes,{a_:.3f}); op(s.boxes,{a_ * 1.2:.3f}); if({i}===29){{ s.planes.visible=false; s.boxes.visible=false; }}"
+    fr += fade
+    fr[-30]['js'] = "const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=true;"
+    F.run('.tmp/film/understand', fr, start=0, release=True, chunk=45)
+
+
+def comfort():
+    """High contrast and larger tiles switched on from the panel."""
+    ev("window.__film && (window.__film.on=false); return 1")
+    hide_hand('right')
+    ev("window.__loci.debug.press('btn-access'); return 1")
+    time.sleep(3)
+    hub = wpos('Loci Hub')
+    e = [0.0, 1.2, 0.3]
+    look = [hub[0] * 0.4 + 0.15, hub[1] + 0.25, (hub[2] + -2.3) / 2]
+    fr = F.hold(e, look, 4.2)
+    fr[20]['js'] = "window.__loci.debug.press('acc-contrast')"
+    fr[62]['js'] = "window.__loci.debug.press('acc-large')"
+    F.run('.tmp/film/comfort', fr, start=0, release=True, chunk=45)
+    ev("const L=window.__loci; for (const k of ['contrast','large']) if (L.settings[k]) L.toggleSetting(k); return 1")
+    ev("window.__loci.debug.press('btn-access'); return 1")
+
+
+def look2():
+    """Look to select up close: the dwell ring fills on a stage, its myth check opens,
+    the ring fills on the true statement, and the verdict shows."""
+    ev("window.__film && (window.__film.on=false); return 1")
+    PAL = "[...window.__loci.world.systems].find(s => s.constructor.name === 'PalaceSystem')"
+    REC = "[...window.__loci.world.systems].find(s => s.constructor.name === 'RecallSystem')"
+    ev(f"for (const r of {PAL}.records.values()) {REC}.rate(r, 'good'); return 1")
+    time.sleep(3)
+    xr('set-connected', {'device': 'hand-right', 'connected': False})
+    xr('set-connected', {'device': 'hand-left', 'connected': False})
+    ev("const L=window.__loci; if (!L.settings.dwell) L.toggleSetting('dwell'); const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=false; return 1")
+    time.sleep(2)
+    t = targets()
+    order = {int(k.rsplit(':', 1)[1]): pos(v) for k, v in t.items() if k.startswith('tile:')}
+    i = min(order, key=lambda k: abs(order[k][0]) + abs(order[k][1] - 0.9))
+    p = order[i]
+    e0 = [0.0, 1.2, 0.3]
+    e1 = [p[0] * 0.7, p[1] + 0.15, p[2] + 1.05]
+    near = [p[0], p[1] + 0.02, p[2]]
+    away = [p[0] - 0.7, p[1] - 0.2, p[2]]
+    d = '.tmp/film/look2'
+    fr = F.move(e0, e1, away, away, 1.2)
+    fr += F.move(e1, e1, away, near, 0.6)
+    fr += F.hold(e1, near, 2.2)
+    F.run(d, fr, start=0, release=False, chunk=45)
+    n = len(fr)
+    wf = ev(f"return window.__loci.debug.records()[{i}].wrongFirst")
+    right = wpos('choice-B' if wf else 'choice-A')
+    print('stage', i, 'right at', right, flush=True)
+    if right:
+        fr = F.move(e1, e1, near, right, 0.6)
+        fr += F.hold(e1, right, 1.7)
+        fr += F.move(e1, e1, right, near, 0.5)
+        fr += F.hold(e1, near, 1.5)
+        F.run(d, fr, start=n, release=True, chunk=45)
+    print('look2', json.dumps(ev("return window.__loci.debug.records().map(r=>[r.label,r.face,r.lastCheck])")), flush=True)
+    xr('set-connected', {'device': 'hand-right', 'connected': True})
+    xr('set-connected', {'device': 'hand-left', 'connected': True})
+    ev("const L=window.__loci; if (L.settings.dwell) L.toggleSetting('dwell'); const h=window.__loci.world.scene.getObjectByName('Loci Hub'); if(h) h.visible=true; return 1")
+
+
+def generated():
+    """A question asked in the headset, answered live by the Architect, landing on the furniture."""
+    prep('sunlit_living_room')
+    hide_hand('right')
+    hide_hand('left')
+    for name in ['btn-ask', 'pre-how', 'key-c', 'key-o']:
+        ev(f"window.__loci.debug.press('{name}'); return 1")
+        time.sleep(1.5)
+    ev("window.__loci.debug.press('pre-how'); return 1")
+    time.sleep(1.5)
+    print('asking:', ev("return window.__loci.app.status"), flush=True)
+    hub = wpos('Loci Hub')
+    e = [0.0, 1.2, 0.0]
+    look0 = [hub[0] * 0.6, hub[1] - 0.05, hub[2]]
+    fr = F.hold(e, look0, 1.0)
+    fr[12]['js'] = "window.__loci.debug.press('ask-go')"
+    fr += F.hold(e, look0, 3.0)
+    fr += F.move(e, e, look0, [-1.3, 0.95, -2.4], 1.6)
+    fr += F.move(e, e, [-1.3, 0.95, -2.4], [1.4, 0.9, -2.3], 6.5)
+    F.run('.tmp/film/generated', fr, start=0, release=True, chunk=45)
+    print('generated:', ev("const a=window.__loci.app; return [a.status, a.palace?.deck.title, a.palace?.placements.map(p=>p.label)]"), flush=True)

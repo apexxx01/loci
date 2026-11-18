@@ -20,6 +20,20 @@ function localApi(): Plugin {
         const url = req.url ?? '';
         if (!url.startsWith('/api/')) return next();
         const name = url.slice(5).split('?')[0].replace(/[^a-z-]/g, '');
+        // LOCI_API_ORIGIN=https://... forwards to a deployed API instead (no local keys needed).
+        const origin = process.env.LOCI_API_ORIGIN;
+        if (origin) {
+          const chunks: Buffer[] = [];
+          for await (const c of req) chunks.push(c as Buffer);
+          const r = await fetch(origin + url, {
+            method: req.method,
+            headers: { 'content-type': String(req.headers['content-type'] ?? 'application/json') },
+            body: req.method === 'GET' || req.method === 'HEAD' ? undefined : Buffer.concat(chunks),
+          });
+          res.statusCode = r.status;
+          res.setHeader('content-type', r.headers.get('content-type') ?? 'application/json');
+          return res.end(Buffer.from(await r.arrayBuffer()));
+        }
         try {
           const mod = await server.ssrLoadModule(`/api/${name}.ts`);
           const handler = mod[req.method ?? 'GET'];

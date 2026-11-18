@@ -411,10 +411,11 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
   /* ---------- 6 the far door, open a crack with warm light behind */
   const doorGlow = new ShaderMaterial({
     vertexShader: BASIC_VERT,
-    fragmentShader: `precision mediump float; varying vec2 vUv; uniform float uOpen, uDim;
+    fragmentShader: `precision mediump float; varying vec2 vUv; uniform float uOpen, uDim, uSoft;
       void main(){ float edge = smoothstep(0., .5, vUv.x) * smoothstep(1., .5, vUv.x);
-        gl_FragColor = vec4(vec3(1., .82, .55) * (.4 + uOpen * 1.6), (.18 + uOpen * .75) * (1. - uDim * .4) * (.6 + edge * .4)); }`,
-    uniforms: { uOpen: { value: 0 }, uDim: shared.uDim },
+        gl_FragColor = vec4(vec3(1., .82, .55) * (.4 + uOpen * 1.6), (.18 + uOpen * .75) * (1. - uDim * .4) * (.6 + edge * .4) * (1. - uSoft * .75)); }`,
+    // uSoft: the light softens once the explain-back words sit in front of it.
+    uniforms: { uOpen: { value: 0 }, uDim: shared.uDim, uSoft: { value: 0 } },
     transparent: true,
     depthWrite: false,
     blending: AdditiveBlending,
@@ -644,6 +645,7 @@ export function createWorld(canvas: HTMLCanvasElement): World | null {
     nightMat.uniforms.uDim.value = dim;
     moteMat.uniforms.uTime.value = time;
     doorGlow.uniforms.uOpen.value = smooth(clamp01((cur - 5.3) / 0.8));
+    doorGlow.uniforms.uSoft.value = smooth(clamp01((cur - 5.7) / 0.35));
 
     // Each stage name rises into view once the thread has reached its object.
     labels.forEach((l) => {
